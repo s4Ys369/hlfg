@@ -1,0 +1,20 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "GDB",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "Z:/home/s4ys/frog_test/build/frog_test.elf",
+            "cwd": "Z:/home/s4ys/frog_test",
+            "MIMode": "gdb",
+            "miDebuggerPath": "C:/msys64/mingw64/bin/gdb-multiarch.exe",
+            "miDebuggerServerAddress": "[::1]:6969",
+            "miDebuggerArgs": "-readnow",
+            "stopAtEntry": true,
+        }
+    ]
+}
