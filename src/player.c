@@ -59,6 +59,7 @@ float gravity;
 float jumpForce;
 int score;
 int tongueRetract;
+bool activateSpring[NUM_SPRINGS] = {false};
 
 void player_init(void){
   modelMatFP = malloc_uncached(sizeof(T3DMat4FP));
@@ -206,15 +207,12 @@ void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount) {
             playerBox.center.v[2] >= currentBouncepad->min.v[2]) {
           isFalling = false;
           playerBounced = true;
-          if (springActive[i]){
-            t3d_anim_set_time(&animsSpring[i], animBlend);
-          }
-          springActive[i] = true;
+          activateSpring[i] = true;
           t3d_anim_set_playing(&animsSpring[i], true);
           wav64_play(&sfx_bounce, 0);
           wav64_play(&sfx_boing, 1);
           mixer_try_play();
-           break;
+          break;
         }   
       }
     }
@@ -225,7 +223,6 @@ void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount) {
     isGrounded = true;
     isJumping = true;
     isFalling = false;
-    currSpeed *= 15.0f;
     springForce += gravity * deltaTime;
     playerPos.v[1] += springForce * deltaTime;
     playerBox.center.v[0] += playerPos.v[0] * deltaTime;

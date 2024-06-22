@@ -60,6 +60,7 @@ extern float gravity;
 extern float jumpForce;
 extern int score;
 extern int tongueRetract;
+extern bool activateSpring[NUM_SPRINGS];
 
 void player_init(void);
 void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount);

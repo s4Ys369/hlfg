@@ -139,7 +139,7 @@ void springs_init(void){
     t3d_anim_set_looping(&animsSpring[i], false);
     t3d_anim_set_playing(&animsSpring[i], false);
     t3d_anim_set_time(&animsSpring[i], 0.0f);
-    //t3d_anim_set_speed(&animsSpring[i], 20.0f);
+    t3d_anim_set_speed(&animsSpring[i], 2.5f);
     t3d_anim_attach(&animsSpring[i], &springSkels[i]);
 
     springActive[i] = false;
@@ -168,13 +168,21 @@ void springs_init(void){
 void spring_update(void){
   for (int i = 0; i < NUM_SPRINGS; ++i) {
     t3d_mat4fp_from_srt_euler(springMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, springPos[i].v);
+    if(activateSpring[i]){
+      springActive[i] = true;
+      activateSpring[i] = false;
+    }
+
     if(springActive[i]) {
+      t3d_anim_set_playing(&animsSpring[i], true);
       t3d_anim_update(&animsSpring[i], deltaTime);
     }
+
     if(!animsSpring[i].isPlaying) {
       t3d_anim_set_time(&animsSpring[i], 0.0f);
       springActive[i] = false;
     }
+
   }
 }
 
