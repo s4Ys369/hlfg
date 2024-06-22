@@ -22,12 +22,19 @@ AABB lilypadBox[NUM_LILYPADS];
 rspq_block_t *dplLilypad[NUM_LILYPADS];
 rspq_block_t *dplDebugBox[NUM_LILYPADS];
 T3DModel *modelLilyPad;
+
 T3DMat4FP* springMatFP[NUM_SPRINGS];
 T3DVec3 springPos[NUM_SPRINGS];
 AABB springBox[NUM_SPRINGS];
 rspq_block_t *dplSpring[NUM_SPRINGS];
 rspq_block_t *dplDebugBox2[NUM_SPRINGS];
-T3DModel *modelSpring;
+T3DModel* modelSprings[NUM_SPRINGS];
+T3DSkeleton springSkels[NUM_SPRINGS];
+T3DSkeleton springSkelBlends[NUM_SPRINGS];
+T3DAnim animsSpring[NUM_SPRINGS];
+bool springActive[NUM_SPRINGS];
+float springForce;
+
 T3DMat4FP* flyMatFP[NUM_FLYS];
 T3DMat4FP* sphereFlyMatFP[NUM_FLYS];
 T3DVec3 flyPos[NUM_FLYS];
@@ -77,7 +84,6 @@ float zValues[] = {
 void actors_init(void){
   shuffle_array(xValues, 10);
   shuffle_array(zValues, 10); 
-  modelSpring = t3d_model_load("rom:/spring.t3dm");
   modelLilyPad = t3d_model_load("rom:/lily_pad.t3dm");
   lilypads_init();
   springs_init();
@@ -95,7 +101,7 @@ void lilypads_init(void){
     t3d_mat4fp_from_srt_euler(lilypadMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, translation);
     t3d_mat4fp_from_srt_euler(boxMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, translation);
 
-    lilypadPos[i] = (T3DVec3){{x, 0.15f, z}};
+    lilypadPos[i] = (T3DVec3){{x, 20.0f, z}};
     lilypadBox[i] = (AABB){{{x - 20.0f, -1.0f, z - 20.0f}}, {{x + 20.0f, 38.0f, z + 20.0f}}};
 
     // Create gfx call to draw lily pad
@@ -119,21 +125,34 @@ void lilypads_init(void){
 void springs_init(void){
   for (int i = 0; i < NUM_SPRINGS; ++i) {
 	  float x = xValues[i+5];
+    float y = 20.0f;
     float z = zValues[i+5];
-    springMatFP[i] = malloc(sizeof(T3DMat4FP));
+    springMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
     boxMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-    float translation[3] = {x, 20.0f, z}; // Example positions
-    t3d_mat4fp_from_srt_euler(springMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, translation);
+    float translation[3] = {x, y, z}; // Example positions
     t3d_mat4fp_from_srt_euler(boxMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, translation);
+    
+    modelSprings[i] = t3d_model_load("rom:/spring.t3dm");
+    springSkels[i] = t3d_skeleton_create(modelSprings[i]);
+    springSkelBlends[i] = t3d_skeleton_clone(&springSkels[i], false);
+    animsSpring[i] = t3d_anim_create(modelSprings[i], "spring");
+    t3d_anim_set_looping(&animsSpring[i], false);
+    t3d_anim_set_playing(&animsSpring[i], false);
+    t3d_anim_set_time(&animsSpring[i], 0.0f);
+    //t3d_anim_set_speed(&animsSpring[i], 20.0f);
+    t3d_anim_attach(&animsSpring[i], &springSkels[i]);
 
-    springPos[i] = (T3DVec3){{x, 0.15f, z}};
+    springActive[i] = false;
+    springForce = 120.0f;
+
+    springPos[i] = (T3DVec3){{x, y, z}};
     springBox[i] = (AABB){{{x - 20.0f, -1.0f, z - 20.0f}}, {{x + 20.0f, 38.0f, z + 20.0f}}};
 
     // Create gfx call to draw spring
     rspq_block_begin();
       t3d_matrix_push(springMatFP[i]);
       rdpq_set_prim_color(RGBA16(255, 255, 255, 255));
-      t3d_model_draw(modelSpring);
+      t3d_model_draw_skinned(modelSprings[i], &springSkels[i]);
       t3d_matrix_pop(1);
     dplSpring[i] = rspq_block_end();
 
@@ -143,6 +162,19 @@ void springs_init(void){
       t3d_model_draw(modelDebugBox);
       t3d_matrix_pop(1);
     dplDebugBox2[i] = rspq_block_end();
+  }
+}
+
+void spring_update(void){
+  for (int i = 0; i < NUM_SPRINGS; ++i) {
+    t3d_mat4fp_from_srt_euler(springMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, springPos[i].v);
+    if(springActive[i]) {
+      t3d_anim_update(&animsSpring[i], deltaTime);
+    }
+    if(!animsSpring[i].isPlaying) {
+      t3d_anim_set_time(&animsSpring[i], 0.0f);
+      springActive[i] = false;
+    }
   }
 }
 

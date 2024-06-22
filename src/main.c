@@ -77,6 +77,9 @@ int main()
   
       //fly logic
       fly_update();
+
+      //Spring logic
+      spring_update();
     }
 
 
@@ -126,6 +129,9 @@ int main()
   
     // We now blend the walk animation with the idle/attack one
     t3d_skeleton_blend(&skel, &skel, &skelBlend, animBlend);
+    for (int i = 0; i < NUM_SPRINGS; ++i) {
+      t3d_skeleton_blend(&springSkels[i], &springSkels[i], &springSkelBlends[i], animBlend);
+    }
     for (int i = 0; i < NUM_FLYS; ++i) {
       t3d_skeleton_blend(&flySkels[i], &flySkels[i], &flySkelBlends[i], animBlend);
     }
@@ -134,6 +140,9 @@ int main()
 
     // Now recalc. the matrices, this will cause any model referencing them to use the new pose
     t3d_skeleton_update(&skel);
+    for (int i = 0; i < NUM_SPRINGS; ++i) {
+      t3d_skeleton_update(&springSkels[i]);
+    }
     for (int i = 0; i < NUM_FLYS; ++i) {
       t3d_skeleton_update(&flySkels[i]);
     }
@@ -209,7 +218,6 @@ int main()
   t3d_model_free(modelMap);
   t3d_model_free(modelLilyPad);
   t3d_model_free(modelShadow);
-  t3d_model_free(modelSpring);
   t3d_model_free(modelTongue);
   t3d_model_free(modelDebugBox);
   t3d_model_free(modelDebugSphere);
@@ -227,6 +235,10 @@ int main()
     rspq_block_free(dplDebugBox[i]);
   }
   for (int i = 0; i < NUM_SPRINGS; ++i) {
+    t3d_skeleton_destroy(&springSkels[i]);
+    t3d_skeleton_destroy(&springSkelBlends[i]);
+    t3d_anim_destroy(&animsSpring[i]);
+    t3d_model_free(modelSprings[i]);
     free(springMatFP[i]);
     rspq_block_free(dplSpring[i]);
     rspq_block_free(dplDebugBox2[i]);

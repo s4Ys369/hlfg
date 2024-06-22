@@ -32,7 +32,12 @@ extern T3DVec3 springPos[NUM_SPRINGS];
 extern AABB springBox[NUM_SPRINGS];
 extern rspq_block_t *dplSpring[NUM_SPRINGS];
 extern rspq_block_t *dplDebugBox2[NUM_SPRINGS];
-extern T3DModel *modelSpring;
+extern T3DModel* modelSprings[NUM_SPRINGS];
+extern T3DSkeleton springSkels[NUM_SPRINGS];
+extern T3DSkeleton springSkelBlends[NUM_SPRINGS];
+extern T3DAnim animsSpring[NUM_SPRINGS];
+extern bool springActive[NUM_SPRINGS];
+extern float springForce;
 
 // Flys
 extern T3DMat4FP* flyMatFP[NUM_FLYS];
@@ -58,6 +63,7 @@ extern int flyHide[NUM_FLYS];
 void actors_init(void);
 void lilypads_init(void);
 void springs_init(void);
+void spring_update(void);
 void flys_init(void);
 void fly_update(void);
 

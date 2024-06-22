@@ -206,21 +206,31 @@ void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount) {
             playerBox.center.v[2] >= currentBouncepad->min.v[2]) {
           isFalling = false;
           playerBounced = true;
+          if (springActive[i]){
+            t3d_anim_set_time(&animsSpring[i], animBlend);
+          }
+          springActive[i] = true;
+          t3d_anim_set_playing(&animsSpring[i], true);
           wav64_play(&sfx_bounce, 0);
           wav64_play(&sfx_boing, 1);
           mixer_try_play();
-          break;
+           break;
         }   
       }
     }
   }
+
   if (playerBounced) {
     // Player bounce
     isGrounded = true;
     isJumping = true;
     isFalling = false;
-    jumpForce += gravity * deltaTime;
-    playerBox.center.v[1] += jumpForce * deltaTime;
+    currSpeed *= 15.0f;
+    springForce += gravity * deltaTime;
+    playerPos.v[1] += springForce * deltaTime;
+    playerBox.center.v[0] += playerPos.v[0] * deltaTime;
+    playerBox.center.v[1] += playerPos.v[1] + 0.15f;
+    playerBox.center.v[2] += playerPos.v[2] * deltaTime;
     tongue.pos.v[1] += playerBox.center.v[1] * deltaTime;
     playerPos.v[1] += playerBox.center.v[1] * deltaTime;
   }
@@ -274,7 +284,7 @@ void player_update(void){
   } else if (isJumping && !isGrounded){
     float newAngle = atan2f((moveDir.v[0]), (moveDir.v[2]));
     rotY = t3d_lerp_angle(rotY, newAngle, 0.1f);
-    currSpeed = t3d_lerp(currSpeed, speed * 0.5f, 0.5f);
+    currSpeed = t3d_lerp(currSpeed, speed * 0.6f, 0.6f);
   } else {
     currSpeed *= 0.8f;
   }
@@ -338,6 +348,7 @@ void player_update(void){
       playerPos.v[1] = groundLevel;
       isFalling = false;
       isGrounded = true;
+      jumpForce = 100.0f;
     }
   }
 
