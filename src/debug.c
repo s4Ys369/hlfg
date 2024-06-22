@@ -92,7 +92,7 @@ void draw_debug_ui(void){
     posX = 80;
     rdpq_set_prim_color(RGBA32(0xAA, 0xFF, 0xAA, 0xFF));
     t3d_debug_printf(posX, 50, "Happy Little Frog Game");
-    t3d_debug_printf(posX+60, 60, "v%.1f", VERSION);
+    t3d_debug_printf(posX+55, 60, "v%.1f.%u", VERSION, VERSION_SUFFIX);
     rdpq_set_prim_color(RGBA32(0xFF, 0xAA, 0xAA, 0xFF));
     t3d_debug_printf(posX+50, 70, "by s4ys");
     rdpq_set_prim_color(RGBA32(0xFF, 0xFF, 0xFF, 0xFF));
