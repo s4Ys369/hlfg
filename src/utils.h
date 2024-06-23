@@ -28,5 +28,6 @@ void limit_FPS(float targetFPS);
 float random_float(float min, float max);
 void shuffle_array(float arr[], int size);
 float clamp(float value, float min, float max);
+float get_t3d_distance(T3DVec3 a, T3DVec3 b);
 
 #endif // UTILS_H

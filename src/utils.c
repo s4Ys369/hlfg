@@ -86,3 +86,11 @@ float clamp(float value, float min, float max) {
     if (value > max) return max;
     return value;
 }
+
+float get_t3d_distance(T3DVec3 a, T3DVec3 b) {
+  return sqrtf(
+    (a.v[0] - b.v[0]) * (a.v[0] - b.v[0]) +
+    (a.v[1] - b.v[1]) * (a.v[1] - b.v[1]) +
+    (a.v[2] - b.v[2]) * (a.v[2] - b.v[2])
+  );
+}

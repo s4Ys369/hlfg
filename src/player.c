@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <float.h>
 #include <math.h>
 #include <time.h>
 #include <libdragon.h>
@@ -162,11 +163,26 @@ void player_init(void){
   tongueRetract = 0;
 }
 
+// Function to find the closest object
+int closestIndex = -1;
+int find_closest_actor(T3DVec3 origin, T3DVec3 actorPos[], int numActors) {
+  float minDistance = FLT_MAX;
+  for (int i = 0; i < numActors; i++) {
+    float dist = get_t3d_distance(origin, actorPos[i]);
+    if (dist < minDistance) {
+      minDistance = dist;
+      closestIndex = i;
+    }
+  }
+  return closestIndex;
+}
+
 void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount) {
   AABB *currentLilypad;
+  closestIndex = find_closest_actor(playerPos, lilypadPos, lilypadCount);
 
-  for (int i = 0; i < lilypadCount; i++) {
-    currentLilypad = &lilypadBox[i];
+  if (closestIndex != -1){
+    currentLilypad = &lilypadBox[closestIndex];
     if (check_sphere_box_collision(playerBox, *currentLilypad)) {
         resolve_box_collision(*currentLilypad, &playerPos);
 
@@ -179,12 +195,10 @@ void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount) {
           isGrounded = true;
           isJumping = false;
           isFalling = false;
-          break; // Exit loop if grounded on a lilypad
         } else {
           isGrounded = false;
           isJumping = false;
           isFalling = true;
-          break;
         }
       }
     }
@@ -194,9 +208,10 @@ void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount) {
 void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount) {
   bool playerBounced = false;
   AABB *currentBouncepad;
-  
-  for (int i = 0; i < bouncepadCount; i++) {
-    currentBouncepad = &bouncepadBox[i];
+  closestIndex = find_closest_actor(playerPos, springPos, bouncepadCount);
+
+  if (closestIndex != -1){
+    currentBouncepad = &bouncepadBox[closestIndex];
     
     if (check_sphere_box_collision(playerBox, *currentBouncepad)) { 
       resolve_box_collision(*currentBouncepad, &playerPos);
@@ -207,12 +222,11 @@ void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount) {
             playerBox.center.v[2] >= currentBouncepad->min.v[2]) {
           isFalling = false;
           playerBounced = true;
-          activateSpring[i] = true;
-          t3d_anim_set_playing(&animsSpring[i], true);
+          activateSpring[closestIndex] = true;
+          t3d_anim_set_playing(&animsSpring[closestIndex], true);
           wav64_play(&sfx_bounce, 0);
           wav64_play(&sfx_boing, 1);
           mixer_try_play();
-          break;
         }   
       }
     }
@@ -314,12 +328,8 @@ void player_update(void){
   playerBox.center.v[2] = playerPos.v[2];
 
   // Check for collision with lilypad then ground, order highest to lowest apparently
-  for(int i = 0; i < NUM_SPRINGS; ++i){
-    check_bouncepad_collisions(springBox, NUM_SPRINGS);
-  }
-  for(int i = 0; i < NUM_LILYPADS; ++i){
-    check_lilypad_collisions(lilypadBox, NUM_LILYPADS);
-  }
+  check_bouncepad_collisions(springBox, NUM_SPRINGS);
+  check_lilypad_collisions(lilypadBox, NUM_LILYPADS);
   if (check_sphere_box_collision(playerBox, MapBox)) {
     resolve_box_collision(MapBox, &playerPos);
   }
@@ -393,13 +403,14 @@ void player_update(void){
     }
 
     Sphere *currentFlyBox;
-    for(int i = 0; i < NUM_FLYS; ++i){
-      currentFlyBox = &flyBox[i];
+    closestIndex = find_closest_actor(tongue.hitbox.center, flyPos, NUM_FLYS);
+    if(closestIndex != -1) {
+      currentFlyBox = &flyBox[closestIndex];
       if(check_sphere_collision(*currentFlyBox, tongue.hitbox)){
-        t3d_anim_set_playing(&animsDeath[i], true);
-        t3d_anim_update(&animsDeath[i], deltaTime);
-        flySpeed[i] = 0;
-        flyActive[i] = false;
+        t3d_anim_set_playing(&animsDeath[closestIndex], true);
+        t3d_anim_update(&animsDeath[closestIndex], deltaTime);
+        flySpeed[closestIndex] = 0;
+        flyActive[closestIndex] = false;
         currentFlyBox->center.v[1] = -100.0f;
         tongue.hitbox.center = playerBox.center;
         tongue.speed = 100.0f;
@@ -407,7 +418,6 @@ void player_update(void){
         tongue.dir.v[2] = -tongue.dir.v[2] * tongue.speed * deltaTime;
         animAttack.isPlaying = 0;
         score++;
-        break;
       }
     }
 
@@ -459,12 +469,8 @@ void player_update(void){
     playerBox.center.v[2] = playerPos.v[2];
 
     // Check for collision with lilypad then ground, order highest to lowest apparently
-    for(int i = 0; i < NUM_SPRINGS; ++i){
-      check_bouncepad_collisions(springBox, NUM_SPRINGS);
-    }
-    for(int i = 0; i < NUM_LILYPADS; ++i){
-      check_lilypad_collisions(lilypadBox, NUM_LILYPADS);
-    }
+    check_bouncepad_collisions(springBox, NUM_SPRINGS);
+    check_lilypad_collisions(lilypadBox, NUM_LILYPADS);
     if (check_sphere_box_collision(playerBox, MapBox)) {
       resolve_box_collision(MapBox, &playerPos);
     }
