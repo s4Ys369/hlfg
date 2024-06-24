@@ -36,14 +36,6 @@ int main()
 
   t3d_init((T3DInitParams){});
   t3d_debug_print_init();
-  
-
-  T3DVec3 lightDirVec = {{1.0f, 1.0f, 1.0f}};
-  t3d_vec3_norm(&lightDirVec);
-
-  uint8_t colorAmbient[4] = {0xAA, 0xAA, 0xAA, 0xFF};
-  uint8_t colorDir[4]     = {0xFF, 0xAA, 0xAA, 0xFF};
-
   debug_models_init();
   actors_init();
   player_init();
@@ -66,7 +58,7 @@ int main()
     //  limit_FPS(30.0f);
     //}
 
-    if (!btnheld.start){
+    if (!btnheld[0].start){
       sound_update_buffer();
   
       // CAMERA_LOGIC
@@ -155,13 +147,11 @@ int main()
     // ======== Draw (3D) ======== //
     rdpq_attach(display_get(), &depthBuffer);
     t3d_frame_start();
-    t3d_viewport_attach(&viewport);
 
     t3d_screen_clear_color(RGBA32(155, 242, 238, 0xFF));
     t3d_screen_clear_depth();
 
     t3d_light_set_ambient(colorAmbient);
-    t3d_light_set_directional(0, colorDir, &lightDirVec);
     t3d_light_set_count(1);
 
     // Run gfx calls
@@ -207,6 +197,30 @@ int main()
 
     // ======== Draw (UI) ======== //
     draw_debug_ui();
+
+    int sizeX = display_get_width();
+    int sizeY = display_get_height();
+    rdpq_sync_pipe();
+    rdpq_set_scissor(0, 0, sizeX, sizeY);
+    rdpq_set_mode_standard();
+    rdpq_set_mode_fill(RGBA32(0, 0, 0, 0xFF));
+
+    // draw thick lines between the screens
+    switch (NUM_PLAYERS){
+      case 1:
+        break;
+      case 2:
+        rdpq_fill_rectangle(0, sizeY/2-1, sizeX, sizeY/2+1);
+        break;
+      case 3:
+        rdpq_fill_rectangle(0, sizeY/2-1, sizeX, sizeY/2+1);
+        rdpq_fill_rectangle(sizeX/2-1, sizeY/2, sizeX/2+1, sizeY);
+        break;
+      case 4:
+        rdpq_fill_rectangle(0, sizeY/2-1, sizeX, sizeY/2+1);
+        rdpq_fill_rectangle(sizeX/2-1, 0, sizeX/2+1, sizeY);
+        break;
+    }
 
     rdpq_detach_show();
   }

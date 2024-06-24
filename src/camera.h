@@ -8,6 +8,7 @@
 #include <time.h>
 #include <libdragon.h>
 #include <t3d/t3d.h>
+#include "../include/config.h"
 #include "../include/types.h"
 #include "collision.h"
 #include "input.h"
@@ -19,14 +20,17 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-extern T3DViewport viewport;
-extern T3DVec3 camPos;
-extern T3DVec3 camTarget;
-extern T3DVec3 camForward;
-extern T3DVec3 camRight;
-extern T3DVec3Pair camResults;
-extern float camYaw;
-extern int cam_mode;
+extern T3DVec3 lightDirVec;
+extern uint8_t colorAmbient[4];
+extern uint8_t colorDir[4];
+extern T3DViewport viewport[NUM_PLAYERS];
+extern T3DVec3 camPos[NUM_PLAYERS];
+extern T3DVec3 camTarget[NUM_PLAYERS];
+extern T3DVec3 camForward[NUM_PLAYERS];
+extern T3DVec3 camRight[NUM_PLAYERS];
+extern T3DVec3Pair camResults[NUM_PLAYERS];
+extern float camYaw[NUM_PLAYERS];
+extern int cam_mode[NUM_PLAYERS];
 
 void cam_init(void);
 void rotate_camPos_around_camTarget(T3DVec3 *camPos, T3DVec3 camTarget, float angle, char axis);

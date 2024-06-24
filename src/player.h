@@ -42,8 +42,8 @@ extern rspq_block_t *dplShadow[NUM_PLAYERS];
 extern PlayerParams player[NUM_PLAYERS];
 
 void player_init(void);
-void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount);
-void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount);
+void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCount);
+void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount, int playerCount);
 void player_update(void);
 
 #endif // PLAYER_H

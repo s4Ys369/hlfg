@@ -5,6 +5,7 @@
 #include <time.h>
 #include <libdragon.h>
 #include <t3d/t3d.h>
+#include "../include/config.h"
 #include "../include/types.h"
 #include "camera.h"
 #include "collision.h"
@@ -17,23 +18,60 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-T3DViewport viewport;
-T3DVec3 camPos;
-T3DVec3 camTarget;
-T3DVec3 camForward;
-T3DVec3 camRight;
-T3DVec3Pair camResults;
-float camYaw;
-int cam_mode;
+T3DVec3 lightDirVec;
+uint8_t colorAmbient[4] = {0xAA, 0xAA, 0xAA, 0xFF};
+uint8_t colorDir[4] = {0xFF, 0xAA, 0xAA, 0xFF};
+T3DViewport viewport[NUM_PLAYERS];
+T3DVec3 camPos[NUM_PLAYERS];
+T3DVec3 camTarget[NUM_PLAYERS];
+T3DVec3 camForward[NUM_PLAYERS];
+T3DVec3 camRight[NUM_PLAYERS];
+T3DVec3Pair camResults[NUM_PLAYERS];
+float camYaw[NUM_PLAYERS];
+int cam_mode[NUM_PLAYERS];
 
 void cam_init(void){
-  viewport = t3d_viewport_create();
-  camPos = (T3DVec3){{0, 45.0f, 80.0f}};
-  camTarget = (T3DVec3){{0, 0,-10}};
-  camForward = (T3DVec3){{0, 0, 0}};
-  camRight = (T3DVec3){{0, 0, 0}};
-  camYaw = 0.0f;
-  cam_mode = 1;
+  int sizeX = display_get_width();
+  int sizeY = display_get_height();
+
+  lightDirVec = (T3DVec3){{1.0f, 1.0f, 1.0f}};
+  t3d_vec3_norm(&lightDirVec);
+
+  for (int i = 0; i < NUM_PLAYERS; ++i) {
+    camPos[i] = (T3DVec3){{0, 45.0f, 80.0f}};
+    camTarget[i] = (T3DVec3){{0, 0,-10}};
+    camForward[i] = (T3DVec3){{0, 0, 0}};
+    camRight[i] = (T3DVec3){{0, 0, 0}};
+    camYaw[i] = 0.0f;
+    cam_mode[i] = 1;
+  }
+  if (NUM_PLAYERS > 1) {
+    if (NUM_PLAYERS == 2) {
+      viewport[0] = t3d_viewport_create();
+      viewport[1] = t3d_viewport_create();
+      t3d_viewport_set_area(&viewport[1], 0,       sizeY/2, sizeX,   sizeY/2);
+      t3d_viewport_set_area(&viewport[0], 0,       0,       sizeX,   sizeY/2);
+    } else if (NUM_PLAYERS == 3) {
+      viewport[0] = t3d_viewport_create();
+      viewport[1] = t3d_viewport_create();
+      viewport[2] = t3d_viewport_create();
+      t3d_viewport_set_area(&viewport[0], 0,       0,       sizeX,     sizeY/2);
+      t3d_viewport_set_area(&viewport[1], 0,       sizeY/2, sizeX/2,   sizeY/2-2);
+      t3d_viewport_set_area(&viewport[2], sizeX/2, sizeY/2, sizeX/2-2, sizeY/2-2);
+    } else if (NUM_PLAYERS == 4) {
+      viewport[0] = t3d_viewport_create();
+      viewport[1] = t3d_viewport_create();
+      viewport[2] = t3d_viewport_create();
+      viewport[3] = t3d_viewport_create();
+      t3d_viewport_set_area(&viewport[0], 0,       0,       sizeX/2,   sizeY/2);
+      t3d_viewport_set_area(&viewport[1], sizeX/2, 0,       sizeX/2-2, sizeY/2);
+      t3d_viewport_set_area(&viewport[2], 0,       sizeY/2, sizeX/2,   sizeY/2-2);
+      t3d_viewport_set_area(&viewport[3], sizeX/2, sizeY/2, sizeX/2-2, sizeY/2-2);
+    }
+  } else {
+    viewport[0] = t3d_viewport_create();
+    t3d_viewport_set_area(&viewport[0],   0,       0,       sizeX,      sizeY);
+  }
 }
 
 
@@ -120,7 +158,7 @@ void top_down_view(T3DVec3 *camTarget, T3DVec3 *camPos, T3DVec3 camForward, T3DV
 }
 
 // Function to update the player's forward vector based on the yaw angle
-void update_player_forward(T3DVec3 *playerForward, float playerYaw) {
+void update_player_forward(T3DVec3 *playerForward, float playerYaw){
   playerForward->v[0] = sinf(playerYaw);
   playerForward->v[1] = 0.0f;
   playerForward->v[2] = cosf(playerYaw);
@@ -130,67 +168,76 @@ void update_player_forward(T3DVec3 *playerForward, float playerYaw) {
 }
 
 // Function to follow the player with the camera with lagging rotation
-void cam_follow_player_lag(T3DVec3 *camTarget, T3DVec3 *camPos, T3DVec3 *playerPos, float playerYaw, float *camYaw, float lagFactor) {
+void cam_follow_player_lag(T3DVec3 *camTarget, T3DVec3 *camPos, T3DVec3 *playerPos, float playerYaw, float *camYaw, float lagFactor){
   // Interpolate the camera yaw towards the player yaw
   *camYaw = t3d_lerp_angle(*camYaw, playerYaw, lagFactor);
 
   // Calculate the camera's forward vector based on the interpolated yaw
-  camForward.v[0] = sinf(*camYaw);
-  camForward.v[1] = 0.0f;
-  camForward.v[2] = cosf(*camYaw);
-
+  camForward->v[0] = sinf(*camYaw);
+  camForward->v[1] = 0.0f;
+  camForward->v[2] = cosf(*camYaw);
   // Set the camera position based on the player's position and the forward vector
-  camPos->v[0] = playerPos->v[0] - camForward.v[0] * 50.0f; // 50.0f is the distance behind the player
+  camPos->v[0] = playerPos->v[0] - camForward->v[0] * 50.0f; // 50.0f is the distance behind the player
   camPos->v[1] = playerPos->v[1] + 30.0f; // 30.0f is the height of the camera
-  camPos->v[2] = playerPos->v[2] - camForward.v[2] * 50.0f;
+  camPos->v[2] = playerPos->v[2] - camForward->v[2] * 50.0f;
 
   // Set the camera target to be the player position
-  *camTarget = *playerPos;
+  camTarget = playerPos;
 }
 
 void cam_update(void){
-  camResults = get_cam_forward(camTarget, camPos, &camForward, &camRight);
-  camTarget = player->playerPos;
-  float angle = 90.0f;
-  char axis;
+  for (int i = 0; i < NUM_PLAYERS; ++i) {
     
-  if(btn.z) {
-    cam_mode = 0;
-  }
-  if(btn.c_down) {
-    cam_mode = 1;
-  }
-  if(btn.c_left) {
-    axis = 'y';
-    cam_mode = 2;
-    rotate_camPos_around_camTarget(&camPos, camTarget, -angle, axis);
-  }
-  if(btn.c_right) {
-    axis = 'y';
-    cam_mode = 2;
-    rotate_camPos_around_camTarget(&camPos, camTarget, angle, axis);
-  }
-  if(btn.c_up) {
-    cam_mode = 3;
-  }
+    camResults[i] = get_cam_forward(camTarget[i], camPos[i], &camForward[i], &camRight[i]);
+    camTarget[i] = player[i].playerPos;
+    float angle = 90.0f;
+    char axis;
+    
+    if(btn[i].z) {
+      cam_mode[i] = 0;
+    }
+    if(btn[i].c_down) {
+      cam_mode[i] = 1;
+    }
+    if(btn[i].c_left) {
+      axis = 'y';
+      cam_mode[i] = 2;
+      rotate_camPos_around_camTarget(&camPos[i], camTarget[i], -angle, axis);
+    }
+    if(btn[i].c_right) {
+      axis = 'y';
+      cam_mode[i] = 2;
+      rotate_camPos_around_camTarget(&camPos[i], camTarget[i], angle, axis);
+    }
+    if(btn[i].c_up) {
+      cam_mode[i] = 3;
+    }
 
-  switch (cam_mode) {
-    case 0:
-      update_player_forward(&player->playerForward, player->rotY);
-      cam_recenter(&camTarget, &camPos, (T3DVec3)(camForward), &player->playerPos, player->playerForward, &camYaw);
-      cam_mode = 1;
-    case 1:
-      update_player_forward(&player->playerForward, player->rotY);
-      cam_follow_player_lag(&camTarget, &camPos, &player->playerPos, player->rotY, &camYaw, 0.02f);
-      break;
-    case 3:
-      update_player_forward(&player->playerForward, player->rotY);
-      top_down_view(&camTarget, &camPos, (T3DVec3)(camResults.forward), &player->playerPos);
-      break;
+    switch (cam_mode[i]) {
+      case 0:
+        update_player_forward(&player[i].playerForward, player[i].rotY);
+        cam_recenter(&camTarget[i], &camPos[i], camForward[i], &player[i].playerPos, player[i].playerForward, &camYaw[i]);
+        cam_mode[i] = 1;
+      case 1:
+        update_player_forward(&player[i].playerForward, player[i].rotY);
+        cam_follow_player_lag(&camTarget[i], &camPos[i], &player[i].playerPos, player[i].rotY, &camYaw[i], 0.02f);
+        break;
+      case 3:
+        update_player_forward(&player[i].playerForward, player[i].rotY);
+        top_down_view(&camTarget[i], &camPos[i], camResults[i].forward, &player[i].playerPos);
+        break;
+    }
+
+    resolve_box_collision(MapBox, &camPos[i]);
+
+    T3DViewport *vp = &viewport[i];
+    T3DVec3 CP = camPos[i];
+    T3DVec3 CT = camTarget[i];
+
+    t3d_viewport_set_projection(vp, T3D_DEG_TO_RAD(85.0f), 10.0f, 150.0f);
+    t3d_viewport_look_at(vp, &CP, &CT, &(T3DVec3){{0,1,0}});
+    t3d_viewport_attach(vp);
+    t3d_light_set_directional(0, colorDir, &lightDirVec);
+
   }
-
-  resolve_box_collision(MapBox, &camPos);
-
-  t3d_viewport_set_projection(&viewport, T3D_DEG_TO_RAD(85.0f), 10.0f, 150.0f);
-  t3d_viewport_look_at(&viewport, &camPos, &camTarget, &(T3DVec3){{0,1,0}});
 }

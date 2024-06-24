@@ -164,52 +164,52 @@ int find_closest_actor(T3DVec3 origin, T3DVec3 actorPos[], int numActors) {
   return closestIndex;
 }
 
-void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount) {
+void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCount) {
   AABB *currentLilypad;
-  closestIndex = find_closest_actor(player->playerPos, lilypadPos, lilypadCount);
+  closestIndex = find_closest_actor(player[playerCount].playerPos, lilypadPos, lilypadCount);
 
   if (closestIndex != -1){
     currentLilypad = &lilypadBox[closestIndex];
-    if (check_sphere_box_collision(player->playerBox, *currentLilypad)) {
-        resolve_box_collision(*currentLilypad, &player->playerPos);
+    if (check_sphere_box_collision(player[playerCount].playerBox, *currentLilypad)) {
+        resolve_box_collision(*currentLilypad, &player[playerCount].playerPos);
 
-      if (player->playerPos.v[1] >= currentLilypad->max.v[1]) {
-        if (player->playerBox.center.v[0] <= currentLilypad->max.v[0] &&
-            player->playerBox.center.v[0] >= currentLilypad->min.v[0] &&
-            player->playerBox.center.v[2] <= currentLilypad->max.v[2] &&
-            player->playerBox.center.v[2] >= currentLilypad->min.v[2]) {
+      if (player[playerCount].playerPos.v[1] >= currentLilypad->max.v[1]) {
+        if (player[playerCount].playerBox.center.v[0] <= currentLilypad->max.v[0] &&
+            player[playerCount].playerBox.center.v[0] >= currentLilypad->min.v[0] &&
+            player[playerCount].playerBox.center.v[2] <= currentLilypad->max.v[2] &&
+            player[playerCount].playerBox.center.v[2] >= currentLilypad->min.v[2]) {
 
-          player->isGrounded = true;
-          player->isJumping = false;
-          player->isFalling = false;
+          player[playerCount].isGrounded = true;
+          player[playerCount].isJumping = false;
+          player[playerCount].isFalling = false;
         } else {
-          player->isGrounded = false;
-          player->isJumping = false;
-          player->isFalling = true;
+          player[playerCount].isGrounded = false;
+          player[playerCount].isJumping = false;
+          player[playerCount].isFalling = true;
         }
       }
     }
   }
 }
 
-void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount) {
+void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount, int playerCount) {
   bool playerBounced = false;
   AABB *currentBouncepad;
-  closestIndex = find_closest_actor(player->playerPos, springPos, bouncepadCount);
+  closestIndex = find_closest_actor(player[playerCount].playerPos, springPos, bouncepadCount);
 
   if (closestIndex != -1){
     currentBouncepad = &bouncepadBox[closestIndex];
     
-    if (check_sphere_box_collision(player->playerBox, *currentBouncepad)) { 
-      resolve_box_collision(*currentBouncepad, &player->playerPos);
-      if(player->playerPos.v[1] >= currentBouncepad->max.v[1]){
-        if (player->playerBox.center.v[0] <= currentBouncepad->max.v[0] &&
-            player->playerBox.center.v[0] >= currentBouncepad->min.v[0] &&
-            player->playerBox.center.v[2] <= currentBouncepad->max.v[2] &&
-            player->playerBox.center.v[2] >= currentBouncepad->min.v[2]) {
-          player->isFalling = false;
+    if (check_sphere_box_collision(player[playerCount].playerBox, *currentBouncepad)) { 
+      resolve_box_collision(*currentBouncepad, &player[playerCount].playerPos);
+      if(player[playerCount].playerPos.v[1] >= currentBouncepad->max.v[1]){
+        if (player[playerCount].playerBox.center.v[0] <= currentBouncepad->max.v[0] &&
+            player[playerCount].playerBox.center.v[0] >= currentBouncepad->min.v[0] &&
+            player[playerCount].playerBox.center.v[2] <= currentBouncepad->max.v[2] &&
+            player[playerCount].playerBox.center.v[2] >= currentBouncepad->min.v[2]) {
+          player[playerCount].isFalling = false;
           playerBounced = true;
-          player->activateSpring[closestIndex] = true;
+          player[playerCount].activateSpring[closestIndex] = true;
           t3d_anim_set_playing(&animsSpring[closestIndex], true);
           wav64_play(&sfx_bounce, 0);
           wav64_play(&sfx_boing, 1);
@@ -221,16 +221,16 @@ void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount) {
 
   if (playerBounced) {
     // Player bounce
-    player->isGrounded = true;
-    player->isJumping = true;
-    player->isFalling = false;
-    springForce += player->gravity * deltaTime;
-    player->playerPos.v[1] += springForce * deltaTime;
-    player->playerBox.center.v[0] += player->playerPos.v[0] * deltaTime;
-    player->playerBox.center.v[1] += player->playerPos.v[1] + 0.15f;
-    player->playerBox.center.v[2] += player->playerPos.v[2] * deltaTime;
-    player->tongue->pos.v[1] += player->playerBox.center.v[1] * deltaTime;
-    player->playerPos.v[1] += player->playerBox.center.v[1] * deltaTime;
+    player[playerCount].isGrounded = true;
+    player[playerCount].isJumping = true;
+    player[playerCount].isFalling = false;
+    springForce += player[playerCount].gravity * deltaTime;
+    player[playerCount].playerPos.v[1] += springForce * deltaTime;
+    player[playerCount].playerBox.center.v[0] += player[playerCount].playerPos.v[0] * deltaTime;
+    player[playerCount].playerBox.center.v[1] += player[playerCount].playerPos.v[1] + 0.15f;
+    player[playerCount].playerBox.center.v[2] += player[playerCount].playerPos.v[2] * deltaTime;
+    player[playerCount].tongue[playerCount].pos.v[1] += player[playerCount].playerBox.center.v[1] * deltaTime;
+    player[playerCount].playerPos.v[1] += player[playerCount].playerBox.center.v[1] * deltaTime;
   }
 }
 
@@ -242,14 +242,14 @@ void player_update(void){
 
   // Transform input direction to camera's coordinate system
   T3DVec3 newDir = {{
-    (float)joypad.stick_x * 0.05f * camResults.right.v[0] + -(float)joypad.stick_y * 0.05f * camResults.forward.v[0],
+    (float)joypad[i].stick_x * 0.05f * camResults[i].right.v[0] + -(float)joypad[i].stick_y * 0.05f * camResults[i].forward.v[0],
     0, // :.[
-    (float)joypad.stick_x * 0.05f * camResults.right.v[2] + -(float)joypad.stick_y * 0.05f * camResults.forward.v[2]
+    (float)joypad[i].stick_x * 0.05f * camResults[i].right.v[2] + -(float)joypad[i].stick_y * 0.05f * camResults[i].forward.v[2]
   }};
   float speed = sqrtf(t3d_vec3_len2(&newDir));
 
   // Player Jump Input
-  if((btn.a) && !animJump[i].isPlaying && !animAttack[i].isPlaying) {
+  if((btn[i].a) && !animJump[i].isPlaying && !animAttack[i].isPlaying) {
     if (player[i].isGrounded)
     {
       wav64_play(&sfx_jump, 0);
@@ -261,7 +261,7 @@ void player_update(void){
   }
 
   // Player Attack Input
-  if((btn.b) && !animJump[i].isPlaying && !animAttack[i].isPlaying) {
+  if((btn[i].b) && !animJump[i].isPlaying && !animAttack[i].isPlaying) {
     if (player[i].isGrounded)
     {
       wav64_play(&sfx_jump, 0);
@@ -317,8 +317,8 @@ void player_update(void){
   player[i].playerBox.center.v[2] = player[i].playerPos.v[2];
 
   // Check for collision with lilypad then ground, order highest to lowest apparently
-  check_bouncepad_collisions(springBox, NUM_SPRINGS);
-  check_lilypad_collisions(lilypadBox, NUM_LILYPADS);
+  check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
+  check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
   if (check_sphere_box_collision(player[i].playerBox, MapBox)) {
     resolve_box_collision(MapBox, &player[i].playerPos);
   }
@@ -453,8 +453,8 @@ void player_update(void){
     player[i].playerBox.center.v[2] = player[i].playerPos.v[2];
 
     // Check for collision with lilypad then ground, order highest to lowest apparently
-    check_bouncepad_collisions(springBox, NUM_SPRINGS);
-    check_lilypad_collisions(lilypadBox, NUM_LILYPADS);
+    check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
+    check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
     if (check_sphere_box_collision(player[i].playerBox, MapBox)) {
       resolve_box_collision(MapBox, &player[i].playerPos);
     }
