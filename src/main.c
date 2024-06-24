@@ -96,50 +96,54 @@ int main()
       );
     }
 
-    // Update player matrix
-    t3d_mat4fp_from_srt_euler(modelMatFP,
+    for (int i = 0; i < NUM_PLAYERS; ++i) {
+    // Update players matrix
+    t3d_mat4fp_from_srt_euler(modelMatFP[i],
       (float[3]){0.125f, 0.125f, 0.125f},
-      (float[3]){0.0f, -rotY, 0},
-      playerPos.v
+      (float[3]){0.0f, -player[i].rotY, 0},
+      player[i].playerPos.v
     );
 
-    t3d_mat4fp_from_srt_euler(tongueMatFP,
+    t3d_mat4fp_from_srt_euler(tongueMatFP[i],
       (float[3]){0.125f, 0.125f, 0.125f},
-      (float[3]){0.0f, -rotY, 0},
-      tongue.pos.v
+      (float[3]){0.0f, -player[i].rotY, 0},
+      player[i].tongue[i].pos.v
     );
 
-    t3d_mat4fp_from_srt_euler(shadowMatFP,
-      (float[3]){0.125f, 0.125f, 0.125f},
-      (float[3]){0.0f, 0.0f, 0.0f},
-      shadowPos.v
-    );
-
-    t3d_mat4fp_from_srt_euler(sphereMatFP,
+    t3d_mat4fp_from_srt_euler(shadowMatFP[i],
       (float[3]){0.125f, 0.125f, 0.125f},
       (float[3]){0.0f, 0.0f, 0.0f},
-      playerBox.center.v
+      player[i].shadowPos.v
     );
 
-    t3d_mat4fp_from_srt_euler(sphere2MatFP,
+    t3d_mat4fp_from_srt_euler(sphereMatFP[i],
+      (float[3]){0.125f, 0.125f, 0.125f},
+      (float[3]){0.0f, 0.0f, 0.0f},
+      player[i].playerBox.center.v
+    );
+
+    t3d_mat4fp_from_srt_euler(sphere2MatFP[i],
       (float[3]){0.025f, 0.025f, 0.025f},
       (float[3]){0.0f, 0.0f, 0.0f},
-      tongue.hitbox.center.v
+      player[i].tongue[i].hitbox.center.v
     );
   
     // We now blend the walk animation with the idle/attack one
-    t3d_skeleton_blend(&skel, &skel, &skelBlend, animBlend);
+    t3d_skeleton_blend(&skel[i], &skel[i], &skelBlend[i], player[i].animBlend);
+    }
     for (int i = 0; i < NUM_SPRINGS; ++i) {
-      t3d_skeleton_blend(&springSkels[i], &springSkels[i], &springSkelBlends[i], animBlend);
+      t3d_skeleton_blend(&springSkels[i], &springSkels[i], &springSkelBlends[i], 1);
     }
     for (int i = 0; i < NUM_FLYS; ++i) {
-      t3d_skeleton_blend(&flySkels[i], &flySkels[i], &flySkelBlends[i], animBlend);
+      t3d_skeleton_blend(&flySkels[i], &flySkels[i], &flySkelBlends[i], 1);
     }
 
     if(syncPoint)rspq_syncpoint_wait(syncPoint); // wait for the RSP to process the previous frame
 
     // Now recalc. the matrices, this will cause any model referencing them to use the new pose
-    t3d_skeleton_update(&skel);
+    for (int i = 0; i < NUM_PLAYERS; ++i) {
+      t3d_skeleton_update(&skel[i]);
+    }
     for (int i = 0; i < NUM_SPRINGS; ++i) {
       t3d_skeleton_update(&springSkels[i]);
     }
@@ -160,10 +164,9 @@ int main()
     t3d_light_set_directional(0, colorDir, &lightDirVec);
     t3d_light_set_count(1);
 
+    // Run gfx calls
     rspq_block_run(dplMap);
-    rspq_block_run(dplShadow);
-    rspq_block_run(dplFrog);
-
+    
     for (int i = 0; i < NUM_FLYS; ++i) {
       if(flyActive[i] == true) {
         if(flyHide[i] == 0) {
@@ -174,11 +177,19 @@ int main()
         }
       }
     }
-    if(tongue.isActive == true) {
-      rspq_block_run(dplTongue);
+
+    for (int i = 0; i < NUM_PLAYERS; ++i) {
+      rspq_block_run(dplShadow[i]);
+      rspq_block_run(dplFrog[i]);
+      if(player[i].tongue[i].isActive == true) {
+        rspq_block_run(dplTongue[i]);
+      }
+      if(col_debug){
+        rspq_block_run(dplDebugSphere[i]);
+        rspq_block_run(dplDebugSphere2[i]);
+      }
     }
 
-    // Run gfx calls
     for (int i = 0; i < NUM_LILYPADS; ++i) {
         rspq_block_run(dplLilypad[i]);
         if(col_debug){
@@ -191,10 +202,6 @@ int main()
           rspq_block_run(dplDebugBox2[i]);
         }
     }
-    if(col_debug){
-      rspq_block_run(dplDebugSphere);
-      rspq_block_run(dplDebugSphere2);
-    }
 
     syncPoint = rspq_syncpoint_new();
 
@@ -204,36 +211,49 @@ int main()
     rdpq_detach_show();
   }
 
-  t3d_skeleton_destroy(&skel);
-  t3d_skeleton_destroy(&skelBlend);
 
-  t3d_anim_destroy(&animIdle);
-  t3d_anim_destroy(&animWalk);
-  t3d_anim_destroy(&animJump);
-  t3d_anim_destroy(&animAttack);
-  t3d_anim_destroy(&animRetract);
-
-  
-  t3d_model_free(model);
+  // Clean up
   t3d_model_free(modelMap);
-  t3d_model_free(modelLilyPad);
-  t3d_model_free(modelShadow);
-  t3d_model_free(modelTongue);
+  free(mapMatFP);
+  rspq_block_free(dplMap);
+  
   t3d_model_free(modelDebugBox);
   t3d_model_free(modelDebugSphere);
 
-  // Clean up
-  free(modelMatFP);
-  free(shadowMatFP);
-  free(tongueMatFP);
-  free(mapMatFP);
-  free(sphereMatFP);
-  free(sphere2MatFP);
+  for (int i = 0; i < NUM_PLAYERS; ++i) {
+    t3d_skeleton_destroy(&skel[i]);
+    t3d_skeleton_destroy(&skelBlend[i]);
+
+    t3d_anim_destroy(&animIdle[i]);
+    t3d_anim_destroy(&animWalk[i]);
+    t3d_anim_destroy(&animJump[i]);
+    t3d_anim_destroy(&animAttack[i]);
+    t3d_anim_destroy(&animRetract[i]);
+
+    t3d_model_free(model[i]);
+    t3d_model_free(modelShadow[i]);
+    t3d_model_free(modelTongue[i]);
+  
+    free(modelMatFP[i]);
+    free(shadowMatFP[i]);
+    free(tongueMatFP[i]);
+    free(sphereMatFP[i]);
+    free(sphere2MatFP[i]);
+  
+    rspq_block_free(dplDebugSphere[i]);
+    rspq_block_free(dplDebugSphere2[i]);
+    rspq_block_free(dplFrog[i]);
+    rspq_block_free(dplTongue[i]);
+    rspq_block_free(dplShadow[i]);
+  }
+
+  t3d_model_free(modelLilyPad);
   for (int i = 0; i < NUM_LILYPADS; ++i) {
     free(lilypadMatFP[i]);
     rspq_block_free(dplLilypad[i]);
     rspq_block_free(dplDebugBox[i]);
   }
+
   for (int i = 0; i < NUM_SPRINGS; ++i) {
     t3d_skeleton_destroy(&springSkels[i]);
     t3d_skeleton_destroy(&springSkelBlends[i]);
@@ -257,14 +277,6 @@ int main()
     rspq_block_free(dplFly[i]);
     rspq_block_free(dplDebugSphereFly[i]);
   }
-
-  rspq_block_free(dplDebugSphere);
-  rspq_block_free(dplDebugSphere2);
-  rspq_block_free(dplFrog);
-  rspq_block_free(dplTongue);
-  rspq_block_free(dplShadow);
-  rspq_block_free(dplMap);
-
 
   t3d_destroy();
   return 0;

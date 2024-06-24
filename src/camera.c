@@ -150,7 +150,7 @@ void cam_follow_player_lag(T3DVec3 *camTarget, T3DVec3 *camPos, T3DVec3 *playerP
 
 void cam_update(void){
   camResults = get_cam_forward(camTarget, camPos, &camForward, &camRight);
-  camTarget = playerPos;
+  camTarget = player->playerPos;
   float angle = 90.0f;
   char axis;
     
@@ -176,16 +176,16 @@ void cam_update(void){
 
   switch (cam_mode) {
     case 0:
-      update_player_forward(&playerForward, rotY);
-      cam_recenter(&camTarget, &camPos, (T3DVec3)(camForward), &playerPos, playerForward, &camYaw);
+      update_player_forward(&player->playerForward, player->rotY);
+      cam_recenter(&camTarget, &camPos, (T3DVec3)(camForward), &player->playerPos, player->playerForward, &camYaw);
       cam_mode = 1;
     case 1:
-      update_player_forward(&playerForward, rotY);
-      cam_follow_player_lag(&camTarget, &camPos, &playerPos, rotY, &camYaw, 0.02f);
+      update_player_forward(&player->playerForward, player->rotY);
+      cam_follow_player_lag(&camTarget, &camPos, &player->playerPos, player->rotY, &camYaw, 0.02f);
       break;
     case 3:
-      update_player_forward(&playerForward, rotY);
-      top_down_view(&camTarget, &camPos, (T3DVec3)(camResults.forward), &playerPos);
+      update_player_forward(&player->playerForward, player->rotY);
+      top_down_view(&camTarget, &camPos, (T3DVec3)(camResults.forward), &player->playerPos);
       break;
   }
 

@@ -46,47 +46,20 @@ void draw_debug_ui(void){
 
   rdpq_set_prim_color(RGBA32(0xFF, 0xFF, 0xFF, 0xFF));
   if (text_debug){
-    t3d_debug_printf(posX, posY, "X %.1f", tongue.hitbox.center.v[0]);
-    t3d_debug_printf(posX, posY+10, "Y %.1f", tongue.hitbox.center.v[1]);
-    t3d_debug_printf(posX, posY+20, "Z %.1f", tongue.hitbox.center.v[2]);
-    t3d_debug_printf(posX, posY+30, "isGrounded: %s\n", isGrounded ? "true" : "false");
-    if (isJumping)
-    {
-      t3d_debug_printf(posX, posY+40, "Jump");
-    } else
-    if (isWalking)
-    {
-      t3d_debug_printf(posX, posY+40, "Walk");
-    } else
-    if (isFalling)
-    {
-      t3d_debug_printf(posX, posY+40, "Fall");
-    } else
-    if (isJumpStart)
-    {
-      t3d_debug_printf(posX, posY+40, "JumpStart");
-    } else { 
-      t3d_debug_printf(posX, posY+40, "Idle");
-    }
     t3d_debug_printf(posX, posY+50, "camPos\n");
     t3d_debug_printf(posX, posY+60, "%.0f %.0f %.0f\n", camPos.v[0], camPos.v[1], camPos.v[2]);
     t3d_debug_printf(posX, posY+70, "camFocus\n");
     t3d_debug_printf(posX, posY+80, "%.0f %.0f %.0f\n", camTarget.v[0], camTarget.v[1], camTarget.v[2]);
     t3d_debug_printf(posX, posY+90, "camMode%u", cam_mode);
-
-    posY = 210;
-    rdpq_set_prim_color(RGBA32(0xAA, 0xAA, 0xAA, 0xFF));
-    t3d_debug_printf(posX, posY, "Speed: %.4f", currSpeed); posY += 10;
-    t3d_debug_printf(posX, posY, "Blend: %.4f", animBlend); posY += 10;
-  } else {
-    rdpq_set_prim_color(RGBA32(0xAA, 0xAA, 0xAA, 0xFF));
-    if (score < NUM_FLYS){
-      t3d_debug_printf(posX, 200, "SCORE %d", score);
-    } else {
-      t3d_debug_printf(posX, 200, "You got em all!");
-    }
-    t3d_debug_printf(posX, 220, "FPS %.1f", display_get_fps());
   }
+  posY = 200;
+  rdpq_set_prim_color(RGBA32(0xAA, 0xAA, 0xAA, 0xFF));
+  for (int i = 0; i < NUM_PLAYERS; ++i) {
+    t3d_debug_printf(posX, posY, "SCORE %d", player[i].score);
+    posY += 10;
+  }
+  t3d_debug_printf(posX, 220, "FPS %.1f", display_get_fps());
+  
 
   if(text_controls){
     posX = 80;

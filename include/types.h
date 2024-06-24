@@ -8,6 +8,7 @@
 #include <time.h>
 #include <libdragon.h>
 #include <t3d/t3d.h>
+#include "config.h"
 
 typedef struct {
     T3DVec3 forward;
@@ -60,5 +61,29 @@ typedef struct {
     bool isActive;
     int pointValue;
 } FlyParams;
+
+typedef struct {
+    T3DVec3 moveDir;
+    T3DVec3 playerPos;
+    T3DVec3 shadowPos;
+    T3DVec3 playerForward;
+    Sphere playerBox;
+    TongueParams tongue[NUM_PLAYERS];
+    float rotY;
+    float currSpeed;
+    float animBlend;
+    bool isAttack;
+    bool isJumpStart;
+    bool isJumping;
+    bool isGrounded;
+    bool isFalling;
+    bool isWalking;
+    float playerVelocityY;
+    float gravity;
+    float jumpForce;
+    int score;
+    int tongueRetract;
+    bool activateSpring[NUM_SPRINGS];
+} PlayerParams;
 
 #endif // TYPES_H

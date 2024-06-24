@@ -168,9 +168,9 @@ void springs_init(void){
 void spring_update(void){
   for (int i = 0; i < NUM_SPRINGS; ++i) {
     t3d_mat4fp_from_srt_euler(springMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, springPos[i].v);
-    if(activateSpring[i]){
+    if(player->activateSpring[i]){
       springActive[i] = true;
-      activateSpring[i] = false;
+      player->activateSpring[i] = false;
     }
 
     if(springActive[i]) {
@@ -286,9 +286,9 @@ void fly_update(void){
       flyBox[i].center.v[2] = flyPos[i].v[2];
     }
 
-    float dx = playerPos.v[0] - flyPos[i].v[0];
-    float dy = playerPos.v[1] - flyPos[i].v[1];
-    float dz = playerPos.v[2] - flyPos[i].v[2];
+    float dx = player->playerPos.v[0] - flyPos[i].v[0];
+    float dy = player->playerPos.v[1] - flyPos[i].v[1];
+    float dz = player->playerPos.v[2] - flyPos[i].v[2];
     float distanceFromPlayer = sqrtf(dx * dx + dy * dy + dz * dz);
     if(distanceFromPlayer > FLY_DRAW_DIST){
       flyHide[i] = 1;
