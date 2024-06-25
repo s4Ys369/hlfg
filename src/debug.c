@@ -52,12 +52,29 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX, posY+80, "%.0f %.0f %.0f\n", camTarget[0].v[0], camTarget[0].v[1], camTarget[0].v[2]);
     t3d_debug_printf(posX, posY+90, "camMode%u", cam_mode[0]);
   }
-  posY = 200;
+ 
   rdpq_set_prim_color(RGBA32(0xAA, 0xAA, 0xAA, 0xFF));
-  for (int i = 0; i < NUM_PLAYERS; ++i) {
-    t3d_debug_printf(posX, posY, "SCORE %d", player[i].score);
-    posY += 10;
+  if(NUM_PLAYERS > 1) {
+    if(NUM_PLAYERS == 2) {
+      t3d_debug_printf(posX, 100, "SCORE %d", player[0].score);
+      t3d_debug_printf(posX, 200, "SCORE %d", player[1].score);
+    }
+    if(NUM_PLAYERS == 3) {
+      t3d_debug_printf(posX, 100, "SCORE %d", player[0].score);
+      t3d_debug_printf(posX, 200, "SCORE %d", player[1].score);
+      t3d_debug_printf(172,  200, "SCORE %d", player[2].score);
+    }
+    if(NUM_PLAYERS == 4) {
+      t3d_debug_printf(posX, 100, "SCORE %d", player[0].score);
+      t3d_debug_printf(172,  100, "SCORE %d", player[1].score);
+      t3d_debug_printf(posX, 200, "SCORE %d", player[2].score);
+      t3d_debug_printf(172, 220, "SCORE %d", player[3].score);
+    }
+  } else {
+    t3d_debug_printf(posX, 200, "SCORE %d", player[0].score);
   }
+
+
   t3d_debug_printf(posX, 220, "FPS %.1f", display_get_fps());
   
 

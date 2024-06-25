@@ -229,15 +229,5 @@ void cam_update(void){
     }
 
     resolve_box_collision(MapBox, &camPos[i]);
-
-    T3DViewport *vp = &viewport[i];
-    T3DVec3 CP = camPos[i];
-    T3DVec3 CT = camTarget[i];
-
-    t3d_viewport_set_projection(vp, T3D_DEG_TO_RAD(85.0f), 10.0f, 150.0f);
-    t3d_viewport_look_at(vp, &CP, &CT, &(T3DVec3){{0,1,0}});
-    t3d_viewport_attach(vp);
-    t3d_light_set_directional(0, colorDir, &lightDirVec);
-
   }
 }

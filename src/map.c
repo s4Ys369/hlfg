@@ -18,10 +18,9 @@ void map_init(void){
     t3d_mat4fp_from_srt_euler(mapMatFP, (float[3]){0.4f, 0.4f, 0.4f}, (float[3]){0, 0, 0}, (float[3]){0, 0, -10});
     modelMap = t3d_model_load("rom:/map.t3dm");
     rspq_block_begin();
-        t3d_matrix_push(mapMatFP);
+        t3d_matrix_set(mapMatFP, true);
         rdpq_set_prim_color(RGBA32(255, 255, 255, 255));
         t3d_model_draw(modelMap);
-        t3d_matrix_pop(1);
     dplMap = rspq_block_end();
     MapBox = (AABB){{{-190.0f, -1.0f, -190.0f}},{{190.0f, 0.15f, 190.0f}}}; // Map's AABB
     groundLevel = 0.15f;

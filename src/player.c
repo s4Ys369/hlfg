@@ -82,38 +82,33 @@ void player_init(void){
 
 
   rspq_block_begin();
-    t3d_matrix_push(sphereMatFP[i]);
+    t3d_matrix_set(sphereMatFP[i], true);
     rdpq_set_prim_color(RGBA32(255, 0, 0, 120));
     t3d_model_draw(modelDebugSphere);
-    t3d_matrix_pop(1);
   dplDebugSphere[i] = rspq_block_end();
 
   rspq_block_begin();
-    t3d_matrix_push(sphere2MatFP[i]);
+    t3d_matrix_set(sphere2MatFP[i], true);
     rdpq_set_prim_color(RGBA32(255, 0, 0, 120));
     t3d_model_draw(modelDebugSphere);
-    t3d_matrix_pop(1);
   dplDebugSphere2[i] = rspq_block_end();
 
   rspq_block_begin();
-    t3d_matrix_push(modelMatFP[i]);
+    t3d_matrix_set(modelMatFP[i], true);
     rdpq_set_prim_color(RGBA32(255, 255, 255, 255));
     t3d_model_draw_skinned(model[i], &skel[i]);
-    t3d_matrix_pop(1);
   dplFrog[i] = rspq_block_end();
 
   rspq_block_begin();
-    t3d_matrix_push(tongueMatFP[i]);
+    t3d_matrix_set(tongueMatFP[i], true);
     rdpq_set_prim_color(RGBA32(255, 255, 255, 255));
     t3d_model_draw(modelTongue[i]);
-    t3d_matrix_pop(1);
   dplTongue[i] = rspq_block_end();
 
   rspq_block_begin();
-    t3d_matrix_push(shadowMatFP[i]);
+    t3d_matrix_set(shadowMatFP[i], true);
     rdpq_set_prim_color(RGBA32(0, 0, 0, 120));
     t3d_model_draw(modelShadow[i]);
-    t3d_matrix_pop(1);
   dplShadow[i] = rspq_block_end();
 
   player[i].moveDir = (T3DVec3){{0,0,0}};

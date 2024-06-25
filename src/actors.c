@@ -106,17 +106,15 @@ void lilypads_init(void){
 
     // Create gfx call to draw lily pad
     rspq_block_begin();
-      t3d_matrix_push(lilypadMatFP[i]);
+      t3d_matrix_set(lilypadMatFP[i], true);
       rdpq_set_prim_color(RGBA16(255, 255, 255, 255));
       t3d_model_draw(modelLilyPad);
-      t3d_matrix_pop(1);
     dplLilypad[i] = rspq_block_end();
 
     rspq_block_begin();
-      t3d_matrix_push(boxMatFP[i]);
+      t3d_matrix_set(boxMatFP[i], true);
       rdpq_set_prim_color(RGBA32(255, 0, 0, 120));
       t3d_model_draw(modelDebugBox);
-      t3d_matrix_pop(1);
     dplDebugBox[i] = rspq_block_end();
   }
 }
@@ -150,17 +148,15 @@ void springs_init(void){
 
     // Create gfx call to draw spring
     rspq_block_begin();
-      t3d_matrix_push(springMatFP[i]);
+      t3d_matrix_set(springMatFP[i], true);
       rdpq_set_prim_color(RGBA16(255, 255, 255, 255));
       t3d_model_draw_skinned(modelSprings[i], &springSkels[i]);
-      t3d_matrix_pop(1);
     dplSpring[i] = rspq_block_end();
 
     rspq_block_begin();
-      t3d_matrix_push(boxMatFP[i]);
+      t3d_matrix_set(boxMatFP[i], true);
       rdpq_set_prim_color(RGBA32(255, 0, 0, 120));
       t3d_model_draw(modelDebugBox);
-      t3d_matrix_pop(1);
     dplDebugBox2[i] = rspq_block_end();
   }
 }
@@ -222,17 +218,15 @@ void flys_init(void){
 
     // Create gfx call to draw flys
     rspq_block_begin();
-      t3d_matrix_push(flyMatFP[i]);
+      t3d_matrix_set(flyMatFP[i], true);
       rdpq_set_prim_color(RGBA16(255, 255, 255, 255));
       t3d_model_draw_skinned(modelFlys[i], &flySkels[i]);
-      t3d_matrix_pop(1);
     dplFly[i] = rspq_block_end();
 
     rspq_block_begin();
-      t3d_matrix_push(sphereFlyMatFP[i]);
+      t3d_matrix_set(sphereFlyMatFP[i], true);
       rdpq_set_prim_color(RGBA32(255, 0, 0, 120));
       t3d_model_draw(modelDebugSphere);
-      t3d_matrix_pop(1);
     dplDebugSphereFly[i] = rspq_block_end();
   }
 }

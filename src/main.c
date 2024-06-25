@@ -142,6 +142,7 @@ int main()
     for (int i = 0; i < NUM_FLYS; ++i) {
       t3d_skeleton_update(&flySkels[i]);
     }
+
     
 
     // ======== Draw (3D) ======== //
@@ -155,48 +156,69 @@ int main()
     t3d_light_set_count(1);
 
     // Run gfx calls
-    rspq_block_run(dplMap);
-    
-    for (int i = 0; i < NUM_FLYS; ++i) {
-      if(flyActive[i] == true) {
-        if(flyHide[i] == 0) {
-          rspq_block_run(dplFly[i]);
-        }
-        if(col_debug){
-          rspq_block_run(dplDebugSphereFly[i]);
-        }
-      }
-    }
-
     for (int i = 0; i < NUM_PLAYERS; ++i) {
-      rspq_block_run(dplShadow[i]);
-      rspq_block_run(dplFrog[i]);
-      if(player[i].tongue[i].isActive == true) {
-        rspq_block_run(dplTongue[i]);
-      }
-      if(col_debug){
-        rspq_block_run(dplDebugSphere[i]);
-        rspq_block_run(dplDebugSphere2[i]);
-      }
-    }
+      T3DViewport *vp = &viewport[i];
+      T3DVec3 CP = camPos[i];
+      T3DVec3 CT = camTarget[i];
 
-    for (int i = 0; i < NUM_LILYPADS; ++i) {
-        rspq_block_run(dplLilypad[i]);
-        if(col_debug){
-          rspq_block_run(dplDebugBox[i]);
+      t3d_viewport_set_projection(vp, T3D_DEG_TO_RAD(85.0f), 10.0f, 150.0f);
+      t3d_viewport_look_at(vp, &CP, &CT, &(T3DVec3){{0,1,0}});
+      t3d_viewport_attach(vp);
+      t3d_light_set_directional(0, colorDir, &lightDirVec);
+
+      t3d_matrix_push_pos(1);
+      rspq_block_run(dplMap);
+      t3d_matrix_pop(1);
+
+      t3d_matrix_push_pos(1);
+      for (int i = 0; i < NUM_FLYS; ++i) {
+        if(flyActive[i] == true) {
+          if(flyHide[i] == 0) {
+            rspq_block_run(dplFly[i]);
+          }
+          if(col_debug){
+            rspq_block_run(dplDebugSphereFly[i]);
+          }
         }
-    }
-    for (int i = 0; i < NUM_SPRINGS; ++i) {
-        rspq_block_run(dplSpring[i]);
-        if(col_debug){
-          rspq_block_run(dplDebugBox2[i]);
+      }
+      t3d_matrix_pop(1);
+
+      t3d_matrix_push_pos(1);
+      for (int i = 0; i < NUM_PLAYERS; ++i) {
+        rspq_block_run(dplShadow[i]);
+        rspq_block_run(dplFrog[i]);
+        if(player[i].tongue[i].isActive == true) {
+          rspq_block_run(dplTongue[i]);
         }
+        if(col_debug){
+          rspq_block_run(dplDebugSphere[i]);
+          rspq_block_run(dplDebugSphere2[i]);
+        }
+      }
+      t3d_matrix_pop(1);
+
+      t3d_matrix_push_pos(1);
+      for (int i = 0; i < NUM_LILYPADS; ++i) {
+          rspq_block_run(dplLilypad[i]);
+          if(col_debug){
+            rspq_block_run(dplDebugBox[i]);
+          }
+      }
+      t3d_matrix_pop(1);
+
+      t3d_matrix_push_pos(1);
+      for (int i = 0; i < NUM_SPRINGS; ++i) {
+          rspq_block_run(dplSpring[i]);
+          if(col_debug){
+            rspq_block_run(dplDebugBox2[i]);
+          }
+      }
+      t3d_matrix_pop(1);
     }
 
     syncPoint = rspq_syncpoint_new();
 
     // ======== Draw (UI) ======== //
-    draw_debug_ui();
 
     int sizeX = display_get_width();
     int sizeY = display_get_height();
@@ -221,7 +243,7 @@ int main()
         rdpq_fill_rectangle(sizeX/2-1, 0, sizeX/2+1, sizeY);
         break;
     }
-
+    draw_debug_ui();
     rdpq_detach_show();
   }
 
