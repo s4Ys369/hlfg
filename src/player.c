@@ -25,6 +25,10 @@ T3DMat4FP* tongueMatFP[NUM_PLAYERS];
 T3DMat4FP* sphereMatFP[NUM_PLAYERS];
 T3DMat4FP* sphere2MatFP[NUM_PLAYERS];
 T3DModel *model[NUM_PLAYERS];
+T3DModel *modelP1;
+T3DModel *modelP2;
+T3DModel *modelP3;
+T3DModel *modelP4;
 T3DModel *modelTongue[NUM_PLAYERS];
 T3DModel *modelShadow[NUM_PLAYERS];
 T3DSkeleton skel[NUM_PLAYERS];
@@ -42,6 +46,44 @@ rspq_block_t *dplShadow[NUM_PLAYERS];
 PlayerParams player[NUM_PLAYERS];
 
 void player_init(void){
+
+  modelP1 = t3d_model_load("rom:/frog.t3dm");
+  if(NUM_PLAYERS > 1){
+    if(NUM_PLAYERS == 2){
+      modelP2 = t3d_model_load("rom:/frog_p2.t3dm");
+    }
+    if(NUM_PLAYERS == 3){
+      modelP2 = t3d_model_load("rom:/frog_p2.t3dm");
+      modelP3 = t3d_model_load("rom:/frog_p3.t3dm");
+    }
+    if(NUM_PLAYERS == 4){
+      modelP2 = t3d_model_load("rom:/frog_p2.t3dm");
+      modelP3 = t3d_model_load("rom:/frog_p3.t3dm");
+      modelP4 = t3d_model_load("rom:/frog_p4.t3dm");
+    }
+  }
+
+  switch(NUM_PLAYERS){
+    case 1:
+      model[0] = modelP1;
+      break;
+    case 2:
+      model[0] = modelP1;
+      model[1] = modelP2;
+      break;
+    case 3:
+      model[0] = modelP1;
+      model[1] = modelP2;
+      model[2] = modelP3;
+      break;
+    case 4:
+      model[0] = modelP1;
+      model[1] = modelP2;
+      model[2] = modelP3;
+      model[3] = modelP4;
+      break;
+  }
+
   for (int i = 0; i < NUM_PLAYERS; ++i) {
   modelMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
   shadowMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
@@ -49,7 +91,6 @@ void player_init(void){
 
   sphereMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
   sphere2MatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-  model[i] = t3d_model_load("rom:/frog.t3dm");
   modelTongue[i] = t3d_model_load("rom:/tongue.t3dm");
   modelShadow[i] = t3d_model_load("rom:/shadow.t3dm");
   skel[i] = t3d_skeleton_create(model[i]);
@@ -94,9 +135,10 @@ void player_init(void){
   dplDebugSphere2[i] = rspq_block_end();
 
   rspq_block_begin();
-    t3d_matrix_set(modelMatFP[i], true);
+    t3d_matrix_push(modelMatFP[i]);
     rdpq_set_prim_color(RGBA32(255, 255, 255, 255));
     t3d_model_draw_skinned(model[i], &skel[i]);
+    t3d_matrix_pop(1);
   dplFrog[i] = rspq_block_end();
 
   rspq_block_begin();

@@ -11,7 +11,7 @@
 
 // SEED is used to place objects at random
 #define SEED 1234
-#define NUM_PLAYERS 4
+#define NUM_PLAYERS 2
 #define NUM_LILYPADS 5
 #define NUM_SPRINGS 5
 #define NUM_FLYS 10

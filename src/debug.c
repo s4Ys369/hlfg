@@ -26,7 +26,7 @@ void draw_debug_ui(void){
   t3d_debug_print_start();
 
   float posX = 12;
-  float posY = 12;
+
   int text_debug = 0;
   int text_controls = 0;
 
@@ -46,11 +46,7 @@ void draw_debug_ui(void){
 
   rdpq_set_prim_color(RGBA32(0xFF, 0xFF, 0xFF, 0xFF));
   if (text_debug){
-    t3d_debug_printf(posX, posY+50, "camPos\n");
-    t3d_debug_printf(posX, posY+60, "%.0f %.0f %.0f\n", camPos[0].v[0], camPos[0].v[1], camPos[0].v[2]);
-    t3d_debug_printf(posX, posY+70, "camFocus\n");
-    t3d_debug_printf(posX, posY+80, "%.0f %.0f %.0f\n", camTarget[0].v[0], camTarget[0].v[1], camTarget[0].v[2]);
-    t3d_debug_printf(posX, posY+90, "camMode%u", cam_mode[0]);
+
   }
  
   rdpq_set_prim_color(RGBA32(0xAA, 0xAA, 0xAA, 0xFF));

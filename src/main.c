@@ -166,6 +166,10 @@ int main()
       t3d_viewport_attach(vp);
       t3d_light_set_directional(0, colorDir, &lightDirVec);
 
+      for (int i = 0; i < NUM_PLAYERS; ++i) {
+        rspq_block_run(dplFrog[i]);
+      }
+
       t3d_matrix_push_pos(1);
       rspq_block_run(dplMap);
       t3d_matrix_pop(1);
@@ -186,7 +190,6 @@ int main()
       t3d_matrix_push_pos(1);
       for (int i = 0; i < NUM_PLAYERS; ++i) {
         rspq_block_run(dplShadow[i]);
-        rspq_block_run(dplFrog[i]);
         if(player[i].tongue[i].isActive == true) {
           rspq_block_run(dplTongue[i]);
         }
