@@ -29,42 +29,10 @@ uint32_t myrand(void) {
 		(uint32_t)(((uint64_t)myrand() * (n)) >> 32); \
 })
 
-float get_time_s() {
-  return (float)((double)get_ticks_us() / 1000000.0);
-}
-float get_last_time(){
-    return lastTime = get_time_s() - (1.0f / 60.0f);
-}
-
-float get_delta_time(){
-    float newTime = get_time_s();
-    lastTime = get_last_time();
-    deltaTime = newTime - lastTime;
-    lastTime = newTime;
-    return deltaTime;
-}
-
 float get_jump_time(){
-    deltaTime = get_delta_time();
+    deltaTime = display_get_delta_time();
     jumpTime = deltaTime * 3.5f;
     return jumpTime;
-}
-
-// Function to limit FPS, maybe?
-void limit_FPS(float targetFPS) {
-    // Calculate the duration of a single frame in seconds
-    float frameDuration = 0.5f / targetFPS;
-
-    // Get the start time of the frame
-    float startTime = get_time_s();
-
-    // Calculate the target end time for this frame
-    float endTime = startTime + frameDuration;
-
-    // Loop until the current time reaches the end time
-    while (get_time_s() < endTime) {
-        rspq_wait();
-    }
 }
 
 float random_float(float min, float max) {

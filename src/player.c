@@ -301,8 +301,6 @@ void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount, int play
 }
 
 void player_update(void){
-  deltaTime = get_delta_time();
-  jumpTime = get_jump_time();
 
   for (int i = 0; i < NUM_PLAYERS; ++i) {
 
@@ -431,7 +429,7 @@ void player_update(void){
 
     // Reverse direction if the maximum distance is reached
     if (distanceTraveled >= EndPosMax) {
-      player[i].tongue[i].speed = 100.0f;
+      player[i].tongue[i].speed = 40.0f;
       player[i].tongue[i].dir.v[0] = -player[i].tongue[i].dir.v[0] * player[i].tongue[i].speed * deltaTime;
       player[i].tongue[i].dir.v[2] = -player[i].tongue[i].dir.v[2] * player[i].tongue[i].speed * deltaTime;
       player[i].tongueRetract = 1;

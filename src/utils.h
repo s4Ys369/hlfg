@@ -20,11 +20,7 @@ extern uint32_t myrand(void);
 		(uint32_t)(((uint64_t)myrand() * (n)) >> 32); \
 })
 
-float get_time_s();
-float get_last_time();
-float get_delta_time();
 float get_jump_time();
-void limit_FPS(float targetFPS);
 float random_float(float min, float max);
 void shuffle_array(float arr[], int size);
 float clamp(float value, float min, float max);

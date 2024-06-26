@@ -43,20 +43,15 @@ int main()
   sound_init();
   map_init();
 
-  lastTime = get_last_time();
   rspq_syncpoint_t syncPoint = 0;
 
   for(;;)
   {
     // ======== Update ======== //
 
+    get_jump_time();
     input_update();
 
-    get_delta_time();
-    //float frameRate = display_get_fps();
-    //if (frameRate >= 30.0f) {
-    //  limit_FPS(30.0f);
-    //}
 
     if (!btnheld[0].start){
       sound_update_buffer();

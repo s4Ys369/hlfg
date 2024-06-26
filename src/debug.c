@@ -26,6 +26,7 @@ void draw_debug_ui(void){
   t3d_debug_print_start();
 
   float posX = 12;
+  float posY = 12;
 
   int text_debug = 0;
   int text_controls = 0;
@@ -50,52 +51,56 @@ void draw_debug_ui(void){
 
   rdpq_set_prim_color(RGBA32(0xFF, 0xFF, 0xFF, 0xFF));
   if (text_debug){
-    t3d_debug_printf(posX, 12, "X %.2f", player[0].playerPos.v[0]);
-    t3d_debug_printf(posX, 22, "Y %.2f", player[0].playerPos.v[1]);
-    t3d_debug_printf(posX, 32, "Z %.2f", player[0].playerPos.v[2]);
+    t3d_debug_printf(posX, posY, "X %.2f", player[0].playerPos.v[0]);posY+=10;
+    t3d_debug_printf(posX, posY, "Y %.2f", player[0].playerPos.v[1]);posY+=10;
+    t3d_debug_printf(posX, posY, "Z %.2f", player[0].playerPos.v[2]);posY+=20;
+    t3d_debug_printf(posX, posY, "DT %.2f", deltaTime);posY+=10;
+    t3d_debug_printf(posX, posY, "JT %.2f", jumpTime);
   }
- 
+  
+  posY = 200;
   rdpq_set_prim_color(RGBA32(0xAA, 0xAA, 0xAA, 0xFF));
   if(NUM_PLAYERS > 1) {
     if(NUM_PLAYERS == 2) {
-      t3d_debug_printf(posX, 100, "SCORE %d", player[0].score);
-      t3d_debug_printf(posX, 200, "SCORE %d", player[1].score);
+      t3d_debug_printf(posX, posY/2, "SCORE %d", player[0].score);
+      t3d_debug_printf(posX, posY, "SCORE %d", player[1].score);
     }
     if(NUM_PLAYERS == 3) {
-      t3d_debug_printf(posX, 100, "SCORE %d", player[0].score);
-      t3d_debug_printf(posX, 200, "SCORE %d", player[1].score);
-      t3d_debug_printf(172,  200, "SCORE %d", player[2].score);
+      t3d_debug_printf(posX, posY/2, "SCORE %d", player[0].score);
+      t3d_debug_printf(posX, posY, "SCORE %d", player[1].score);
+      t3d_debug_printf((posX*14)+4,  posY, "SCORE %d", player[2].score);
     }
     if(NUM_PLAYERS == 4) {
-      t3d_debug_printf(posX, 100, "SCORE %d", player[0].score);
-      t3d_debug_printf(172,  100, "SCORE %d", player[1].score);
-      t3d_debug_printf(posX, 200, "SCORE %d", player[2].score);
-      t3d_debug_printf(172, 220, "SCORE %d", player[3].score);
+      t3d_debug_printf(posX, posY/2, "SCORE %d", player[0].score);
+      t3d_debug_printf((posX*14)+4,  posY/2, "SCORE %d", player[1].score);
+      t3d_debug_printf(posX, posY, "SCORE %d", player[2].score);
+      t3d_debug_printf((posX*14)+4, posY+20, "SCORE %d", player[3].score);
     }
   } else {
-    t3d_debug_printf(posX, 200, "SCORE %d", player[0].score);
+    t3d_debug_printf(posX, posY, "SCORE %d", player[0].score);
   }
 
 
-  t3d_debug_printf(posX, 220, "FPS %.1f", display_get_fps());
+  t3d_debug_printf(posX, posY+20, "FPS %.1f", display_get_fps());
   
 
   if(text_controls){
     posX = 80;
+    posY = 50;
     rdpq_set_prim_color(RGBA32(0xAA, 0xFF, 0xAA, 0xFF));
-    t3d_debug_printf(posX, 50, "Happy Little Frog Game");
-    t3d_debug_printf(posX+55, 60, "v%.1f.%u", VERSION, VERSION_SUFFIX);
-    rdpq_set_prim_color(RGBA32(0xFF, 0xAA, 0xAA, 0xFF));
-    t3d_debug_printf(posX+50, 70, "by s4ys");
+    t3d_debug_printf(posX, posY, "Happy Little Frog Game");posY+=10;
+    t3d_debug_printf(posX+55, posY, "v%.1f.%u", VERSION, VERSION_SUFFIX);posY+=10;
+    rdpq_set_prim_color(RGBA32(0xFF, 0xAA, 0xAA, 0xFF));posY+=10;
+    t3d_debug_printf(posX+50, posY, "by s4ys");posY+=10;
     rdpq_set_prim_color(RGBA32(0xFF, 0xFF, 0xFF, 0xFF));
-    t3d_debug_printf(posX, 80, "Control Stick : Move");
-    t3d_debug_printf(posX, 90, "A : Jump");
-    t3d_debug_printf(posX, 100, "B : Attack");
-    t3d_debug_printf(posX, 110, "C Down : Normal Cam");
-    t3d_debug_printf(posX, 120, "C Left & Right :");
-    t3d_debug_printf(posX+10, 130, "Rotate Fixed Cam");
-    t3d_debug_printf(posX, 140, "C Up : Top Down Cam");
-    t3d_debug_printf(posX, 150, "Z : Recenter Cam");
-    t3d_debug_printf(posX, 160, "Hold R : Debug");
+    t3d_debug_printf(posX, posY, "Control Stick : Move");posY+=10;
+    t3d_debug_printf(posX, posY, "A : Jump");posY+=10;
+    t3d_debug_printf(posX, posY, "B : Attack");posY+=10;
+    t3d_debug_printf(posX, posY, "C Down : Normal Cam");posY+=10;
+    t3d_debug_printf(posX, posY, "C Left & Right :");posY+=10;
+    t3d_debug_printf(posX+10, posY, "Rotate Fixed Cam");posY+=10;
+    t3d_debug_printf(posX, posY, "C Up : Top Down Cam");posY+=10;
+    t3d_debug_printf(posX, posY, "Z : Recenter Cam");posY+=10;
+    t3d_debug_printf(posX, posY, "Hold R : Debug");
   }
 }
