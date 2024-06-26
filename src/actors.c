@@ -34,7 +34,7 @@ T3DVec3 springPos[NUM_SPRINGS];
 AABB springBox[NUM_SPRINGS];
 rspq_block_t *dplSpring[NUM_SPRINGS];
 rspq_block_t *dplDebugBox2[NUM_SPRINGS];
-T3DModel* modelSprings[NUM_SPRINGS];
+T3DModel  *modelSpring;
 T3DSkeleton springSkels[NUM_SPRINGS];
 T3DSkeleton springSkelBlends[NUM_SPRINGS];
 T3DAnim animsSpring[NUM_SPRINGS];
@@ -54,7 +54,7 @@ int flyPointV[NUM_FLYS];
 FlyParams fly[NUM_FLYS];
 rspq_block_t *dplFly[NUM_FLYS];
 rspq_block_t *dplDebugSphereFly[NUM_FLYS];
-T3DModel* modelFlys[NUM_FLYS];
+T3DModel *modelFly;
 T3DSkeleton flySkels[NUM_FLYS];
 T3DSkeleton flySkelBlends[NUM_FLYS];
 T3DAnim animsFlying[NUM_FLYS];
@@ -92,6 +92,8 @@ void actors_init(void){
   shuffle_array(zValues, 10); 
   modelHill = t3d_model_load("rom:/hill.t3dm");
   modelLilyPad = t3d_model_load("rom:/lily_pad.t3dm");
+  modelSpring = t3d_model_load("rom:/spring.t3dm");
+  modelFly = t3d_model_load("rom:/fly.t3dm");
   hills_init();
   for (int h = 0; h < NUM_HILLS; ++h) {
     AABB *currentHill;
@@ -113,7 +115,7 @@ void actors_init(void){
 // Initialize lily pads
 void hills_init(void){
   for (int i = 0; i < NUM_HILLS; ++i) {
-    hillMatFP[i] = malloc(sizeof(T3DMat4FP));
+    hillMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
     float translation[3] = {random_float(-450.0f, 450.0f), random_float(0.0f, 25.0f), random_float(-450.0f, 450.0f)};
     t3d_mat4fp_from_srt_euler(hillMatFP[i], (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, translation);
 
@@ -135,7 +137,7 @@ void lilypads_init(void){
   for (int i = 0; i < NUM_LILYPADS; ++i) {
 	  float x = xValues[i];
     float z = zValues[i];
-    lilypadMatFP[i] = malloc(sizeof(T3DMat4FP));
+    lilypadMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
     boxMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
     float translation[3] = {x, 20.0f, z}; // Example positions
     t3d_mat4fp_from_srt_euler(lilypadMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, translation);
@@ -170,10 +172,9 @@ void springs_init(void){
     float translation[3] = {x, y, z}; // Example positions
     t3d_mat4fp_from_srt_euler(boxMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, translation);
     
-    modelSprings[i] = t3d_model_load("rom:/spring.t3dm");
-    springSkels[i] = t3d_skeleton_create(modelSprings[i]);
+    springSkels[i] = t3d_skeleton_create(modelSpring);
     springSkelBlends[i] = t3d_skeleton_clone(&springSkels[i], false);
-    animsSpring[i] = t3d_anim_create(modelSprings[i], "spring");
+    animsSpring[i] = t3d_anim_create(modelSpring, "spring");
     t3d_anim_set_looping(&animsSpring[i], false);
     t3d_anim_set_playing(&animsSpring[i], false);
     t3d_anim_set_time(&animsSpring[i], 0.0f);
@@ -190,7 +191,7 @@ void springs_init(void){
     rspq_block_begin();
       t3d_matrix_set(springMatFP[i], true);
       rdpq_set_prim_color(RGBA16(255, 255, 255, 255));
-      t3d_model_draw_skinned(modelSprings[i], &springSkels[i]);
+      t3d_model_draw_skinned(modelSpring, &springSkels[i]);
     dplSpring[i] = rspq_block_end();
 
     rspq_block_begin();
@@ -211,7 +212,7 @@ void spring_update(void){
 
     if(springActive[i]) {
       t3d_anim_set_playing(&animsSpring[i], true);
-      t3d_anim_update(&animsSpring[i], deltaTime);
+      t3d_anim_update(&animsSpring[i], jumpTime);
     }
 
     if(!animsSpring[i].isPlaying) {
@@ -235,21 +236,20 @@ void flys_init(void){
     fly->pointValue = flyPointV[i];
     flyMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
     sphereFlyMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-    modelFlys[i] = t3d_model_load("rom:/fly.t3dm");
 
-    flySkels[i] = t3d_skeleton_create(modelFlys[i]);
+    flySkels[i] = t3d_skeleton_create(modelFly);
     flySkelBlends[i] = t3d_skeleton_clone(&flySkels[i], false);
 
-    animsFlying[i] = t3d_anim_create(modelFlys[i], "flying");
+    animsFlying[i] = t3d_anim_create(modelFly, "flying");
     t3d_anim_set_speed(&animsFlying[i], 10.0f);
     t3d_anim_attach(&animsFlying[i], &flySkels[i]);
 
-    animsDeath[i] = t3d_anim_create(modelFlys[i], "death");
+    animsDeath[i] = t3d_anim_create(modelFly, "death");
     t3d_anim_set_looping(&animsDeath[i], false);
     t3d_anim_set_playing(&animsDeath[i], false);
     t3d_anim_attach(&animsDeath[i], &flySkels[i]);
 
-    flyPos[i] = (T3DVec3){{random_float(-170.0f, 170.0f), 6.0f, random_float(-170.0f, 170.0f)}};
+    flyPos[i] = (T3DVec3){{random_float(-170.0f, 170.0f), random_float(5.0f, 50.0f), random_float(-170.0f, 170.0f)}};
     flyYaw[i] = 0.0f;
     flyPitch[i] = 0.0f;
     flyBox[i] = (Sphere){flyPos[i], 3.0f};
@@ -260,7 +260,7 @@ void flys_init(void){
     rspq_block_begin();
       t3d_matrix_set(flyMatFP[i], true);
       rdpq_set_prim_color(RGBA16(255, 255, 255, 255));
-      t3d_model_draw_skinned(modelFlys[i], &flySkels[i]);
+      t3d_model_draw_skinned(modelFly, &flySkels[i]);
     dplFly[i] = rspq_block_end();
 
     rspq_block_begin();
@@ -271,12 +271,16 @@ void flys_init(void){
   }
 }
 
+
+int closestHill = -1;
+int closestLP = -1;
+int closestSpring = -1;
 void fly_update(void){
   for (int i = 0; i < NUM_FLYS; ++i) {
     if(flyActive[i]){
       t3d_anim_update(&animsFlying[i], deltaTime);
-      flyDir[i] = (T3DVec3){{random_float(-100.0f, 100.0f), 0.0f, random_float(-100.0f, 100.0f)}};
-      flySpeed[i] = random_float(-4.0f, 4.0f);
+      flyDir[i] = (T3DVec3){{random_float(-10.0f, 10.0f), random_float(-10.0f, 10.0f), random_float(-10.0f, 10.0f)}};
+      flySpeed[i] = random_float(10.0f, 50.0f);
       flyPointV[i] = 1;
 
       // Normalize the direction vector
@@ -306,11 +310,12 @@ void fly_update(void){
       flyPitch[i] = asinf((normalizedDir.v[1] * deltaTime));
 
       flyPos[i].v[0] += flyDir[i].v[0] * flySpeed[i] * deltaTime;
+      flyPos[i].v[1] += flyDir[i].v[1] * flySpeed[i] * deltaTime;
       flyPos[i].v[2] += flyDir[i].v[2] * flySpeed[i] * deltaTime;
 
       if(flyPos[i].v[0] < FloorBox.min.v[0])flyPos[i].v[0] = 0;
       if(flyPos[i].v[0] >  FloorBox.max.v[0])flyPos[i].v[0] =  0;
-      if(flyPos[i].v[1] < 5)flyPos[i].v[1] = 5;
+      if(flyPos[i].v[1] < 50)flyPos[i].v[1] = 50;
       if(flyPos[i].v[1] >  5)flyPos[i].v[1] =  5;
       if(flyPos[i].v[2] < FloorBox.min.v[2])flyPos[i].v[2] = 0;
       if(flyPos[i].v[2] >  FloorBox.max.v[2])flyPos[i].v[2] =  0;
@@ -318,12 +323,35 @@ void fly_update(void){
       flyBox[i].center.v[0] = flyPos[i].v[0];
       flyBox[i].center.v[1] = flyPos[i].v[1];
       flyBox[i].center.v[2] = flyPos[i].v[2];
+
+      AABB *currHill;
+      closestHill = find_closest_actor(flyPos[i], hillPos, NUM_HILLS);
+      AABB *currLP;
+      closestLP = find_closest_actor(flyPos[i], lilypadPos, NUM_LILYPADS);
+      AABB *currSpring;
+      closestSpring = find_closest_actor(flyPos[i], springPos, NUM_SPRINGS);
+
+      if (closestHill != -1){
+        currHill = &hillBox[closestHill];
+        if (check_sphere_box_collision(flyBox[i], *currHill)) {
+          resolve_box_collision(*currHill, &flyPos[i]);
+        }
+      }
+      if (closestLP != -1){
+        currLP = &lilypadBox[closestLP];
+        if (check_sphere_box_collision(flyBox[i], *currLP)) {
+          resolve_box_collision(*currLP, &flyPos[i]);
+        }
+      }
+      if (closestSpring != -1){
+        currSpring = &springBox[closestHill];
+        if (check_sphere_box_collision(flyBox[i], *currSpring)) {
+          resolve_box_collision(*currSpring, &flyPos[i]);
+        }
+      }
     }
 
-    float dx = player->playerPos.v[0] - flyPos[i].v[0];
-    float dy = player->playerPos.v[1] - flyPos[i].v[1];
-    float dz = player->playerPos.v[2] - flyPos[i].v[2];
-    float distanceFromPlayer = sqrtf(dx * dx + dy * dy + dz * dz);
+    float distanceFromPlayer = get_t3d_distance(player->playerPos, flyPos[i]);
     if(distanceFromPlayer > FLY_DRAW_DIST){
       flyHide[i] = 1;
     } else {

@@ -230,6 +230,12 @@ void cam_update(void){
     for (int h = 0; h < NUM_HILLS; ++h) {
       resolve_box_collision(hillBox[h], &camPos[i]);
     }
+    for (int l = 0; l < NUM_LILYPADS; ++l) {
+      resolve_box_collision(lilypadBox[l], &camPos[i]);
+    }
+    for (int s = 0; s < NUM_SPRINGS; ++s) {
+      resolve_box_collision(springBox[s], &camPos[i]);
+    }
     resolve_box_collision(FloorBox, &camPos[i]);
   }
 }

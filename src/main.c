@@ -254,7 +254,7 @@ int main()
 
   // Clean up
   t3d_model_free(modelMap);
-  free(mapMatFP);
+  free_uncached(mapMatFP);
   rspq_block_free(dplMap);
   
   t3d_model_free(modelDebugBox);
@@ -274,11 +274,11 @@ int main()
     t3d_model_free(modelShadow[i]);
     t3d_model_free(modelTongue[i]);
   
-    free(modelMatFP[i]);
-    free(shadowMatFP[i]);
-    free(tongueMatFP[i]);
-    free(sphereMatFP[i]);
-    free(sphere2MatFP[i]);
+    free_uncached(modelMatFP[i]);
+    free_uncached(shadowMatFP[i]);
+    free_uncached(tongueMatFP[i]);
+    free_uncached(sphereMatFP[i]);
+    free_uncached(sphere2MatFP[i]);
   
     rspq_block_free(dplDebugSphere[i]);
     rspq_block_free(dplDebugSphere2[i]);
@@ -287,9 +287,16 @@ int main()
     rspq_block_free(dplShadow[i]);
   }
 
-  t3d_model_free(modelLilyPad);
+  for (int i = 0; i < NUM_HILLS; ++i) {
+    t3d_model_free(modelHill);
+    free_uncached(hillMatFP[i]);
+    rspq_block_free(dplHill[i]);
+  }
+
+  
   for (int i = 0; i < NUM_LILYPADS; ++i) {
-    free(lilypadMatFP[i]);
+    t3d_model_free(modelLilyPad);
+    free_uncached(lilypadMatFP[i]);
     rspq_block_free(dplLilypad[i]);
     rspq_block_free(dplDebugBox[i]);
   }
@@ -298,8 +305,8 @@ int main()
     t3d_skeleton_destroy(&springSkels[i]);
     t3d_skeleton_destroy(&springSkelBlends[i]);
     t3d_anim_destroy(&animsSpring[i]);
-    t3d_model_free(modelSprings[i]);
-    free(springMatFP[i]);
+    t3d_model_free(modelSpring);
+    free_uncached(springMatFP[i]);
     rspq_block_free(dplSpring[i]);
     rspq_block_free(dplDebugBox2[i]);
   }
@@ -311,9 +318,9 @@ int main()
     t3d_skeleton_destroy(&flySkelBlends[i]);
     t3d_anim_destroy(&animsFlying[i]);
     t3d_anim_destroy(&animsDeath[i]);
-    t3d_model_free(modelFlys[i]);
-    free(flyMatFP[i]);
-    free(sphereFlyMatFP[i]);
+    t3d_model_free(modelFly);
+    free_uncached(flyMatFP[i]);
+    free_uncached(sphereFlyMatFP[i]);
     rspq_block_free(dplFly[i]);
     rspq_block_free(dplDebugSphereFly[i]);
   }
