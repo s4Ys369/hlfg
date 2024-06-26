@@ -298,6 +298,7 @@ void flys_init(void){
 }
 
 
+int closestPlayer = -1;
 int closestHill = -1;
 int closestLP = -1;
 int closestSpring = -1;
@@ -335,6 +336,8 @@ void fly_update(void){
 
       flyBox[i].center = flyPos[i];
 
+      Sphere *currPlayerBox;
+      closestPlayer = find_closest_actor(flyPos[i], &player->playerPos, NUM_PLAYERS);
       AABB *currHill;
       closestHill = find_closest_actor(flyPos[i], hillPos, NUM_HILLS);
       AABB *currLP;
@@ -342,6 +345,12 @@ void fly_update(void){
       AABB *currSpring;
       closestSpring = find_closest_actor(flyPos[i], springPos, NUM_SPRINGS);
 
+      if (closestPlayer != -1){
+        currPlayerBox = &player[closestPlayer].playerBox;
+        if (check_sphere_collision(flyBox[i], *currPlayerBox)) {
+          resolve_sphere_collision(*currPlayerBox, &flyPos[i]);
+        }
+      }
       if (closestHill != -1){
         currHill = &hillBox[closestHill];
         if (check_sphere_box_collision(flyBox[i], *currHill)) {

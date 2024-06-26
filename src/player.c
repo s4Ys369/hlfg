@@ -157,7 +157,7 @@ void player_init(void){
     player[i].playerPos = (T3DVec3){{0,0.15f,0}};
     player[i].shadowPos = (T3DVec3){{0,0.15f,0}};
     player[i].playerForward = (T3DVec3){{0,0,1}};
-    player[i].playerBox = (Sphere){{{-0.3f, 0.0f, -0.3f}},0.3f}; // Player's Sphere
+    player[i].playerBox = (Sphere){{{-0.3f, 0.0f, -0.3f}},15.0f}; // Player's Sphere
     player[i].tongue[i].pos = player[i].playerBox.center;
     player[i].tongue[i].dir = player[i].playerForward;
     player[i].tongue[i].hitbox = (Sphere){{{0.0f, 0.0f, 0.0f}},6.0f};
@@ -182,7 +182,8 @@ void player_init(void){
       player[i].activateSpring[j] = false;
     }
     if(NUM_PLAYERS > 1){
-      player[i].playerPos = (T3DVec3){{random_float(-170.0f, 170.0f),0.15f,random_float(-170.0f, 170.0f)}};
+      player[i].playerPos = (T3DVec3){{random_float(-50.0f, 50.0f),0.15f,random_float(-50.0f, 50.0f)}};
+      check_player_collisions(&player[i].playerBox, &player->playerBox, NUM_PLAYERS);
       check_hill_collisions(hillBox, NUM_HILLS, i);
       check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
       check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
@@ -205,6 +206,19 @@ int find_closest_actor(T3DVec3 origin, T3DVec3 actorPos[], int numActors) {
     }
   }
   return closestIndex;
+}
+
+void check_player_collisions(Sphere *a, Sphere *b, int numPlayers) {
+
+  for (int i = 0; i < numPlayers; i++) {
+    for (int j = i + 1; j < numPlayers; j++) {
+      if (check_sphere_collision(player[i].playerBox, player[j].playerBox)) {
+        resolve_sphere_collision(player[i].playerBox, &player[j].playerPos);
+        resolve_sphere_collision(player[j].playerBox, &player[i].playerPos);
+      }
+    }
+  } 
+
 }
 
 void check_hill_collisions(AABB *hillBox, int hillCount, int playerCount) {
@@ -428,11 +442,13 @@ void player_update(void){
 
   // Check for collision with lilypad then ground, order highest to lowest apparently
   if(player[i].playerPos.v[1] == groundLevel){
+    check_player_collisions(&player[i].playerBox, &player->playerBox, NUM_PLAYERS);
     check_hill_collisions(hillBox, NUM_HILLS, i);
     check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
     check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
   }
   if(player[i].playerPos.v[1] != groundLevel && player[i].isGrounded){
+    check_player_collisions(&player[i].playerBox, &player->playerBox, NUM_PLAYERS);
     check_midair_hill_collisions(hillBox, NUM_HILLS, i);
     check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
     check_midair_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
@@ -452,6 +468,7 @@ void player_update(void){
   // do fall
   if(player[i].isFalling) {
     t3d_anim_set_playing(&animRetract[i], false);
+    check_player_collisions(&player[i].playerBox, &player->playerBox, NUM_PLAYERS);
     check_midair_hill_collisions(hillBox, NUM_HILLS, i);
     check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
     check_midair_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
@@ -537,6 +554,7 @@ void player_update(void){
     t3d_anim_update(&animJump[i], deltaTime);
     t3d_anim_update(&animRetract[i], deltaTime);
     t3d_anim_set_time(&animRetract[i], 0.0f);
+    check_player_collisions(&player[i].playerBox, &player->playerBox, NUM_PLAYERS);
     check_hill_collisions(hillBox, NUM_HILLS, i);
     check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
     check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
@@ -574,6 +592,7 @@ void player_update(void){
     player[i].playerBox.center.v[2] = player[i].playerPos.v[2];
 
     // Check for collision with lilypad then ground, order highest to lowest apparently
+    check_player_collisions(&player[i].playerBox, &player->playerBox, NUM_PLAYERS);
     check_hill_collisions(hillBox, NUM_HILLS, i);
     check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
     check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);

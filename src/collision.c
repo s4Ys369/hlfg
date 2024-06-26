@@ -75,14 +75,32 @@ void resolve_box_collision_xz(AABB aabb, T3DVec3 *pos, float offset) {
 }
 
 
-// Check for sphere to sphere, needs resolve functions
+// Check for sphere to sphere
 bool check_sphere_collision(Sphere a, Sphere b) {
-    float dx = a.center.v[0] - b.center.v[0];
-    float dy = a.center.v[1] - b.center.v[1];
-    float dz = a.center.v[2] - b.center.v[2];
-    float distanceSquared = dx * dx + dy * dy + dz * dz;
-    float radiusSum = a.radius + b.radius;
-    return distanceSquared <= radiusSum * radiusSum;
+    // Calculate the squared distance between centers
+    float distanceSquared = t3d_vec3_distance(&a.center, &b.center);
+
+    // Check collision, have to hardcode the desired collision distance
+    if (distanceSquared <= a.radius) {
+        return true; // Collision detected
+    } else {
+        return false; // No collision
+    }
+}
+
+void resolve_sphere_collision(Sphere sphere, T3DVec3 *pos) {
+    // Calculate the vector from the sphere's center to the point
+    T3DVec3 direction;
+    t3d_vec3_diff(&direction, pos, &sphere.center);
+
+    // Normalize the direction vector
+    t3d_vec3_norm(&direction);
+
+    // Move the point to the surface of the sphere plus a small epsilon
+    float epsilon = 1e-6f;
+    pos->v[0] = sphere.center.v[0] + direction.v[0] * (15 + epsilon);
+    pos->v[1] = sphere.center.v[1] + direction.v[1] * (15 + epsilon);
+    pos->v[2] = sphere.center.v[2] + direction.v[2] * (15 + epsilon);
 }
 
 
