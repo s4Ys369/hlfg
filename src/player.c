@@ -183,6 +183,12 @@ void player_init(void){
     }
     if(NUM_PLAYERS > 1){
       player[i].playerPos = (T3DVec3){{random_float(-170.0f, 170.0f),0.15f,random_float(-170.0f, 170.0f)}};
+      check_hill_collisions(hillBox, NUM_HILLS, i);
+      check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
+      check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
+      if (check_sphere_box_collision(player[i].playerBox, FloorBox)) {
+        resolve_box_collision(FloorBox, &player[i].playerPos, 0.01f);
+      }
     }
   }
 }
@@ -208,23 +214,8 @@ void check_hill_collisions(AABB *hillBox, int hillCount, int playerCount) {
   if (closestIndex != -1){
     currentHill = &hillBox[closestIndex];
     if (check_sphere_box_collision(player[playerCount].playerBox, *currentHill)) {
-        resolve_box_collision(*currentHill, &player[playerCount].playerPos);
-
-      if (player[playerCount].playerPos.v[1] >= currentHill->max.v[1]) {
-        if (player[playerCount].playerBox.center.v[0] <= currentHill->max.v[0] &&
-            player[playerCount].playerBox.center.v[0] >= currentHill->min.v[0] &&
-            player[playerCount].playerBox.center.v[2] <= currentHill->max.v[2] &&
-            player[playerCount].playerBox.center.v[2] >= currentHill->min.v[2]) {
-
-          player[playerCount].isGrounded = true;
-          player[playerCount].isJumping = false;
-          player[playerCount].isFalling = false;
-        } else {
-          player[playerCount].isGrounded = false;
-          player[playerCount].isJumping = false;
-          player[playerCount].isFalling = true;
-        }
-      }
+      resolve_box_collision_xz(*currentHill, &player[playerCount].playerBox.center, player[playerCount].playerBox.radius);
+      resolve_box_collision_xz(*currentHill, &player[playerCount].playerPos, 0.02f);
     }
   }
 }
@@ -237,14 +228,68 @@ void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCoun
   if (closestIndex != -1){
     currentLilypad = &lilypadBox[closestIndex];
     if (check_sphere_box_collision(player[playerCount].playerBox, *currentLilypad)) {
-        resolve_box_collision(*currentLilypad, &player[playerCount].playerPos);
+      // Resolve collisions in x and z directions with a minimal offset
+      resolve_box_collision_xz(*currentLilypad, &player[playerCount].playerPos, 0.01f); // Small offset value
+    }
+  }
+}
 
-      if (player[playerCount].playerPos.v[1] >= currentLilypad->max.v[1]) {
-        if (player[playerCount].playerBox.center.v[0] <= currentLilypad->max.v[0] &&
-            player[playerCount].playerBox.center.v[0] >= currentLilypad->min.v[0] &&
-            player[playerCount].playerBox.center.v[2] <= currentLilypad->max.v[2] &&
-            player[playerCount].playerBox.center.v[2] >= currentLilypad->min.v[2]) {
+void check_midair_hill_collisions(AABB *hillBox, int hillCount, int playerCount) {
+  AABB *currentHill;
+  closestIndex = find_closest_actor(player[playerCount].playerPos, hillPos, hillCount);
 
+  if (closestIndex != -1){
+    currentHill = &hillBox[closestIndex];
+    if (check_sphere_box_collision(player[playerCount].playerBox, *currentHill)) {
+      resolve_box_collision(*currentHill, &player[playerCount].playerBox.center, player[playerCount].playerBox.radius);
+      resolve_box_collision(*currentHill, &player[playerCount].playerPos, 0.02f);
+
+      // Check if the player is above or within the hill bounds in the x and z directions
+      if (player[playerCount].playerBox.center.v[0] <= currentHill->max.v[0] &&
+          player[playerCount].playerBox.center.v[0] >= currentHill->min.v[0] &&
+          player[playerCount].playerBox.center.v[2] <= currentHill->max.v[2] &&
+          player[playerCount].playerBox.center.v[2] >= currentHill->min.v[2]) {
+
+        // Check if the player is above the hill's top surface
+        if (player[playerCount].playerBox.center.v[1] >= currentHill->max.v[1]) {
+          if(!animJump[playerCount].isPlaying && !animRetract[playerCount].isPlaying){
+            player[playerCount].isGrounded = true;
+            player[playerCount].isJumping = false;
+            player[playerCount].isFalling = false;
+          }
+        } else {
+          player[playerCount].isGrounded = false;
+          player[playerCount].isJumping = false;
+          player[playerCount].isFalling = true;
+        }
+      } else {
+        player[playerCount].isGrounded = false;
+        player[playerCount].isJumping = false;
+        player[playerCount].isFalling = true;
+      }
+    }
+  }
+}
+
+
+void check_midair_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCount) {
+  AABB *currentLilypad;
+  closestIndex = find_closest_actor(player[playerCount].playerPos, lilypadPos, lilypadCount);
+
+  if (closestIndex != -1){
+    currentLilypad = &lilypadBox[closestIndex];
+    if (check_sphere_box_collision(player[playerCount].playerBox, *currentLilypad)) {
+      // Resolve collisions in x and z directions with a minimal offset
+      resolve_box_collision(*currentLilypad, &player[playerCount].playerPos, 0.01f); // Small offset value
+
+      // Check if the player is above or within the lilypad bounds in the x and z directions
+      if (player[playerCount].playerBox.center.v[0] <= currentLilypad->max.v[0] &&
+          player[playerCount].playerBox.center.v[0] >= currentLilypad->min.v[0] &&
+          player[playerCount].playerBox.center.v[2] <= currentLilypad->max.v[2] &&
+          player[playerCount].playerBox.center.v[2] >= currentLilypad->min.v[2]) {
+
+        // Check if the player is above the lilypad's top surface
+        if (player[playerCount].playerPos.v[1] >= currentLilypad->max.v[1]) {
           player[playerCount].isGrounded = true;
           player[playerCount].isJumping = false;
           player[playerCount].isFalling = false;
@@ -253,6 +298,10 @@ void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCoun
           player[playerCount].isJumping = false;
           player[playerCount].isFalling = true;
         }
+      } else {
+        player[playerCount].isGrounded = false;
+        player[playerCount].isJumping = false;
+        player[playerCount].isFalling = true;
       }
     }
   }
@@ -267,12 +316,12 @@ void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount, int play
     currentBouncepad = &bouncepadBox[closestIndex];
     
     if (check_sphere_box_collision(player[playerCount].playerBox, *currentBouncepad)) { 
-      resolve_box_collision(*currentBouncepad, &player[playerCount].playerPos);
-      if(player[playerCount].playerPos.v[1] >= currentBouncepad->max.v[1]){
-        if (player[playerCount].playerBox.center.v[0] <= currentBouncepad->max.v[0] &&
+      resolve_box_collision(*currentBouncepad, &player[playerCount].playerPos, 0.01f);
+      if (player[playerCount].playerBox.center.v[0] <= currentBouncepad->max.v[0] &&
             player[playerCount].playerBox.center.v[0] >= currentBouncepad->min.v[0] &&
             player[playerCount].playerBox.center.v[2] <= currentBouncepad->max.v[2] &&
             player[playerCount].playerBox.center.v[2] >= currentBouncepad->min.v[2]) {
+        if(player[playerCount].playerPos.v[1] >= currentBouncepad->max.v[1]){
           player[playerCount].isFalling = false;
           playerBounced = true;
           player[playerCount].activateSpring[closestIndex] = true;
@@ -378,11 +427,15 @@ void player_update(void){
   player[i].playerBox.center.v[2] = player[i].playerPos.v[2];
 
   // Check for collision with lilypad then ground, order highest to lowest apparently
-  check_hill_collisions(hillBox, NUM_HILLS, i);
-  check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
-  check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
-  if (check_sphere_box_collision(player[i].playerBox, FloorBox)) {
-    resolve_box_collision(FloorBox, &player[i].playerPos);
+  if(player[i].playerPos.v[1] == groundLevel){
+    check_hill_collisions(hillBox, NUM_HILLS, i);
+    check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
+    check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
+  }
+  if(player[i].playerPos.v[1] != groundLevel && player[i].isGrounded){
+    check_midair_hill_collisions(hillBox, NUM_HILLS, i);
+    check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
+    check_midair_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
   }
 
   // check walking
@@ -398,10 +451,13 @@ void player_update(void){
 
   // do fall
   if(player[i].isFalling) {
+    t3d_anim_set_playing(&animRetract[i], false);
+    check_midair_hill_collisions(hillBox, NUM_HILLS, i);
+    check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
+    check_midair_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
     if (player[i].playerPos.v[1] > groundLevel) {
       player[i].playerVelocityY += player[i].gravity * jumpTime;
       player[i].playerPos.v[1] += player[i].playerVelocityY * jumpTime;
-      player[i].isGrounded = false;
     } else {
       player[i].playerPos.v[1] = groundLevel;
       player[i].isFalling = false;
@@ -481,6 +537,9 @@ void player_update(void){
     t3d_anim_update(&animJump[i], deltaTime);
     t3d_anim_update(&animRetract[i], deltaTime);
     t3d_anim_set_time(&animRetract[i], 0.0f);
+    check_hill_collisions(hillBox, NUM_HILLS, i);
+    check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
+    check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
     if(player[i].isGrounded){
       if(!animJump[i].isPlaying){
         player[i].isJumpStart = false;
@@ -519,7 +578,7 @@ void player_update(void){
     check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
     check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
     if (check_sphere_box_collision(player[i].playerBox, FloorBox)) {
-      resolve_box_collision(FloorBox, &player[i].playerPos);
+      resolve_box_collision(FloorBox, &player[i].playerPos, 0.01f);
     }
   }
 
@@ -528,7 +587,7 @@ void player_update(void){
     if (player[i].playerPos.v[1] < groundLevel) {
         player[i].playerPos.v[1] = groundLevel;
       if (check_sphere_box_collision(player[i].playerBox, FloorBox)) {
-        resolve_box_collision(FloorBox, &player[i].playerPos);
+        resolve_box_collision(FloorBox, &player[i].playerPos, 0.01f);
       }
     }
   }

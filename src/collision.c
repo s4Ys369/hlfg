@@ -19,7 +19,7 @@ bool check_box_collision(AABB a, AABB b) {
 
 
 // Move pos outside of AABB
-void resolve_box_collision(AABB aabb, T3DVec3 *pos) {
+void resolve_box_collision(AABB aabb, T3DVec3 *pos, float offset) {
   // Check if the point is inside the AABB
     if (pos->v[0] >= aabb.min.v[0] && pos->v[0] <= aabb.max.v[0] &&
         pos->v[1] >= aabb.min.v[1] && pos->v[1] <= aabb.max.v[1] &&
@@ -36,12 +36,41 @@ void resolve_box_collision(AABB aabb, T3DVec3 *pos) {
         float minDist = fminf(fminf(dxMin, dxMax), fminf(dyMin, dyMax));
         minDist = fminf(minDist, fminf(dzMin, dzMax));
 
-        if (minDist == dxMin) { pos->v[0] = aabb.min.v[0]; return; }
-        if (minDist == dxMax) { pos->v[0] = aabb.max.v[0]; return; }
-        if (minDist == dyMin) { pos->v[1] = aabb.min.v[1]; return; }
-        if (minDist == dyMax) { pos->v[1] = aabb.max.v[1]; return; }
-        if (minDist == dzMin) { pos->v[2] = aabb.min.v[2]; return; }
-        if (minDist == dzMax) { pos->v[2] = aabb.max.v[2]; return; }
+        if (minDist == dxMin) { pos->v[0] = aabb.min.v[0] - offset; return; }
+        if (minDist == dxMax) { pos->v[0] = aabb.max.v[0] + offset; return; }
+        if (minDist == dyMin) { pos->v[1] = aabb.min.v[1] - offset; return; }
+        if (minDist == dyMax) { pos->v[1] = aabb.max.v[1] + offset; return; }
+        if (minDist == dzMin) { pos->v[2] = aabb.min.v[2] - offset; return; }
+        if (minDist == dzMax) { pos->v[2] = aabb.max.v[2] + offset; return; }
+    }
+}
+
+void resolve_box_collision_xz(AABB aabb, T3DVec3 *pos, float offset) {
+     // Calculate the dimensions of the AABB
+    float width = aabb.max.v[0] - aabb.min.v[0];
+    float depth = aabb.max.v[2] - aabb.min.v[2];
+
+    // Calculate the offset as a fraction of the AABB's dimensions
+    float offsetX = width * offset;
+    float offsetZ = depth * offset;
+    
+    // Check if the point is inside the AABB
+    if (pos->v[0] >= aabb.min.v[0] && pos->v[0] <= aabb.max.v[0] &&
+        pos->v[1] >= aabb.min.v[1] && pos->v[1] <= aabb.max.v[1] &&
+        pos->v[2] >= aabb.min.v[2] && pos->v[2] <= aabb.max.v[2]) {
+
+        // Find the closest edge and move the point to it, only considering x and z
+        float dxMin = fabsf(pos->v[0] - aabb.min.v[0]);
+        float dxMax = fabsf(pos->v[0] - aabb.max.v[0]);
+        float dzMin = fabsf(pos->v[2] - aabb.min.v[2]);
+        float dzMax = fabsf(pos->v[2] - aabb.max.v[2]);
+
+        float minDist = fminf(fminf(dxMin, dxMax), fminf(dzMin, dzMax));
+
+        if (minDist == dxMin) { pos->v[0] = aabb.min.v[0] - offsetX; return; }
+        if (minDist == dxMax) { pos->v[0] = aabb.max.v[0] + offsetX; return; }
+        if (minDist == dzMin) { pos->v[2] = aabb.min.v[2] - offsetZ; return; }
+        if (minDist == dzMax) { pos->v[2] = aabb.max.v[2] + offsetZ; return; }
     }
 }
 

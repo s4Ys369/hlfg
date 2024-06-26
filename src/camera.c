@@ -219,14 +219,14 @@ void cam_update(void){
         break;
     }
     for (int h = 0; h < NUM_HILLS; ++h) {
-      resolve_box_collision(hillBox[h], &camPos[i]);
+      resolve_box_collision(hillBox[h], &camPos[i], 2.0f);
     }
     for (int l = 0; l < NUM_LILYPADS; ++l) {
-      resolve_box_collision(lilypadBox[l], &camPos[i]);
+      resolve_box_collision(lilypadBox[l], &camPos[i], 2.0f);
     }
     for (int s = 0; s < NUM_SPRINGS; ++s) {
-      resolve_box_collision(springBox[s], &camPos[i]);
+      resolve_box_collision(springBox[s], &camPos[i], 2.0f);
     }
-    resolve_box_collision(FloorBox, &camPos[i]);
+    resolve_box_collision(FloorBox, &camPos[i], 2.0f);
   }
 }

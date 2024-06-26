@@ -49,6 +49,8 @@ void player_init(void);
 int find_closest_actor(T3DVec3 origin, T3DVec3 actorPos[], int numActors);
 void check_hill_collisions(AABB *hillBox, int hillCount, int playerCount);
 void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCount);
+void check_midair_hill_collisions(AABB *hillBox, int hillCount, int playerCount);
+void check_midair_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCount);
 void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount, int playerCount);
 void player_update(void);
 

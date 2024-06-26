@@ -64,11 +64,8 @@ int main()
       //Player_logic
       player_update();
   
-      //fly logic
-      fly_update();
-
-      //Spring logic
-      spring_update();
+      //actor logic
+      actors_update();
     }
 
 

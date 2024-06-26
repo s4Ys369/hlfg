@@ -54,10 +54,9 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX, posY, "X %.2f", player[0].playerPos.v[0]);posY+=10;
     t3d_debug_printf(posX, posY, "Y %.2f", player[0].playerPos.v[1]);posY+=10;
     t3d_debug_printf(posX, posY, "Z %.2f", player[0].playerPos.v[2]);posY+=10;
-    t3d_debug_printf(posX, posY, "TH Y %.2f", player[0].tongue[0].hitbox.center.v[1]);posY+=10;
-    t3d_debug_printf(posX, posY, "TP Y %.2f", player[0].tongue[0].pos.v[1]);posY+=10;
-    t3d_debug_printf(posX, posY, "DT %.2f", deltaTime);posY+=10;
-    t3d_debug_printf(posX, posY, "JT %.2f", jumpTime);
+    t3d_debug_printf(posX, posY, "Gr %d", player[0].isGrounded);posY+=10;
+    t3d_debug_printf(posX, posY, "J %d", player[0].isJumping);posY+=10;
+    t3d_debug_printf(posX, posY, "F %d", player[0].isFalling);posY+=10;
   }
   
   posY = 200;

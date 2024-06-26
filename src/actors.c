@@ -87,6 +87,20 @@ float zValues[] = {
 };
 
 int cIndex = -1;
+
+void check_actor_collisions(T3DVec3 *posA, T3DVec3 *posB, AABB *boxA, AABB *boxB, int targetCount){
+  for (int i = 0; i < targetCount; ++i) {
+    AABB *currActor;
+    cIndex = find_closest_actor(*posA, posB, targetCount);
+    if (cIndex != -1){
+      currActor = &boxB[cIndex];
+      if(check_box_collision(boxA[i], *currActor)){
+        resolve_box_collision_xz(*currActor, &posA[i], 0.01f);
+      }
+    }
+  }
+}
+
 void actors_init(void){
   shuffle_array(xValues, 10);
   shuffle_array(zValues, 10); 
@@ -95,24 +109,12 @@ void actors_init(void){
   modelSpring = t3d_model_load("rom:/spring.t3dm");
   modelFly = t3d_model_load("rom:/fly.t3dm");
   hills_init();
-  for (int h = 0; h < NUM_HILLS; ++h) {
-    AABB *currentHill;
-    cIndex = find_closest_actor(hillPos[h], hillPos, NUM_HILLS);
-    if (cIndex != -1 && cIndex != h){
-      currentHill = &hillBox[cIndex];
-      if(check_box_collision(hillBox[h], *currentHill)){
-        resolve_box_collision(*currentHill, &hillPos[h]);
-        hillBox[h] = (AABB){{{hillPos[h].v[0] - 64.0f, -1.0f, hillPos[h].v[2] - 64.0f }},
-                    {{hillPos[h].v[0] + 64.0f, hillPos[h].v[1] + 25.0f, hillPos[h].v[2] + 64.0f}}}; // Hill's AABB
-      }
-    }
-  }
   lilypads_init();
   springs_init();
   flys_init();
 }
 
-// Initialize lily pads
+// Initialize hills
 void hills_init(void){
   for (int i = 0; i < NUM_HILLS; ++i) {
     hillMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
@@ -129,8 +131,17 @@ void hills_init(void){
       rdpq_set_prim_color(RGBA16(255, 255, 255, 255));
       t3d_model_draw(modelHill);
     dplHill[i] = rspq_block_end();
+
+    check_actor_collisions(&hillPos[i], lilypadPos, &hillBox[i], lilypadBox, NUM_LILYPADS);
+    hillBox[i] = (AABB){{{hillPos[i].v[0] - 64.0f, -1.0f, hillPos[i].v[2] - 64.0f }},
+                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 25.0f, hillPos[i].v[2] + 64.0f}}};
+
+    check_actor_collisions(&hillPos[i], springPos, &hillBox[i], springBox, NUM_SPRINGS);
+    hillBox[i] = (AABB){{{hillPos[i].v[0] - 64.0f, -1.0f, hillPos[i].v[2] - 64.0f }},
+                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 25.0f, hillPos[i].v[2] + 64.0f}}};
   }
 }
+
 
 // Initialize lily pads
 void lilypads_init(void){
@@ -139,9 +150,6 @@ void lilypads_init(void){
     float z = zValues[i];
     lilypadMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
     boxMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-    float translation[3] = {x, 20.0f, z}; // Example positions
-    t3d_mat4fp_from_srt_euler(lilypadMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, translation);
-    t3d_mat4fp_from_srt_euler(boxMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, translation);
 
     lilypadPos[i] = (T3DVec3){{x, 20.0f, z}};
     lilypadBox[i] = (AABB){{{x - 20.0f, -1.0f, z - 20.0f}}, {{x + 20.0f, 38.0f, z + 20.0f}}};
@@ -153,6 +161,17 @@ void lilypads_init(void){
       t3d_model_draw(modelLilyPad);
     dplLilypad[i] = rspq_block_end();
 
+    // Check and resolve collisions for each actor, then reset hitbox
+    check_actor_collisions(&lilypadPos[i], hillPos, &lilypadBox[i], hillBox, NUM_HILLS);
+    lilypadBox[i] = (AABB){{{lilypadPos[i].v[0] - 20.0f, -1.0f, lilypadPos[i].v[2] - 20.0f}},
+                    {{lilypadPos[i].v[0] + 20.0f, 38.0f, lilypadPos[i].v[2] + 20.0f}}};
+
+    check_actor_collisions(&lilypadPos[i], springPos, &lilypadBox[i], springBox, NUM_SPRINGS);
+    lilypadBox[i] = (AABB){{{lilypadPos[i].v[0] - 20.0f, -1.0f, lilypadPos[i].v[2] - 20.0f}},
+                    {{lilypadPos[i].v[0] + 20.0f, 38.0f, lilypadPos[i].v[2] + 20.0f}}};
+
+    t3d_mat4fp_from_srt_euler(lilypadMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, lilypadPos[i].v);
+    t3d_mat4fp_from_srt_euler(boxMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, lilypadPos[i].v);
     rspq_block_begin();
       t3d_matrix_set(boxMatFP[i], true);
       rdpq_set_prim_color(RGBA32(255, 0, 0, 120));
@@ -169,8 +188,6 @@ void springs_init(void){
     float z = zValues[i+5];
     springMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
     boxMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-    float translation[3] = {x, y, z}; // Example positions
-    t3d_mat4fp_from_srt_euler(boxMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, translation);
     
     springSkels[i] = t3d_skeleton_create(modelSpring);
     springSkelBlends[i] = t3d_skeleton_clone(&springSkels[i], false);
@@ -194,6 +211,16 @@ void springs_init(void){
       t3d_model_draw_skinned(modelSpring, &springSkels[i]);
     dplSpring[i] = rspq_block_end();
 
+    // Check and resolve collisions for each actor, then reset hitbox
+    check_actor_collisions(&springPos[i], hillPos, &springBox[i], hillBox, NUM_HILLS);
+    springBox[i] = (AABB){{{springPos[i].v[0] - 20.0f, -1.0f, springPos[i].v[2] - 20.0f}},
+                    {{springPos[i].v[0] + 20.0f, 38.0f, springPos[i].v[2] + 20.0f}}};
+
+    check_actor_collisions(&springPos[i], lilypadPos, &springBox[i], lilypadBox, NUM_LILYPADS);
+    springBox[i] = (AABB){{{springPos[i].v[0] - 20.0f, -1.0f, springPos[i].v[2] - 20.0f}},
+                    {{springPos[i].v[0] + 20.0f, 38.0f, springPos[i].v[2] + 20.0f}}};
+
+    t3d_mat4fp_from_srt_euler(boxMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, springPos[i].v);
     rspq_block_begin();
       t3d_matrix_set(boxMatFP[i], true);
       rdpq_set_prim_color(RGBA32(255, 0, 0, 120));
@@ -219,7 +246,6 @@ void spring_update(void){
       t3d_anim_set_time(&animsSpring[i], 0.0f);
       springActive[i] = false;
     }
-
   }
 }
 
@@ -319,19 +345,19 @@ void fly_update(void){
       if (closestHill != -1){
         currHill = &hillBox[closestHill];
         if (check_sphere_box_collision(flyBox[i], *currHill)) {
-          resolve_box_collision(*currHill, &flyPos[i]);
+          resolve_box_collision(*currHill, &flyPos[i], flyBox[i].radius);
         }
       }
       if (closestLP != -1){
         currLP = &lilypadBox[closestLP];
         if (check_sphere_box_collision(flyBox[i], *currLP)) {
-          resolve_box_collision(*currLP, &flyPos[i]);
+          resolve_box_collision(*currLP, &flyPos[i], flyBox[i].radius);
         }
       }
       if (closestSpring != -1){
         currSpring = &springBox[closestHill];
         if (check_sphere_box_collision(flyBox[i], *currSpring)) {
-          resolve_box_collision(*currSpring, &flyPos[i]);
+          resolve_box_collision(*currSpring, &flyPos[i], flyBox[i].radius);
         }
       }
     }
@@ -343,4 +369,9 @@ void fly_update(void){
       flyHide[i] = 0;
     }
   }
+}
+
+void actors_update(void){
+  spring_update();
+  fly_update();
 }

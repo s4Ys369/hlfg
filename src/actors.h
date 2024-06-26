@@ -67,6 +67,7 @@ extern T3DAnim animsFlying[NUM_FLYS];
 extern T3DAnim animsDeath[NUM_FLYS];
 extern int flyHide[NUM_FLYS];
 
+void check_actor_collisions(T3DVec3 *posA, T3DVec3 *posB, AABB *boxA, AABB *boxB, int targetCount);
 void actors_init(void);
 void hills_init(void);
 void lilypads_init(void);
@@ -74,6 +75,7 @@ void springs_init(void);
 void spring_update(void);
 void flys_init(void);
 void fly_update(void);
+void actors_update(void);
 
 
 #endif // ACTORS_H
