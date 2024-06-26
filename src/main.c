@@ -109,7 +109,7 @@ int main()
     );
 
     t3d_mat4fp_from_srt_euler(sphere2MatFP[i],
-      (float[3]){0.025f, 0.025f, 0.025f},
+      (float[3]){0.0025f*player[i].tongue[i].hitbox.radius, 0.0025f*player[i].tongue[i].hitbox.radius, 0.0025f*player[i].tongue[i].hitbox.radius},
       (float[3]){0.0f, 0.0f, 0.0f},
       player[i].tongue[i].hitbox.center.v
     );

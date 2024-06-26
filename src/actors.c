@@ -278,7 +278,7 @@ void flys_init(void){
     flyPos[i] = (T3DVec3){{random_float(-170.0f, 170.0f), random_float(5.0f, 50.0f), random_float(-170.0f, 170.0f)}};
     flyYaw[i] = 0.0f;
     flyPitch[i] = 0.0f;
-    flyBox[i] = (Sphere){flyPos[i], 3.0f};
+    flyBox[i] = (Sphere){flyPos[i], 10.0f};
     flyActive[i] = true;
     flyHide[i] = 0;
 

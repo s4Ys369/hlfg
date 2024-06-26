@@ -54,8 +54,6 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX, posY, "X %.2f", player[0].playerPos.v[0]);posY+=10;
     t3d_debug_printf(posX, posY, "Y %.2f", player[0].playerPos.v[1]);posY+=10;
     t3d_debug_printf(posX, posY, "Z %.2f", player[0].playerPos.v[2]);posY+=10;
-    t3d_debug_printf(posX, posY, "%d", check_sphere_collision(player[0].playerBox, player[1].playerBox));posY+=10;
-    t3d_debug_printf(posX, posY, "%.3f", t3d_vec3_distance(&player[0].playerBox.center, &player[1].playerBox.center));posY+=10;
   }
   
   posY = 200;

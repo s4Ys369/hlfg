@@ -10,6 +10,6 @@
 #include <t3d/t3d.h>
 
 #define VERSION 0.1
-#define VERSION_SUFFIX 2
+#define VERSION_SUFFIX 3
 
 #endif // GLOBALS_H
