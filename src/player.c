@@ -326,14 +326,14 @@ void player_update(void){
 
   // Player Attack Input
   if((btn[i].b) && !animJump[i].isPlaying && !animAttack[i].isPlaying) {
-    if (player[i].isGrounded)
-    {
+    //if (player[i].isGrounded)
+    //{
       wav64_play(&sfx_jump, 0);
       mixer_try_play();
       t3d_anim_set_playing(&animAttack[i], true);
       t3d_anim_set_time(&animAttack[i], 0.0f);
       player[i].isAttack = true;
-    }
+    //}
   }
 
   // Player movement
@@ -430,15 +430,16 @@ void player_update(void){
     // Reverse direction if the maximum distance is reached
     if (distanceTraveled >= EndPosMax) {
       player[i].tongue[i].speed = 40.0f;
-      player[i].tongue[i].dir.v[0] = -player[i].tongue[i].dir.v[0] * player[i].tongue[i].speed * deltaTime;
-      player[i].tongue[i].dir.v[2] = -player[i].tongue[i].dir.v[2] * player[i].tongue[i].speed * deltaTime;
+      player[i].tongue[i].dir.v[0] = -player[i].tongue[i].dir.v[0];
+      player[i].tongue[i].dir.v[1] = -player[i].tongue[i].dir.v[1];
+      player[i].tongue[i].dir.v[2] = -player[i].tongue[i].dir.v[2];
       player[i].tongueRetract = 1;
     }
 
     // Calculate the end position based on the tongue's direction and length
     T3DVec3 tongueEndPos;
     tongueEndPos.v[0] = player[i].tongue[i].pos.v[0] + player[i].tongue[i].dir.v[0] * player[i].tongue[i].length;
-    tongueEndPos.v[1] = player[i].tongue[i].pos.v[1] + 6.0f;
+    tongueEndPos.v[1] = player[i].playerBox.center.v[1] + 1;
     tongueEndPos.v[2] = player[i].tongue[i].pos.v[2] + player[i].tongue[i].dir.v[2] * player[i].tongue[i].length;
 
 
@@ -451,6 +452,8 @@ void player_update(void){
       player[i].tongue[i].hitbox.center = player[i].playerBox.center;
     }
 
+    player[i].tongue[i].pos.v[1] = player[i].tongue[i].hitbox.center.v[1];
+
     Sphere *currentFlyBox;
     closestIndex = find_closest_actor(player[i].tongue[i].hitbox.center, flyPos, NUM_FLYS);
     if(closestIndex != -1) {
@@ -462,9 +465,6 @@ void player_update(void){
         flyActive[closestIndex] = false;
         currentFlyBox->center.v[1] = -100.0f;
         player[i].tongue[i].hitbox.center = player[i].playerBox.center;
-        player[i].tongue[i].speed = 100.0f;
-        player[i].tongue[i].dir.v[0] = -player[i].tongue[i].dir.v[0] * player[i].tongue[i].speed * deltaTime;
-        player[i].tongue[i].dir.v[2] = -player[i].tongue[i].dir.v[2] * player[i].tongue[i].speed * deltaTime;
         animAttack[i].isPlaying = 0;
         player[i].score++;
       }
