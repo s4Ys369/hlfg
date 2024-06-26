@@ -19,7 +19,7 @@
 #endif
 
 T3DVec3 lightDirVec;
-uint8_t colorAmbient[4] = {0xAA, 0xAA, 0xAA, 0xFF};
+uint8_t colorAmbient[4] = {0x69, 0x64, 0x5D, 0xFF};
 uint8_t colorDir[4] = {0xFF, 0xAA, 0xAA, 0xFF};
 T3DViewport viewport[NUM_PLAYERS];
 T3DVec3 camPos[NUM_PLAYERS];

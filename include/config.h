@@ -10,8 +10,8 @@
 #include <t3d/t3d.h>
 
 // SEED is used to place objects at random
-#define SEED 564
-#define NUM_PLAYERS 1
+#define SEED 6969
+#define NUM_PLAYERS 3
 #define NUM_HILLS 5
 #define NUM_LILYPADS 5
 #define NUM_SPRINGS 5

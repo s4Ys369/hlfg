@@ -303,11 +303,12 @@ void fly_update(void){
       t3d_vec3_norm(&normalizedDir);
 
       // Calculate yaw (rotation around y-axis)
-      flyYaw[i] = atan2f(normalizedDir.v[0], normalizedDir.v[2]);
-      t3d_lerp_angle((normalizedDir.v[0] * flyYaw[i]), (normalizedDir.v[2] * flyYaw[i]), deltaTime/0.1f);
+      float newYaw = atan2f(normalizedDir.v[0], normalizedDir.v[2]);
+      flyYaw[i] = t3d_lerp_angle(flyYaw[i], newYaw, 0.5f);
 
       // Calculate pitch (rotation around x-axis)
-      flyPitch[i] = asinf((normalizedDir.v[1] * deltaTime));
+      float newPitch = asinf((normalizedDir.v[1]));
+      flyPitch[i] = t3d_lerp_angle(flyPitch[i], newPitch, 0.5f);
 
       flyPos[i].v[0] += flyDir[i].v[0] * flySpeed[i] * deltaTime;
       flyPos[i].v[1] += flyDir[i].v[1] * flySpeed[i] * deltaTime;

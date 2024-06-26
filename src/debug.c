@@ -70,7 +70,7 @@ void draw_debug_ui(void){
     if(NUM_PLAYERS == 3) {
       t3d_debug_printf(posX, posY/2, "SCORE %d", player[0].score);
       t3d_debug_printf(posX, posY, "SCORE %d", player[1].score);
-      t3d_debug_printf((posX*14)+4,  posY, "SCORE %d", player[2].score);
+      t3d_debug_printf((posX*14)+4,  posY+20, "SCORE %d", player[2].score);
     }
     if(NUM_PLAYERS == 4) {
       t3d_debug_printf(posX, posY/2, "SCORE %d", player[0].score);

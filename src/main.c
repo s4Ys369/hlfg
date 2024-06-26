@@ -54,7 +54,9 @@ int main()
 
 
     if (!btnheld[0].start){
-      sound_update_buffer();
+      if(NUM_PLAYERS < 3){
+        sound_update_buffer();
+      }
   
       // CAMERA_LOGIC
       cam_update();
@@ -144,19 +146,37 @@ int main()
     rdpq_attach(display_get(), &depthBuffer);
     t3d_frame_start();
 
-    t3d_screen_clear_color(RGBA32(155, 242, 238, 0xFF));
+    color_t fogColor = (color_t){0x12, 0x03, 0x21, 0xFF};
+    rdpq_set_prim_color((color_t){0x12, 0x03, 0x21, 0xFF});
+    rdpq_mode_fog(RDPQ_FOG_STANDARD);
+    rdpq_set_fog_color(fogColor);
+
+    t3d_screen_clear_color(fogColor);
     t3d_screen_clear_depth();
 
+    t3d_fog_set_range(20.0f, 80.0f);
+    t3d_fog_set_enabled(true);
+    
     t3d_light_set_ambient(colorAmbient);
     t3d_light_set_count(1);
 
     // Run gfx calls
+    float fov = T3D_DEG_TO_RAD(75.0f);
+    float fov2p = T3D_DEG_TO_RAD(50.0f);
     for (int i = 0; i < NUM_PLAYERS; ++i) {
       T3DViewport *vp = &viewport[i];
       T3DVec3 CP = camPos[i];
       T3DVec3 CT = camTarget[i];
 
-      t3d_viewport_set_projection(vp, T3D_DEG_TO_RAD(85.0f), 10.0f, 150.0f);
+      if (NUM_PLAYERS == 2){
+        t3d_viewport_set_projection(vp, fov2p, 10.0f, 150.0f);
+      }else if (NUM_PLAYERS == 3){
+        t3d_viewport_set_projection(&viewport[0], fov2p, 10.0f, 150.0f);
+        t3d_viewport_set_projection(&viewport[1], fov, 10.0f, 150.0f);
+        t3d_viewport_set_projection(&viewport[2], fov, 10.0f, 150.0f);
+      } else {
+        t3d_viewport_set_projection(vp, fov, 10.0f, 150.0f);
+      }
       t3d_viewport_look_at(vp, &CP, &CT, &(T3DVec3){{0,1,0}});
       t3d_viewport_attach(vp);
       t3d_light_set_directional(0, colorDir, &lightDirVec);
