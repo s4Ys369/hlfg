@@ -14,10 +14,6 @@
 #include "player.h"
 #include "utils.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 T3DVec3 lightDirVec;
 uint8_t colorAmbient[4] = {0x69, 0x64, 0x5D, 0xFF};
 uint8_t colorDir[4] = {0xFF, 0xAA, 0xAA, 0xFF};
@@ -78,15 +74,12 @@ void cam_init(void){
 // Function to rotate a vector around another vector (camTarget)
 void rotate_camPos_around_camTarget(T3DVec3 *camPos, T3DVec3 camTarget, float angle, char axis) {
   // Step 1: Translate camPos to the origin relative to camTarget
-  T3DVec3 translatedPos = {{
-      camPos->v[0] - camTarget.v[0],
-      camPos->v[1] - camTarget.v[1],
-      camPos->v[2] - camTarget.v[2]
-  }};
+  T3DVec3 translatedPos;
+  t3d_vec3_diff(&translatedPos, camPos, &camTarget);
 
   // Step 2: Apply the rotation
   T3DVec3 rotatedPos;
-  float rad = angle * M_PI / 180.0; // Convert angle to radians
+  float rad = angle * T3D_PI / 180.0; // Convert angle to radians
 
   if (axis == 'x') {
       // Rotate around x-axis
@@ -109,9 +102,7 @@ void rotate_camPos_around_camTarget(T3DVec3 *camPos, T3DVec3 camTarget, float an
   }
 
   // Step 3: Translate the rotated position back
-  camPos->v[0] = rotatedPos.v[0] + camTarget.v[0];
-  camPos->v[1] = rotatedPos.v[1] + camTarget.v[1];
-  camPos->v[2] = rotatedPos.v[2] + camTarget.v[2];
+  t3d_vec3_add(camPos, &rotatedPos, &camTarget);
 }
 
 T3DVec3Pair get_cam_forward(T3DVec3 camTarget, T3DVec3 camPos, T3DVec3 *camForward, T3DVec3 *camRight){

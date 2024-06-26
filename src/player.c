@@ -85,105 +85,105 @@ void player_init(void){
   }
 
   for (int i = 0; i < NUM_PLAYERS; ++i) {
-  modelMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-  shadowMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-  tongueMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
+    modelMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
+    shadowMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
+    tongueMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
 
-  sphereMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-  sphere2MatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-  modelTongue[i] = t3d_model_load("rom:/tongue.t3dm");
-  modelShadow[i] = t3d_model_load("rom:/shadow.t3dm");
-  skel[i] = t3d_skeleton_create(model[i]);
-  skelBlend[i] = t3d_skeleton_clone(&skel[i], false);
-  animIdle[i] = t3d_anim_create(model[i], "idle");
-  t3d_anim_set_speed(&animIdle[i], 2.0f);
-  t3d_anim_attach(&animIdle[i], &skel[i]);
+    sphereMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
+    sphere2MatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
+    modelTongue[i] = t3d_model_load("rom:/tongue.t3dm");
+    modelShadow[i] = t3d_model_load("rom:/shadow.t3dm");
+    skel[i] = t3d_skeleton_create(model[i]);
+    skelBlend[i] = t3d_skeleton_clone(&skel[i], false);
+    animIdle[i] = t3d_anim_create(model[i], "idle");
+    t3d_anim_set_speed(&animIdle[i], 2.0f);
+    t3d_anim_attach(&animIdle[i], &skel[i]);
 
-  animWalk[i] = t3d_anim_create(model[i], "fall");
-  t3d_anim_set_speed(&animWalk[i], 2.0f);
-  t3d_anim_attach(&animWalk[i], &skelBlend[i]);
+    animWalk[i] = t3d_anim_create(model[i], "fall");
+    t3d_anim_set_speed(&animWalk[i], 2.0f);
+    t3d_anim_attach(&animWalk[i], &skelBlend[i]);
 
-  animJump[i] = t3d_anim_create(model[i], "jump");
-  t3d_anim_set_speed(&animJump[i], 3.5f);
-  t3d_anim_set_looping(&animJump[i], false);
-  t3d_anim_set_playing(&animJump[i], false);
-  t3d_anim_attach(&animJump[i], &skel[i]);
+    animJump[i] = t3d_anim_create(model[i], "jump");
+    t3d_anim_set_speed(&animJump[i], 3.5f);
+    t3d_anim_set_looping(&animJump[i], false);
+    t3d_anim_set_playing(&animJump[i], false);
+    t3d_anim_attach(&animJump[i], &skel[i]);
 
-  animAttack[i] = t3d_anim_create(model[i], "attack");
-  t3d_anim_set_speed(&animAttack[i], 3.5f);
-  t3d_anim_set_looping(&animAttack[i], false);
-  t3d_anim_set_playing(&animAttack[i], false);
-  t3d_anim_attach(&animAttack[i], &skel[i]);
+    animAttack[i] = t3d_anim_create(model[i], "attack");
+    t3d_anim_set_speed(&animAttack[i], 3.5f);
+    t3d_anim_set_looping(&animAttack[i], false);
+    t3d_anim_set_playing(&animAttack[i], false);
+    t3d_anim_attach(&animAttack[i], &skel[i]);
 
-  animRetract[i] = t3d_anim_create(model[i], "leg_retract");
-  t3d_anim_set_speed(&animRetract[i], 3.5f);
-  t3d_anim_set_looping(&animRetract[i], false);
-  t3d_anim_set_playing(&animRetract[i], false);
-  t3d_anim_attach(&animRetract[i], &skel[i]);
+    animRetract[i] = t3d_anim_create(model[i], "leg_retract");
+    t3d_anim_set_speed(&animRetract[i], 3.5f);
+    t3d_anim_set_looping(&animRetract[i], false);
+    t3d_anim_set_playing(&animRetract[i], false);
+    t3d_anim_attach(&animRetract[i], &skel[i]);
 
 
-  rspq_block_begin();
-    t3d_matrix_set(sphereMatFP[i], true);
-    rdpq_set_prim_color(RGBA32(255, 0, 0, 120));
-    t3d_model_draw(modelDebugSphere);
-  dplDebugSphere[i] = rspq_block_end();
+    rspq_block_begin();
+      t3d_matrix_set(sphereMatFP[i], true);
+      rdpq_set_prim_color(RGBA32(255, 0, 0, 120));
+      t3d_model_draw(modelDebugSphere);
+    dplDebugSphere[i] = rspq_block_end();
 
-  rspq_block_begin();
-    t3d_matrix_set(sphere2MatFP[i], true);
-    rdpq_set_prim_color(RGBA32(255, 0, 0, 120));
-    t3d_model_draw(modelDebugSphere);
-  dplDebugSphere2[i] = rspq_block_end();
+    rspq_block_begin();
+      t3d_matrix_set(sphere2MatFP[i], true);
+      rdpq_set_prim_color(RGBA32(255, 0, 0, 120));
+      t3d_model_draw(modelDebugSphere);
+    dplDebugSphere2[i] = rspq_block_end();
 
-  rspq_block_begin();
-    t3d_matrix_push(modelMatFP[i]);
-    rdpq_set_prim_color(RGBA32(255, 255, 255, 255));
-    t3d_model_draw_skinned(model[i], &skel[i]);
-    t3d_matrix_pop(1);
-  dplFrog[i] = rspq_block_end();
+    rspq_block_begin();
+      t3d_matrix_push(modelMatFP[i]);
+      rdpq_set_prim_color(RGBA32(255, 255, 255, 255));
+      t3d_model_draw_skinned(model[i], &skel[i]);
+      t3d_matrix_pop(1);
+    dplFrog[i] = rspq_block_end();
 
-  rspq_block_begin();
-    t3d_matrix_set(tongueMatFP[i], true);
-    rdpq_set_prim_color(RGBA32(255, 255, 255, 255));
-    t3d_model_draw(modelTongue[i]);
-  dplTongue[i] = rspq_block_end();
+    rspq_block_begin();
+      t3d_matrix_set(tongueMatFP[i], true);
+      rdpq_set_prim_color(RGBA32(255, 255, 255, 255));
+      t3d_model_draw(modelTongue[i]);
+    dplTongue[i] = rspq_block_end();
 
-  rspq_block_begin();
-    t3d_matrix_set(shadowMatFP[i], true);
-    rdpq_set_prim_color(RGBA32(0, 0, 0, 120));
-    t3d_model_draw(modelShadow[i]);
-  dplShadow[i] = rspq_block_end();
+    rspq_block_begin();
+      t3d_matrix_set(shadowMatFP[i], true);
+      rdpq_set_prim_color(RGBA32(0, 0, 0, 120));
+      t3d_model_draw(modelShadow[i]);
+    dplShadow[i] = rspq_block_end();
 
-  player[i].moveDir = (T3DVec3){{0,0,0}};
-  player[i].playerPos = (T3DVec3){{0,0.15f,0}};
-  player[i].shadowPos = (T3DVec3){{0,0.15f,0}};
-  player[i].playerForward = (T3DVec3){{0,0,1}};
-  player[i].playerBox = (Sphere){{{-0.3f, 0.0f, -0.3f}},0.3f}; // Player's Sphere
-  player[i].tongue[i].pos = player[i].playerBox.center;
-  player[i].tongue[i].dir = player[i].playerForward;
-  player[i].tongue[i].hitbox = (Sphere){{{0.0f, 0.0f, 0.0f}},6.0f};
-  player[i].tongue[i].speed = 0.0f;
-  player[i].tongue[i].isActive = false;
-  player[i].tongue[i].length = 10.0f;
-  player[i].rotY = 0.0f;
-  player[i].currSpeed = 0.0f;
-  player[i].animBlend = 0.0f;
-  player[i].isAttack = false;
-  player[i].isJumpStart = false;
-  player[i].isJumping = false;
-  player[i].isGrounded = true;
-  player[i].isFalling = false;
-  player[i].isWalking = false;
-  player[i].playerVelocityY = 0.0f;
-  player[i].gravity = -80.0f;
-  player[i].jumpForce = 100.0f;
-  player[i].score = 0;
-  player[i].tongueRetract = 0;
-  for (int j; j < NUM_SPRINGS; ++j) {
-    player[i].activateSpring[j] = false;
-  }
-  }
-  if(NUM_PLAYERS > 1){
-    player[1].playerPos = (T3DVec3){{20.0f,0.15f,20.0f}};
+    player[i].moveDir = (T3DVec3){{0,0,0}};
+    player[i].playerPos = (T3DVec3){{0,0.15f,0}};
+    player[i].shadowPos = (T3DVec3){{0,0.15f,0}};
+    player[i].playerForward = (T3DVec3){{0,0,1}};
+    player[i].playerBox = (Sphere){{{-0.3f, 0.0f, -0.3f}},0.3f}; // Player's Sphere
+    player[i].tongue[i].pos = player[i].playerBox.center;
+    player[i].tongue[i].dir = player[i].playerForward;
+    player[i].tongue[i].hitbox = (Sphere){{{0.0f, 0.0f, 0.0f}},6.0f};
+    player[i].tongue[i].speed = 0.0f;
+    player[i].tongue[i].isActive = false;
+    player[i].tongue[i].length = 10.0f;
+    player[i].rotY = 0.0f;
+    player[i].currSpeed = 0.0f;
+    player[i].animBlend = 0.0f;
+    player[i].isAttack = false;
+    player[i].isJumpStart = false;
+    player[i].isJumping = false;
+    player[i].isGrounded = true;
+    player[i].isFalling = false;
+    player[i].isWalking = false;
+    player[i].playerVelocityY = 0.0f;
+    player[i].gravity = -80.0f;
+    player[i].jumpForce = 100.0f;
+    player[i].score = 0;
+    player[i].tongueRetract = 0;
+    for (int j; j < NUM_SPRINGS; ++j) {
+      player[i].activateSpring[j] = false;
+    }
+    if(NUM_PLAYERS > 1){
+      player[i].playerPos = (T3DVec3){{random_float(-170.0f, 170.0f),0.15f,random_float(-170.0f, 170.0f)}};
+    }
   }
 }
 
@@ -192,7 +192,7 @@ int closestIndex = -1;
 int find_closest_actor(T3DVec3 origin, T3DVec3 actorPos[], int numActors) {
   float minDistance = FLT_MAX;
   for (int i = 0; i < numActors; i++) {
-    float dist = get_t3d_distance(origin, actorPos[i]);
+    float dist = t3d_vec3_distance(&origin, &actorPos[i]);
     if (dist < minDistance) {
       minDistance = dist;
       closestIndex = i;
@@ -326,14 +326,11 @@ void player_update(void){
 
   // Player Attack Input
   if((btn[i].b) && !animJump[i].isPlaying && !animAttack[i].isPlaying) {
-    //if (player[i].isGrounded)
-    //{
-      wav64_play(&sfx_jump, 0);
-      mixer_try_play();
-      t3d_anim_set_playing(&animAttack[i], true);
-      t3d_anim_set_time(&animAttack[i], 0.0f);
-      player[i].isAttack = true;
-    //}
+    wav64_play(&sfx_jump, 0);
+    mixer_try_play();
+    t3d_anim_set_playing(&animAttack[i], true);
+    t3d_anim_set_time(&animAttack[i], 0.0f);
+    player[i].isAttack = true;
   }
 
   // Player movement
@@ -422,7 +419,7 @@ void player_update(void){
     player[i].tongue[i].pos.v[1] += player[i].tongue[i].dir.v[1] * player[i].tongue[i].speed * deltaTime;
     player[i].tongue[i].pos.v[2] += player[i].tongue[i].dir.v[2] * player[i].tongue[i].speed * deltaTime;
     // Calculate the distance traveled by the tongue from its origin
-    float distanceTraveled = get_t3d_distance(player[i].tongue[i].pos, player[i].playerBox.center);
+    float distanceTraveled = t3d_vec3_distance(&player[i].tongue[i].pos, &player[i].playerBox.center);
 
     // Define the maximum distance the tongue can travel
     float EndPosMax = 18.0f;

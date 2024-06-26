@@ -284,21 +284,7 @@ void fly_update(void){
       flyPointV[i] = 1;
 
       // Normalize the direction vector
-      float length = sqrtf(
-        flyDir[i].v[0] * flyDir[i].v[0] +
-        flyDir[i].v[1] * flyDir[i].v[1] +
-        flyDir[i].v[2] * flyDir[i].v[2]
-      );
-
-      if (length == 0) {
-        break; // Avoid division by zero
-      }
-
-      T3DVec3 normalizedDir = {{
-        flyDir[i].v[0] / length,
-        flyDir[i].v[1] / length,
-        flyDir[i].v[2] / length
-      }};
+      T3DVec3 normalizedDir = flyDir[i];
 
       t3d_vec3_norm(&normalizedDir);
 
@@ -321,9 +307,7 @@ void fly_update(void){
       if(flyPos[i].v[2] < FloorBox.min.v[2])flyPos[i].v[2] = 0;
       if(flyPos[i].v[2] >  FloorBox.max.v[2])flyPos[i].v[2] =  0;
 
-      flyBox[i].center.v[0] = flyPos[i].v[0];
-      flyBox[i].center.v[1] = flyPos[i].v[1];
-      flyBox[i].center.v[2] = flyPos[i].v[2];
+      flyBox[i].center = flyPos[i];
 
       AABB *currHill;
       closestHill = find_closest_actor(flyPos[i], hillPos, NUM_HILLS);
@@ -352,7 +336,7 @@ void fly_update(void){
       }
     }
 
-    float distanceFromPlayer = get_t3d_distance(player->playerPos, flyPos[i]);
+    float distanceFromPlayer = t3d_vec3_distance(&player->playerPos, &flyPos[i]);
     if(distanceFromPlayer > FLY_DRAW_DIST){
       flyHide[i] = 1;
     } else {

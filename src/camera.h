@@ -16,10 +16,6 @@
 #include "player.h"
 #include "utils.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 extern T3DVec3 lightDirVec;
 extern uint8_t colorAmbient[4];
 extern uint8_t colorDir[4];
