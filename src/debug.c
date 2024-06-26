@@ -32,9 +32,13 @@ void draw_debug_ui(void){
 
   if(btnheld[0].r){
     text_debug = 1;
-    col_debug = 1;
   } else {
     text_debug = 0;
+  }
+
+  if(btnheld[0].l){
+    col_debug = 1;
+  } else {
     col_debug = 0;
   }
 
@@ -46,7 +50,9 @@ void draw_debug_ui(void){
 
   rdpq_set_prim_color(RGBA32(0xFF, 0xFF, 0xFF, 0xFF));
   if (text_debug){
-
+    t3d_debug_printf(posX, 12, "X %.2f", player[0].playerPos.v[0]);
+    t3d_debug_printf(posX, 22, "Y %.2f", player[0].playerPos.v[1]);
+    t3d_debug_printf(posX, 32, "Z %.2f", player[0].playerPos.v[2]);
   }
  
   rdpq_set_prim_color(RGBA32(0xAA, 0xAA, 0xAA, 0xFF));

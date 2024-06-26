@@ -201,8 +201,14 @@ int main()
       t3d_matrix_pop(1);
 
       t3d_matrix_push_pos(1);
+      for (int i = 0; i < NUM_HILLS; ++i) {
+        rspq_block_run(dplHill[i]);
+      }
+      t3d_matrix_pop(1);
+
+      t3d_matrix_push_pos(1);
       for (int i = 0; i < NUM_LILYPADS; ++i) {
-          rspq_block_run(dplLilypad[i]);
+        rspq_block_run(dplLilypad[i]);
           if(col_debug){
             rspq_block_run(dplDebugBox[i]);
           }
@@ -211,7 +217,7 @@ int main()
 
       t3d_matrix_push_pos(1);
       for (int i = 0; i < NUM_SPRINGS; ++i) {
-          rspq_block_run(dplSpring[i]);
+        rspq_block_run(dplSpring[i]);
           if(col_debug){
             rspq_block_run(dplDebugBox2[i]);
           }

@@ -13,7 +13,7 @@
 extern T3DMat4FP* mapMatFP;
 extern T3DModel *modelMap;
 extern rspq_block_t *dplMap;
-extern AABB MapBox;
+extern AABB FloorBox;
 extern float groundLevel;
 
 void map_init(void);

@@ -201,6 +201,35 @@ int find_closest_actor(T3DVec3 origin, T3DVec3 actorPos[], int numActors) {
   return closestIndex;
 }
 
+void check_hill_collisions(AABB *hillBox, int hillCount, int playerCount) {
+  AABB *currentHill;
+  closestIndex = find_closest_actor(player[playerCount].playerPos, hillPos, hillCount);
+
+  if (closestIndex != -1){
+    currentHill = &hillBox[closestIndex];
+    if (check_sphere_box_collision(player[playerCount].playerBox, *currentHill)) {
+        resolve_box_collision(*currentHill, &player[playerCount].playerPos);
+
+      if (player[playerCount].playerPos.v[1] >= currentHill->max.v[1]) {
+        if (player[playerCount].playerBox.center.v[0] <= currentHill->max.v[0] &&
+            player[playerCount].playerBox.center.v[0] >= currentHill->min.v[0] &&
+            player[playerCount].playerBox.center.v[2] <= currentHill->max.v[2] &&
+            player[playerCount].playerBox.center.v[2] >= currentHill->min.v[2]) {
+
+          player[playerCount].isGrounded = true;
+          player[playerCount].isJumping = false;
+          player[playerCount].isFalling = false;
+        } else {
+          player[playerCount].isGrounded = false;
+          player[playerCount].isJumping = false;
+          player[playerCount].isFalling = true;
+        }
+      }
+    }
+  }
+}
+
+
 void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCount) {
   AABB *currentLilypad;
   closestIndex = find_closest_actor(player[playerCount].playerPos, lilypadPos, lilypadCount);
@@ -335,10 +364,10 @@ void player_update(void){
   player[i].playerPos.v[0] += player[i].moveDir.v[0] * player[i].currSpeed;
   player[i].playerPos.v[2] += player[i].moveDir.v[2] * player[i].currSpeed;
   // ...and limit position inside the box
-  if(player[i].playerPos.v[0] < MapBox.min.v[0]) player[i].playerPos.v[0] = MapBox.min.v[0];
-  if(player[i].playerPos.v[0] >  MapBox.max.v[0])player[i].playerPos.v[0] =  MapBox.max.v[0];
-  if(player[i].playerPos.v[2] < MapBox.min.v[2]) player[i].playerPos.v[2] = MapBox.min.v[2];
-  if(player[i].playerPos.v[2] >  MapBox.max.v[2])player[i].playerPos.v[2] =  MapBox.max.v[2];
+  if(player[i].playerPos.v[0] < FloorBox.min.v[0]) player[i].playerPos.v[0] = FloorBox.min.v[0];
+  if(player[i].playerPos.v[0] >  FloorBox.max.v[0])player[i].playerPos.v[0] =  FloorBox.max.v[0];
+  if(player[i].playerPos.v[2] < FloorBox.min.v[2]) player[i].playerPos.v[2] = FloorBox.min.v[2];
+  if(player[i].playerPos.v[2] >  FloorBox.max.v[2])player[i].playerPos.v[2] =  FloorBox.max.v[2];
 
   // Update the animation and modify the skeleton, this will however NOT recalculate the matrices
   if (!player[i].isJumpStart && !player[i].isJumping && !player[i].isAttack){
@@ -354,10 +383,11 @@ void player_update(void){
   player[i].playerBox.center.v[2] = player[i].playerPos.v[2];
 
   // Check for collision with lilypad then ground, order highest to lowest apparently
+  check_hill_collisions(hillBox, NUM_HILLS, i);
   check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
   check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
-  if (check_sphere_box_collision(player[i].playerBox, MapBox)) {
-    resolve_box_collision(MapBox, &player[i].playerPos);
+  if (check_sphere_box_collision(player[i].playerBox, FloorBox)) {
+    resolve_box_collision(FloorBox, &player[i].playerPos);
   }
 
   // check walking
@@ -490,10 +520,11 @@ void player_update(void){
     player[i].playerBox.center.v[2] = player[i].playerPos.v[2];
 
     // Check for collision with lilypad then ground, order highest to lowest apparently
+    check_hill_collisions(hillBox, NUM_HILLS, i);
     check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
     check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
-    if (check_sphere_box_collision(player[i].playerBox, MapBox)) {
-      resolve_box_collision(MapBox, &player[i].playerPos);
+    if (check_sphere_box_collision(player[i].playerBox, FloorBox)) {
+      resolve_box_collision(FloorBox, &player[i].playerPos);
     }
   }
 
@@ -501,8 +532,8 @@ void player_update(void){
   if(player[i].isGrounded) {
     if (player[i].playerPos.v[1] < groundLevel) {
         player[i].playerPos.v[1] = groundLevel;
-      if (check_sphere_box_collision(player[i].playerBox, MapBox)) {
-        resolve_box_collision(MapBox, &player[i].playerPos);
+      if (check_sphere_box_collision(player[i].playerBox, FloorBox)) {
+        resolve_box_collision(FloorBox, &player[i].playerPos);
       }
     }
   }

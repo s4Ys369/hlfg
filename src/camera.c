@@ -227,7 +227,9 @@ void cam_update(void){
         top_down_view(&camTarget[i], &camPos[i], camResults[i].forward, &player[i].playerPos);
         break;
     }
-
-    resolve_box_collision(MapBox, &camPos[i]);
+    for (int h = 0; h < NUM_HILLS; ++h) {
+      resolve_box_collision(hillBox[h], &camPos[i]);
+    }
+    resolve_box_collision(FloorBox, &camPos[i]);
   }
 }

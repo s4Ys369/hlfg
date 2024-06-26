@@ -15,6 +15,12 @@
 #include "player.h"
 #include "utils.h"
 
+T3DMat4FP* hillMatFP[NUM_HILLS];
+T3DVec3 hillPos[NUM_HILLS];
+AABB hillBox[NUM_HILLS];
+rspq_block_t *dplHill[NUM_HILLS];
+T3DModel *modelHill;
+
 T3DMat4FP* lilypadMatFP[NUM_LILYPADS];
 T3DMat4FP* boxMatFP[NUM_LILYPADS];
 T3DVec3 lilypadPos[NUM_LILYPADS];
@@ -80,14 +86,48 @@ float zValues[] = {
   175.0f
 };
 
-
+int cIndex = -1;
 void actors_init(void){
   shuffle_array(xValues, 10);
   shuffle_array(zValues, 10); 
+  modelHill = t3d_model_load("rom:/hill.t3dm");
   modelLilyPad = t3d_model_load("rom:/lily_pad.t3dm");
+  hills_init();
+  for (int h = 0; h < NUM_HILLS; ++h) {
+    AABB *currentHill;
+    cIndex = find_closest_actor(hillPos[h], hillPos, NUM_HILLS);
+    if (cIndex != -1 && cIndex != h){
+      currentHill = &hillBox[cIndex];
+      if(check_box_collision(hillBox[h], *currentHill)){
+        resolve_box_collision(*currentHill, &hillPos[h]);
+        hillBox[h] = (AABB){{{hillPos[h].v[0] - 64.0f, -1.0f, hillPos[h].v[2] - 64.0f }},
+                    {{hillPos[h].v[0] + 64.0f, hillPos[h].v[1] + 25.0f, hillPos[h].v[2] + 64.0f}}}; // Hill's AABB
+      }
+    }
+  }
   lilypads_init();
   springs_init();
   flys_init();
+}
+
+// Initialize lily pads
+void hills_init(void){
+  for (int i = 0; i < NUM_HILLS; ++i) {
+    hillMatFP[i] = malloc(sizeof(T3DMat4FP));
+    float translation[3] = {random_float(-450.0f, 450.0f), random_float(0.0f, 25.0f), random_float(-450.0f, 450.0f)};
+    t3d_mat4fp_from_srt_euler(hillMatFP[i], (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, translation);
+
+    hillPos[i] = (T3DVec3){{translation[0],translation[1],translation[2]}};
+    hillBox[i] = (AABB){{{hillPos[i].v[0] - 64.0f, -1.0f, hillPos[i].v[2] - 64.0f }},
+                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 25.0f, hillPos[i].v[2] + 64.0f}}}; // Hill's AABB
+
+    // Create gfx call to draw hill
+    rspq_block_begin();
+      t3d_matrix_set(hillMatFP[i], true);
+      rdpq_set_prim_color(RGBA16(255, 255, 255, 255));
+      t3d_model_draw(modelHill);
+    dplHill[i] = rspq_block_end();
+  }
 }
 
 // Initialize lily pads
@@ -268,12 +308,12 @@ void fly_update(void){
       flyPos[i].v[0] += flyDir[i].v[0] * flySpeed[i] * deltaTime;
       flyPos[i].v[2] += flyDir[i].v[2] * flySpeed[i] * deltaTime;
 
-      if(flyPos[i].v[0] < MapBox.min.v[0])flyPos[i].v[0] = 0;
-      if(flyPos[i].v[0] >  MapBox.max.v[0])flyPos[i].v[0] =  0;
+      if(flyPos[i].v[0] < FloorBox.min.v[0])flyPos[i].v[0] = 0;
+      if(flyPos[i].v[0] >  FloorBox.max.v[0])flyPos[i].v[0] =  0;
       if(flyPos[i].v[1] < 5)flyPos[i].v[1] = 5;
       if(flyPos[i].v[1] >  5)flyPos[i].v[1] =  5;
-      if(flyPos[i].v[2] < MapBox.min.v[2])flyPos[i].v[2] = 0;
-      if(flyPos[i].v[2] >  MapBox.max.v[2])flyPos[i].v[2] =  0;
+      if(flyPos[i].v[2] < FloorBox.min.v[2])flyPos[i].v[2] = 0;
+      if(flyPos[i].v[2] >  FloorBox.max.v[2])flyPos[i].v[2] =  0;
 
       flyBox[i].center.v[0] = flyPos[i].v[0];
       flyBox[i].center.v[1] = flyPos[i].v[1];

@@ -17,6 +17,13 @@
 #include "player.h"
 #include "utils.h"
 
+//Hills
+extern T3DMat4FP* hillMatFP[NUM_HILLS];
+extern T3DVec3 hillPos[NUM_HILLS];
+extern AABB hillBox[NUM_HILLS];
+extern rspq_block_t *dplHill[NUM_HILLS];
+extern T3DModel *modelHill;
+
 //Lilypads
 extern T3DMat4FP* lilypadMatFP[NUM_LILYPADS];
 extern T3DMat4FP* boxMatFP[NUM_LILYPADS];
@@ -61,6 +68,7 @@ extern T3DAnim animsDeath[NUM_FLYS];
 extern int flyHide[NUM_FLYS];
 
 void actors_init(void);
+void hills_init(void);
 void lilypads_init(void);
 void springs_init(void);
 void spring_update(void);
