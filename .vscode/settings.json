@@ -80,6 +80,7 @@
         "debug.h": "c",
         "player.h": "c",
         "globals.h": "c",
-        "config.h": "c"
+        "config.h": "c",
+        "enums.h": "c"
     }
 }

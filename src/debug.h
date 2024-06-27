@@ -1,11 +1,6 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include <t3d/t3ddebug.h>

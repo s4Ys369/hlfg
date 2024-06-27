@@ -1,20 +1,28 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
 #include <libdragon.h>
 #include <t3d/t3d.h>
-#include "config.h"
 
+// CAMERA
 typedef struct {
     T3DVec3 forward;
     T3DVec3 right;
 } T3DVec3Pair;
 
+typedef struct {
+    T3DViewport viewport;
+    T3DVec3 camPos;
+    T3DVec3 camTarget;
+    T3DVec3 camForward;
+    T3DVec3 camRight;
+    T3DVec3Pair camResults;
+    float camYaw;
+    int cam_mode;
+} CameraParams;
+
+
+// COLLISIONS
 typedef struct {
     T3DVec3 min;
     T3DVec3 max;
@@ -25,13 +33,8 @@ typedef struct {
     float radius;
 } Sphere;
 
-typedef enum {
-    SHAPE_BOX,
-    SHAPE_SPHERE
-} ShapeType;
-
 typedef struct {
-    ShapeType type;
+    SHAPE_TYPE type;
     union {
         AABB aabb;
         Sphere sphere;
@@ -42,36 +45,25 @@ typedef struct {
     CollisionShape shape;
 } ActorHitBox;
 
+// PLAYER
 typedef struct {
     T3DVec3 pos;
     T3DVec3 dir;
-    Sphere hitbox;
+    ActorHitBox hitbox;
     float speed;
     bool isActive;
     float length;
-} TongueParams;
-
-#if NUM_FLYS > 0
-typedef struct {
-    T3DVec3 pos;
-    T3DVec3 dir;
-    float yaw;
-    float pitch;
-    Sphere hitbox;
-    float speed;
-    bool isActive;
-    int pointValue;
-} FlyParams;
-#endif
+} ProjectileParams;
 
 typedef struct {
     T3DVec3 moveDir;
-    T3DVec3 playerPos;
+    T3DVec3 pos;
     T3DVec3 shadowPos;
-    T3DVec3 playerForward;
-    Sphere playerBox;
-    TongueParams tongue[NUM_PLAYERS];
-    float rotY;
+    T3DVec3 forward;
+    ActorHitBox hitbox;
+    ProjectileParams projectile;
+    CameraParams cam;
+    float yaw;
     float currSpeed;
     float animBlend;
     bool isAttack;
@@ -80,12 +72,9 @@ typedef struct {
     bool isGrounded;
     bool isFalling;
     bool isWalking;
-    float playerVelocityY;
-    float gravity;
+    float velY;
     float jumpForce;
     int score;
-    int tongueRetract;
-    bool activateSpring[NUM_SPRINGS];
 } PlayerParams;
 
 #endif // TYPES_H

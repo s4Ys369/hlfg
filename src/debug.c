@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include <t3d/t3ddebug.h>
@@ -51,24 +46,24 @@ void draw_debug_ui(void){
 
   rdpq_set_prim_color(RGBA32(0xFF, 0xFF, 0xFF, 0xFF));
   if (text_debug){
-    t3d_debug_printf(posX, posY, "X %.2f", player[0].playerPos.v[0]);posY+=10;
-    t3d_debug_printf(posX, posY, "Y %.2f", player[0].playerPos.v[1]);posY+=10;
-    t3d_debug_printf(posX, posY, "Z %.2f", player[0].playerPos.v[2]);posY+=10;
+    t3d_debug_printf(posX, posY, "X %.2f", player[0].pos.v[0]);posY+=10;
+    t3d_debug_printf(posX, posY, "Y %.2f", player[0].pos.v[1]);posY+=10;
+    t3d_debug_printf(posX, posY, "Z %.2f", player[0].pos.v[2]);posY+=10;
   }
   
   posY = 200;
   rdpq_set_prim_color(RGBA32(0xAA, 0xAA, 0xAA, 0xFF));
-  if(NUM_PLAYERS > 1) {
-    if(NUM_PLAYERS == 2) {
+  if(numPlayers > 1) {
+    if(numPlayers == 2) {
       t3d_debug_printf(posX, posY/2, "SCORE %d", player[0].score);
       t3d_debug_printf(posX, posY, "SCORE %d", player[1].score);
     }
-    if(NUM_PLAYERS == 3) {
+    if(numPlayers == 3) {
       t3d_debug_printf(posX, posY/2, "SCORE %d", player[0].score);
       t3d_debug_printf(posX, posY, "SCORE %d", player[1].score);
       t3d_debug_printf((posX*14)+4,  posY+20, "SCORE %d", player[2].score);
     }
-    if(NUM_PLAYERS == 4) {
+    if(numPlayers == 4) {
       t3d_debug_printf(posX, posY/2, "SCORE %d", player[0].score);
       t3d_debug_printf((posX*14)+4,  posY/2, "SCORE %d", player[1].score);
       t3d_debug_printf(posX, posY, "SCORE %d", player[2].score);
@@ -86,9 +81,9 @@ void draw_debug_ui(void){
     posX = 80;
     posY = 50;
     rdpq_set_prim_color(RGBA32(0xAA, 0xFF, 0xAA, 0xFF));
-    t3d_debug_printf(posX, posY, "Happy Little Frog Game");posY+=10;
+    t3d_debug_printf(posX, posY, "Game Engine for Tiny3D");posY+=10;
     t3d_debug_printf(posX+55, posY, "v%.1f.%u", VERSION, VERSION_SUFFIX);posY+=10;
-    rdpq_set_prim_color(RGBA32(0xFF, 0xAA, 0xAA, 0xFF));posY+=10;
+    rdpq_set_prim_color(RGBA32(0xFF, 0xAA, 0xAA, 0xFF));
     t3d_debug_printf(posX+50, posY, "by s4ys");posY+=10;
     rdpq_set_prim_color(RGBA32(0xFF, 0xFF, 0xFF, 0xFF));
     t3d_debug_printf(posX, posY, "Control Stick : Move");posY+=10;

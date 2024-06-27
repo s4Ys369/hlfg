@@ -1,11 +1,8 @@
 #ifndef SOUND_H
 #define SOUND_H
 
-#include <stdio.h>
-#include <malloc.h>
-#include <string.h>
-#include <stdint.h>
 #include <libdragon.h>
+#include "../include/enums.h"
 
 extern char *xm_fn;
 extern xm64player_t xm;

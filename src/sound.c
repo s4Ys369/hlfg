@@ -1,32 +1,14 @@
-#include <stdio.h>
-#include <malloc.h>
-#include <string.h>
-#include <stdint.h>
 #include <libdragon.h>
+#include "../include/enums.h"
 #include "sound.h"
 
 char *xm_fn = NULL;
 xm64player_t xm;
 wav64_t sfx_jump, sfx_attack, sfx_bounce, sfx_boing;
 
-#define MAX_CHANNELS 10
+
+// Configure depending on number of channels in xm
 #define MAX_BGM_CHANNELS 8
-
-
-enum {
-	SFX1 = 0,
-	SFX2 = 1,
-	BGM1 = 2,
-	BGM2 = 3,
-	BGM3 = 4,
-	BGM4 = 5,
-	BGM5 = 6,
-	BGM6 = 7,
-	BGM7 = 8,
-	BGM8 = 9,
-    // add more?
-} SOUND_CHANNEL;
-
 int MUSIC_CHANNEL[] = {
 	BGM1,
 	BGM2,
@@ -37,6 +19,9 @@ int MUSIC_CHANNEL[] = {
 	BGM7,
 	BGM8
 };
+
+// based on SFX channels (currently 2) plus BGM channels
+#define MAX_CHANNELS 10
 
 void sound_load(void) {
 	xm64player_open(&xm, "rom:/TOYS.xm64");

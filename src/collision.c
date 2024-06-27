@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include "../include/types.h"
@@ -121,12 +116,12 @@ bool check_sphere_box_collision(Sphere sphere, AABB box) {
     float radiusSquared = sphere.radius * sphere.radius;
 
     // If the squared distance is less than the squared radius, there is a collision
-    float e = 1e-6;
+    float e = 1e-6f;
     return distanceSquared <= (radiusSquared + e);
 }
 
 
-// Caught all
+// Catch all
 bool check_collisions(CollisionShape a, CollisionShape b) {
     if (a.type == SHAPE_BOX && b.type == SHAPE_BOX) {
         return check_box_collision(a.aabb, b.aabb);

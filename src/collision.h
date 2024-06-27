@@ -1,11 +1,6 @@
 #ifndef COLLISION_H
 #define COLLISION_H
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include "../include/types.h"

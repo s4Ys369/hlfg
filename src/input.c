@@ -1,30 +1,41 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
 #include <libdragon.h>
 #include <t3d/t3d.h>
-#include "../include/config.h"
+#include "../include/globals.h"
+#include "../include/enums.h"
 #include "input.h"
 
-joypad_inputs_t joypad[NUM_PLAYERS];
-joypad_buttons_t btn[NUM_PLAYERS];
-joypad_buttons_t btnheld[NUM_PLAYERS];
+joypad_inputs_t joypad[];
+joypad_buttons_t btn[];
+joypad_buttons_t btnheld[];
 
+// Init joypads and check how many are plugged in
 void input_init(void){
     joypad_init();
+    if(joypad_is_connected(JOYPAD_PORT_1)){
+        numPlayers++;
+    }
+    if(joypad_is_connected(JOYPAD_PORT_2)){
+        numPlayers++;
+    }
+    if(joypad_is_connected(JOYPAD_PORT_3)){
+        numPlayers++;
+    }
+    if(joypad_is_connected(JOYPAD_PORT_4)){
+        numPlayers++;
+    }
 }
 
+// Poll joypads based on number of players
 void input_update(void){
     joypad_poll();
-    switch(NUM_PLAYERS){
-        case 1:
+    switch(numPlayers){
+        case PLAYERS_0:
+        case PLAYERS_1:
             joypad[0] = joypad_get_inputs(JOYPAD_PORT_1);
             btn[0] = joypad_get_buttons_pressed(JOYPAD_PORT_1);
             btnheld[0] = joypad_get_buttons_held(JOYPAD_PORT_1);
             break;
-        case 2:
+        case PLAYERS_2:
             joypad[0] = joypad_get_inputs(JOYPAD_PORT_1);
             btn[0] = joypad_get_buttons_pressed(JOYPAD_PORT_1);
             btnheld[0] = joypad_get_buttons_held(JOYPAD_PORT_1);
@@ -32,7 +43,7 @@ void input_update(void){
             btn[1] = joypad_get_buttons_pressed(JOYPAD_PORT_2);
             btnheld[1] = joypad_get_buttons_held(JOYPAD_PORT_2);
             break;
-        case 3:
+        case PLAYERS_3:
             joypad[0] = joypad_get_inputs(JOYPAD_PORT_1);
             btn[0] = joypad_get_buttons_pressed(JOYPAD_PORT_1);
             btnheld[0] = joypad_get_buttons_held(JOYPAD_PORT_1);
@@ -43,7 +54,7 @@ void input_update(void){
             btn[2] = joypad_get_buttons_pressed(JOYPAD_PORT_3);
             btnheld[2] = joypad_get_buttons_held(JOYPAD_PORT_3);
             break;
-        case 4:
+        case PLAYERS_4:
             joypad[0] = joypad_get_inputs(JOYPAD_PORT_1);
             btn[0] = joypad_get_buttons_pressed(JOYPAD_PORT_1);
             btnheld[0] = joypad_get_buttons_held(JOYPAD_PORT_1);
