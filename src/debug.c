@@ -99,6 +99,7 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX+10, posY, "Rotate Fixed Cam");posY+=10;
     t3d_debug_printf(posX, posY, "C Up : Top Down Cam");posY+=10;
     t3d_debug_printf(posX, posY, "Z : Recenter Cam");posY+=10;
-    t3d_debug_printf(posX, posY, "Hold R : Debug");
+    t3d_debug_printf(posX, posY, "Hold R : Debug");posY+=10;
+    t3d_debug_printf(posX, posY, "Hold L : HitBoxes");posY+=10;
   }
 }

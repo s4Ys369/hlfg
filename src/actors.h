@@ -50,7 +50,7 @@ extern T3DSkeleton springSkels[NUM_SPRINGS];
 extern T3DSkeleton springSkelBlends[NUM_SPRINGS];
 extern T3DAnim animsSpring[NUM_SPRINGS];
 extern bool springActive[NUM_SPRINGS];
-extern float springForce;
+extern float springForce[NUM_SPRINGS];
 void springs_init(void);
 void spring_update(void);
 #endif

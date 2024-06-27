@@ -46,7 +46,7 @@ T3DSkeleton springSkels[NUM_SPRINGS];
 T3DSkeleton springSkelBlends[NUM_SPRINGS];
 T3DAnim animsSpring[NUM_SPRINGS];
 bool springActive[NUM_SPRINGS];
-float springForce;
+float springForce[NUM_SPRINGS];
 #endif
 
 #if NUM_FLYS > 0
@@ -150,7 +150,7 @@ void hills_init(void){
 
     hillPos[i] = (T3DVec3){{translation[0],translation[1],translation[2]}};
     hillBox[i] = (AABB){{{hillPos[i].v[0] - 64.0f, -1.0f, hillPos[i].v[2] - 64.0f }},
-                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 16.5f, hillPos[i].v[2] + 64.0f}}}; // Hill's AABB
+                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 20.0f, hillPos[i].v[2] + 64.0f}}}; // Hill's AABB
 
     // Create gfx call to draw hill
     rspq_block_begin();
@@ -162,13 +162,13 @@ void hills_init(void){
 #if NUM_LILYPADS > 0
     check_actor_collisions(&hillPos[i], lilypadPos, &hillBox[i], lilypadBox, NUM_LILYPADS);
     hillBox[i] = (AABB){{{hillPos[i].v[0] - 64.0f, -1.0f, hillPos[i].v[2] - 64.0f }},
-                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 16.5f, hillPos[i].v[2] + 64.0f}}};
+                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 20.0f, hillPos[i].v[2] + 64.0f}}};
 #endif
 
 #if NUM_SPRINGS > 0
     check_actor_collisions(&hillPos[i], springPos, &hillBox[i], springBox, NUM_SPRINGS);
     hillBox[i] = (AABB){{{hillPos[i].v[0] - 64.0f, -1.0f, hillPos[i].v[2] - 64.0f }},
-                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 16.5f, hillPos[i].v[2] + 64.0f}}};
+                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 20.0f, hillPos[i].v[2] + 64.0f}}};
 #endif
   }
 }
@@ -184,7 +184,7 @@ void lilypads_init(void){
     boxLPMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
 
     lilypadPos[i] = (T3DVec3){{x, 20.0f, z}};
-    lilypadBox[i] = (AABB){{{x - 20.0f, -1.0f, z - 20.0f}}, {{x + 20.0f, 28.0f, z + 20.0f}}};
+    lilypadBox[i] = (AABB){{{x - 20.0f, -1.0f, z - 20.0f}}, {{x + 20.0f, 32.0f, z + 20.0f}}};
 
     // Create gfx call to draw lily pad
     rspq_block_begin();
@@ -197,13 +197,13 @@ void lilypads_init(void){
 #if NUM_HILLS > 0
     check_actor_collisions(&lilypadPos[i], hillPos, &lilypadBox[i], hillBox, NUM_HILLS);
     lilypadBox[i] = (AABB){{{lilypadPos[i].v[0] - 20.0f, -1.0f, lilypadPos[i].v[2] - 20.0f}},
-                    {{lilypadPos[i].v[0] + 20.0f, 28.0f, lilypadPos[i].v[2] + 20.0f}}};
+                    {{lilypadPos[i].v[0] + 20.0f, 32.0f, lilypadPos[i].v[2] + 20.0f}}};
 #endif
 
 #if NUM_SPRINGS > 0
     check_actor_collisions(&lilypadPos[i], springPos, &lilypadBox[i], springBox, NUM_SPRINGS);
     lilypadBox[i] = (AABB){{{lilypadPos[i].v[0] - 20.0f, -1.0f, lilypadPos[i].v[2] - 20.0f}},
-                    {{lilypadPos[i].v[0] + 20.0f, 28.0f, lilypadPos[i].v[2] + 20.0f}}};
+                    {{lilypadPos[i].v[0] + 20.0f, 32.0f, lilypadPos[i].v[2] + 20.0f}}};
 #endif
 
     t3d_mat4fp_from_srt_euler(lilypadMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, lilypadPos[i].v);
@@ -233,11 +233,11 @@ void springs_init(void){
     t3d_anim_set_speed(&animsSpring[i], 50.0f);
     t3d_anim_attach(&animsSpring[i], &springSkels[i]);
 
-    springActive[i] = true;
-    springForce = 120.0f;
+    springActive[i] = false;
+    springForce[i] = 120.0f;
 
     springPos[i] = (T3DVec3){{x, y, z}};
-    springBox[i] = (AABB){{{x - 20.0f, -1.0f, z - 20.0f}}, {{x + 20.0f, 30.0f, z + 20.0f}}};
+    springBox[i] = (AABB){{{x - 20.0f, -1.0f, z - 20.0f}}, {{x + 20.0f, 35.0f, z + 20.0f}}};
 
     // Create gfx call to draw spring
     rspq_block_begin();
@@ -251,13 +251,13 @@ void springs_init(void){
 #if NUM_HILLS > 0
     check_actor_collisions(&springPos[i], hillPos, &springBox[i], hillBox, NUM_HILLS);
     springBox[i] = (AABB){{{springPos[i].v[0] - 20.0f, -1.0f, springPos[i].v[2] - 20.0f}},
-                    {{springPos[i].v[0] + 20.0f, 30.0f, springPos[i].v[2] + 20.0f}}};
+                    {{springPos[i].v[0] + 20.0f, 35.0f, springPos[i].v[2] + 20.0f}}};
 #endif
 
 #if NUM_LILYPADS > 0
     check_actor_collisions(&springPos[i], lilypadPos, &springBox[i], lilypadBox, NUM_LILYPADS);
     springBox[i] = (AABB){{{springPos[i].v[0] - 20.0f, -1.0f, springPos[i].v[2] - 20.0f}},
-                    {{springPos[i].v[0] + 20.0f, 30.0f, springPos[i].v[2] + 20.0f}}};
+                    {{springPos[i].v[0] + 20.0f, 35.0f, springPos[i].v[2] + 20.0f}}};
 #endif
 
     t3d_mat4fp_from_srt_euler(boxSMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, springPos[i].v);
@@ -276,7 +276,11 @@ void spring_update(void){
     if(springActive[i]) {
       t3d_anim_set_playing(&animsSpring[i], true);
       t3d_anim_update(&animsSpring[i], deltaTime);
+    } else {
+      player->activateSpring[i] = false;
     }
+
+
   }
 }
 #endif
@@ -339,7 +343,7 @@ void fly_update(void){
     if(flyActive[i]){
       t3d_anim_update(&animsFlying[i], deltaTime);
       flyDir[i] = (T3DVec3){{random_float(-10.0f, 10.0f), random_float(-10.0f, 10.0f), random_float(-10.0f, 10.0f)}};
-      flySpeed[i] = random_float(10.0f, 50.0f);
+      flySpeed[i] = random_float(10.0f, 30.0f);
       flyPointV[i] = 1;
 
       // Normalize the direction vector

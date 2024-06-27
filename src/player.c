@@ -342,7 +342,6 @@ void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount, int play
     currentBouncepad = &bouncepadBox[closestIndex];
     
     if (check_sphere_box_collision(player[playerCount].playerBox, *currentBouncepad)) { 
-      springActive[closestIndex] = true;
       resolve_box_collision(*currentBouncepad, &player[playerCount].playerPos, 0.01f);
       if (player[playerCount].playerBox.center.v[0] <= currentBouncepad->max.v[0] &&
             player[playerCount].playerBox.center.v[0] >= currentBouncepad->min.v[0] &&
@@ -366,8 +365,8 @@ void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount, int play
     player[playerCount].isGrounded = true;
     player[playerCount].isJumping = true;
     player[playerCount].isFalling = false;
-    springForce += player[playerCount].gravity * deltaTime;
-    player[playerCount].playerPos.v[1] += springForce * deltaTime;
+    player[playerCount].playerVelocityY += springForce[closestIndex] + player[playerCount].gravity * deltaTime;
+    player[playerCount].playerPos.v[1] += player[playerCount].playerVelocityY * deltaTime;
     player[playerCount].playerBox.center.v[0] += player[playerCount].playerPos.v[0] * deltaTime;
     player[playerCount].playerBox.center.v[1] += player[playerCount].playerPos.v[1] + 0.15f;
     player[playerCount].playerBox.center.v[2] += player[playerCount].playerPos.v[2] * deltaTime;
