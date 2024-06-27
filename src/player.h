@@ -47,12 +47,26 @@ extern PlayerParams player[NUM_PLAYERS];
 
 void player_init(void);
 int find_closest_actor(T3DVec3 origin, T3DVec3 actorPos[], int numActors);
+
+
 void check_player_collisions(Sphere *a, Sphere *b, int numPlayers);
+
+
+#if NUM_HILLS > 0
 void check_hill_collisions(AABB *hillBox, int hillCount, int playerCount);
-void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCount);
 void check_midair_hill_collisions(AABB *hillBox, int hillCount, int playerCount);
+#endif
+
+#if NUM_LILYPADS > 0
+void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCount);
 void check_midair_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCount);
+#endif
+
+#if NUM_SPRINGS > 0
 void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount, int playerCount);
+#endif
+
 void player_update(void);
+
 
 #endif // PLAYER_H

@@ -65,10 +65,16 @@ int main()
       player_update();
   
       //actor logic
-      actors_update();
+#if NUM_SPRINGS > 0
+      spring_update();
+#endif
+#if NUM_FLYS > 0
+      fly_update();
+#endif
+
     }
 
-
+#if NUM_FLYS > 0
     for (int i = 0; i < NUM_FLYS; ++i) {
       t3d_mat4fp_from_srt_euler(flyMatFP[i],
         (float[3]){0.025f, 0.025f, 0.025f},
@@ -81,6 +87,7 @@ int main()
         flyBox[i].center.v
       );
     }
+#endif
 
     for (int i = 0; i < NUM_PLAYERS; ++i) {
     // Update players matrix
@@ -117,12 +124,18 @@ int main()
     // We now blend the walk animation with the idle/attack one
     t3d_skeleton_blend(&skel[i], &skel[i], &skelBlend[i], player[i].animBlend);
     }
+
+#if NUM_SPRINGS > 0
     for (int i = 0; i < NUM_SPRINGS; ++i) {
       t3d_skeleton_blend(&springSkels[i], &springSkels[i], &springSkelBlends[i], 1);
     }
+#endif
+
+#if NUM_FLYS > 0
     for (int i = 0; i < NUM_FLYS; ++i) {
       t3d_skeleton_blend(&flySkels[i], &flySkels[i], &flySkelBlends[i], 1);
     }
+#endif
 
     if(syncPoint)rspq_syncpoint_wait(syncPoint); // wait for the RSP to process the previous frame
 
@@ -130,12 +143,18 @@ int main()
     for (int i = 0; i < NUM_PLAYERS; ++i) {
       t3d_skeleton_update(&skel[i]);
     }
+
+#if NUM_SPRINGS > 0
     for (int i = 0; i < NUM_SPRINGS; ++i) {
       t3d_skeleton_update(&springSkels[i]);
     }
+#endif
+
+#if NUM_FLYS > 0
     for (int i = 0; i < NUM_FLYS; ++i) {
       t3d_skeleton_update(&flySkels[i]);
     }
+#endif
 
     
 
@@ -182,10 +201,20 @@ int main()
         rspq_block_run(dplFrog[i]);
       }
 
+#if NUM_SPRINGS > 0
+      for (int i = 0; i < NUM_SPRINGS; ++i) {
+        rspq_block_run(dplSpring[i]);
+          if(col_debug){
+            rspq_block_run(dplDebugBox2[i]);
+          }
+      }
+#endif
+
       t3d_matrix_push_pos(1);
       rspq_block_run(dplMap);
       t3d_matrix_pop(1);
 
+#if NUM_FLYS > 0
       t3d_matrix_push_pos(1);
       for (int i = 0; i < NUM_FLYS; ++i) {
         if(flyActive[i] == true) {
@@ -198,6 +227,7 @@ int main()
         }
       }
       t3d_matrix_pop(1);
+#endif
 
       t3d_matrix_push_pos(1);
       for (int i = 0; i < NUM_PLAYERS; ++i) {
@@ -212,12 +242,15 @@ int main()
       }
       t3d_matrix_pop(1);
 
+#if NUM_HILLS > 0
       t3d_matrix_push_pos(1);
       for (int i = 0; i < NUM_HILLS; ++i) {
         rspq_block_run(dplHill[i]);
       }
       t3d_matrix_pop(1);
+#endif
 
+#if NUM_LILYPADS > 0
       t3d_matrix_push_pos(1);
       for (int i = 0; i < NUM_LILYPADS; ++i) {
         rspq_block_run(dplLilypad[i]);
@@ -226,15 +259,7 @@ int main()
           }
       }
       t3d_matrix_pop(1);
-
-      t3d_matrix_push_pos(1);
-      for (int i = 0; i < NUM_SPRINGS; ++i) {
-        rspq_block_run(dplSpring[i]);
-          if(col_debug){
-            rspq_block_run(dplDebugBox2[i]);
-          }
-      }
-      t3d_matrix_pop(1);
+#endif
     }
 
     syncPoint = rspq_syncpoint_new();
@@ -304,32 +329,39 @@ int main()
     rspq_block_free(dplShadow[i]);
   }
 
+#if NUM_HILLS > 0
   for (int i = 0; i < NUM_HILLS; ++i) {
     t3d_model_free(modelHill);
     free_uncached(hillMatFP[i]);
     rspq_block_free(dplHill[i]);
   }
+#endif
 
-  
+#if NUM_LILYPADS > 0
   for (int i = 0; i < NUM_LILYPADS; ++i) {
     t3d_model_free(modelLilyPad);
     free_uncached(lilypadMatFP[i]);
+    free_uncached(boxMatFP[i]);
     rspq_block_free(dplLilypad[i]);
     rspq_block_free(dplDebugBox[i]);
   }
+#endif
 
+#if NUM_SPRINGS > 0
   for (int i = 0; i < NUM_SPRINGS; ++i) {
     t3d_skeleton_destroy(&springSkels[i]);
     t3d_skeleton_destroy(&springSkelBlends[i]);
     t3d_anim_destroy(&animsSpring[i]);
     t3d_model_free(modelSpring);
     free_uncached(springMatFP[i]);
+    free_uncached(boxMatFP[i]);
     rspq_block_free(dplSpring[i]);
     rspq_block_free(dplDebugBox2[i]);
   }
-  for (int i = 0; i < NUM_SPRINGS + NUM_LILYPADS; ++i) {
-    free(boxMatFP[i]);
-  }
+#endif
+
+    
+#if NUM_FLYS > 0
   for (int i = 0; i < NUM_FLYS; ++i) {
     t3d_skeleton_destroy(&flySkels[i]);
     t3d_skeleton_destroy(&flySkelBlends[i]);
@@ -341,6 +373,7 @@ int main()
     rspq_block_free(dplFly[i]);
     rspq_block_free(dplDebugSphereFly[i]);
   }
+#endif
 
   t3d_destroy();
   return 0;

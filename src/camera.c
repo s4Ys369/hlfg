@@ -218,15 +218,26 @@ void cam_update(void){
         top_down_view(&camTarget[i], &camPos[i], camResults[i].forward, &player[i].playerPos);
         break;
     }
+
+#if NUM_HILLS > 0
     for (int h = 0; h < NUM_HILLS; ++h) {
       resolve_box_collision(hillBox[h], &camPos[i], 2.0f);
     }
+#endif
+
+#if NUM_LILYPADS > 0
     for (int l = 0; l < NUM_LILYPADS; ++l) {
       resolve_box_collision(lilypadBox[l], &camPos[i], 2.0f);
     }
+#endif
+
+#if NUM_SPRINGS > 0
     for (int s = 0; s < NUM_SPRINGS; ++s) {
       resolve_box_collision(springBox[s], &camPos[i], 2.0f);
     }
+#endif
+
     resolve_box_collision(FloorBox, &camPos[i], 2.0f);
   }
+
 }

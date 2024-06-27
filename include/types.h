@@ -51,6 +51,7 @@ typedef struct {
     float length;
 } TongueParams;
 
+#if NUM_FLYS > 0
 typedef struct {
     T3DVec3 pos;
     T3DVec3 dir;
@@ -61,6 +62,7 @@ typedef struct {
     bool isActive;
     int pointValue;
 } FlyParams;
+#endif
 
 typedef struct {
     T3DVec3 moveDir;

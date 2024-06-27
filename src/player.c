@@ -184,9 +184,15 @@ void player_init(void){
     if(NUM_PLAYERS > 1){
       player[i].playerPos = (T3DVec3){{random_float(-50.0f, 50.0f),0.15f,random_float(-50.0f, 50.0f)}};
       check_player_collisions(&player[i].playerBox, &player->playerBox, NUM_PLAYERS);
+#if NUM_HILLS > 0
       check_hill_collisions(hillBox, NUM_HILLS, i);
+#endif
+#if NUM_SPRINGS > 0
       check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
+#endif
+#if NUM_LILYPADS > 0
       check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
+#endif
       if (check_sphere_box_collision(player[i].playerBox, FloorBox)) {
         resolve_box_collision(FloorBox, &player[i].playerPos, 0.01f);
       }
@@ -223,6 +229,7 @@ void check_player_collisions(Sphere *a, Sphere *b, int numPlayers) {
 }
 #endif
 
+#if NUM_HILLS > 0
 void check_hill_collisions(AABB *hillBox, int hillCount, int playerCount) {
   AABB *currentHill;
   closestIndex = find_closest_actor(player[playerCount].playerPos, hillPos, hillCount);
@@ -232,20 +239,6 @@ void check_hill_collisions(AABB *hillBox, int hillCount, int playerCount) {
     if (check_sphere_box_collision(player[playerCount].playerBox, *currentHill)) {
       resolve_box_collision_xz(*currentHill, &player[playerCount].playerBox.center, player[playerCount].playerBox.radius);
       resolve_box_collision_xz(*currentHill, &player[playerCount].playerPos, 0.02f);
-    }
-  }
-}
-
-
-void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCount) {
-  AABB *currentLilypad;
-  closestIndex = find_closest_actor(player[playerCount].playerPos, lilypadPos, lilypadCount);
-
-  if (closestIndex != -1){
-    currentLilypad = &lilypadBox[closestIndex];
-    if (check_sphere_box_collision(player[playerCount].playerBox, *currentLilypad)) {
-      // Resolve collisions in x and z directions with a minimal offset
-      resolve_box_collision_xz(*currentLilypad, &player[playerCount].playerPos, 0.01f); // Small offset value
     }
   }
 }
@@ -286,7 +279,21 @@ void check_midair_hill_collisions(AABB *hillBox, int hillCount, int playerCount)
     }
   }
 }
+#endif
 
+#if NUM_LILYPADS > 0
+void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCount) {
+  AABB *currentLilypad;
+  closestIndex = find_closest_actor(player[playerCount].playerPos, lilypadPos, lilypadCount);
+
+  if (closestIndex != -1){
+    currentLilypad = &lilypadBox[closestIndex];
+    if (check_sphere_box_collision(player[playerCount].playerBox, *currentLilypad)) {
+      // Resolve collisions in x and z directions with a minimal offset
+      resolve_box_collision_xz(*currentLilypad, &player[playerCount].playerPos, 0.01f); // Small offset value
+    }
+  }
+}
 
 void check_midair_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCount) {
   AABB *currentLilypad;
@@ -322,7 +329,9 @@ void check_midair_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int pla
     }
   }
 }
+#endif
 
+#if NUM_SPRINGS > 0
 void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount, int playerCount) {
   bool playerBounced = false;
   AABB *currentBouncepad;
@@ -332,16 +341,17 @@ void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount, int play
     currentBouncepad = &bouncepadBox[closestIndex];
     
     if (check_sphere_box_collision(player[playerCount].playerBox, *currentBouncepad)) { 
+      springActive[closestIndex] = true;
       resolve_box_collision(*currentBouncepad, &player[playerCount].playerPos, 0.01f);
       if (player[playerCount].playerBox.center.v[0] <= currentBouncepad->max.v[0] &&
             player[playerCount].playerBox.center.v[0] >= currentBouncepad->min.v[0] &&
             player[playerCount].playerBox.center.v[2] <= currentBouncepad->max.v[2] &&
             player[playerCount].playerBox.center.v[2] >= currentBouncepad->min.v[2]) {
-        if(player[playerCount].playerPos.v[1] >= currentBouncepad->max.v[1]){
+        if(player[playerCount].playerBox.center.v[1] >= currentBouncepad->max.v[1]){
           player[playerCount].isFalling = false;
           playerBounced = true;
           player[playerCount].activateSpring[closestIndex] = true;
-          t3d_anim_set_playing(&animsSpring[closestIndex], true);
+          springActive[closestIndex] = true;
           wav64_play(&sfx_bounce, 0);
           wav64_play(&sfx_boing, 1);
           mixer_try_play();
@@ -364,6 +374,7 @@ void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount, int play
     player[playerCount].playerPos.v[1] += player[playerCount].playerBox.center.v[1] * deltaTime;
   }
 }
+#endif
 
 void player_update(void){
 
@@ -447,17 +458,29 @@ void player_update(void){
     if(NUM_PLAYERS > 1){
       check_player_collisions(&player[i].playerBox, &player->playerBox, NUM_PLAYERS);
     }
+#if NUM_HILLS > 0
     check_hill_collisions(hillBox, NUM_HILLS, i);
+#endif
+#if NUM_SPRINGS > 0
     check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
+#endif
+#if NUM_LILYPADS > 0
     check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
+#endif
   }
   if(player[i].playerPos.v[1] != groundLevel && player[i].isGrounded){
     if(NUM_PLAYERS > 1){
       check_player_collisions(&player[i].playerBox, &player->playerBox, NUM_PLAYERS);
     }
+#if NUM_HILLS > 0
     check_midair_hill_collisions(hillBox, NUM_HILLS, i);
+#endif
+#if NUM_SPRINGS > 0
     check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
+#endif
+#if NUM_LILYPADS > 0
     check_midair_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
+#endif
   }
 
   // check walking
@@ -477,9 +500,15 @@ void player_update(void){
     if(NUM_PLAYERS > 1){
       check_player_collisions(&player[i].playerBox, &player->playerBox, NUM_PLAYERS);
     }
+#if NUM_HILLS > 0
     check_midair_hill_collisions(hillBox, NUM_HILLS, i);
+#endif
+#if NUM_SPRINGS > 0
     check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
+#endif
+#if NUM_LILYPADS > 0
     check_midair_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
+#endif
     if (player[i].playerPos.v[1] > groundLevel) {
       player[i].playerVelocityY += player[i].gravity * jumpTime;
       player[i].playerPos.v[1] += player[i].playerVelocityY * jumpTime;
@@ -514,11 +543,12 @@ void player_update(void){
       player[i].tongueRetract = 1;
     }
 
-    // Calculate the end position based on the tongue's direction and length
+    /* Calculate the end position based on the tongue's direction and length
     T3DVec3 tongueEndPos;
     tongueEndPos.v[0] = player[i].tongue[i].pos.v[0] + player[i].tongue[i].dir.v[0] * player[i].tongue[i].length;
     tongueEndPos.v[1] = player[i].playerBox.center.v[1] + 1;
     tongueEndPos.v[2] = player[i].tongue[i].pos.v[2] + player[i].tongue[i].dir.v[2] * player[i].tongue[i].length;
+    */
 
 
     // Set the hitbox center to the end position
@@ -534,6 +564,7 @@ void player_update(void){
 
     player[i].tongue[i].hitbox.center.v[1] = player[i].tongue[i].pos.v[1] + 5;
 
+#if NUM_FLYS > 0
     Sphere *currentFlyBox;
     closestIndex = find_closest_actor(player[i].tongue[i].hitbox.center, flyPos, NUM_FLYS);
     if(closestIndex != -1) {
@@ -549,6 +580,7 @@ void player_update(void){
         player[i].score++;
       }
     }
+#endif
 
     if(!animAttack[i].isPlaying){
       t3d_anim_set_time(&animAttack[i], 0.0f);
@@ -567,9 +599,15 @@ void player_update(void){
     if(NUM_PLAYERS > 1){
       check_player_collisions(&player[i].playerBox, &player->playerBox, NUM_PLAYERS);
     }
+#if NUM_HILLS > 0
     check_hill_collisions(hillBox, NUM_HILLS, i);
+#endif
+#if NUM_SPRINGS > 0
     check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
+#endif
+#if NUM_LILYPADS > 0
     check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
+#endif
     if(player[i].isGrounded){
       if(!animJump[i].isPlaying){
         player[i].isJumpStart = false;
@@ -607,9 +645,15 @@ void player_update(void){
     if(NUM_PLAYERS > 1){
       check_player_collisions(&player[i].playerBox, &player->playerBox, NUM_PLAYERS);
     }
+#if NUM_HILLS > 0
     check_hill_collisions(hillBox, NUM_HILLS, i);
+#endif
+#if NUM_SPRINGS > 0
     check_bouncepad_collisions(springBox, NUM_SPRINGS, i);
+#endif
+#if NUM_LILYPADS > 0
     check_lilypad_collisions(lilypadBox, NUM_LILYPADS, i);
+#endif
     if (check_sphere_box_collision(player[i].playerBox, FloorBox)) {
       resolve_box_collision(FloorBox, &player[i].playerPos, 0.01f);
     }

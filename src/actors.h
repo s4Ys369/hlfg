@@ -17,13 +17,17 @@
 #include "player.h"
 #include "utils.h"
 
+#if NUM_HILLS > 0
 //Hills
 extern T3DMat4FP* hillMatFP[NUM_HILLS];
 extern T3DVec3 hillPos[NUM_HILLS];
 extern AABB hillBox[NUM_HILLS];
 extern rspq_block_t *dplHill[NUM_HILLS];
 extern T3DModel *modelHill;
+void hills_init(void);
+#endif
 
+#if NUM_LILYPADS > 0
 //Lilypads
 extern T3DMat4FP* lilypadMatFP[NUM_LILYPADS];
 extern T3DMat4FP* boxMatFP[NUM_LILYPADS];
@@ -32,7 +36,10 @@ extern AABB lilypadBox[NUM_LILYPADS];
 extern rspq_block_t *dplLilypad[NUM_LILYPADS];
 extern rspq_block_t *dplDebugBox[NUM_LILYPADS];
 extern T3DModel *modelLilyPad;
+void lilypads_init(void);
+#endif
 
+#if NUM_SPRINGS > 0
 // Springs
 extern T3DMat4FP* springMatFP[NUM_SPRINGS];
 extern T3DVec3 springPos[NUM_SPRINGS];
@@ -45,7 +52,11 @@ extern T3DSkeleton springSkelBlends[NUM_SPRINGS];
 extern T3DAnim animsSpring[NUM_SPRINGS];
 extern bool springActive[NUM_SPRINGS];
 extern float springForce;
+void springs_init(void);
+void spring_update(void);
+#endif
 
+#if NUM_FLYS > 0
 // Flys
 extern T3DMat4FP* flyMatFP[NUM_FLYS];
 extern T3DMat4FP* sphereFlyMatFP[NUM_FLYS];
@@ -66,16 +77,12 @@ extern T3DSkeleton flySkelBlends[NUM_FLYS];
 extern T3DAnim animsFlying[NUM_FLYS];
 extern T3DAnim animsDeath[NUM_FLYS];
 extern int flyHide[NUM_FLYS];
+void flys_init(void);
+void fly_update(void);
+#endif
 
 void check_actor_collisions(T3DVec3 *posA, T3DVec3 *posB, AABB *boxA, AABB *boxB, int targetCount);
 void actors_init(void);
-void hills_init(void);
-void lilypads_init(void);
-void springs_init(void);
-void spring_update(void);
-void flys_init(void);
-void fly_update(void);
-void actors_update(void);
 
 
 #endif // ACTORS_H
