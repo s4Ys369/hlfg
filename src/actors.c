@@ -26,7 +26,7 @@ T3DModel *modelHill;
 
 #if NUM_LILYPADS > 0
 T3DMat4FP* lilypadMatFP[NUM_LILYPADS];
-T3DMat4FP* boxMatFP[NUM_LILYPADS];
+T3DMat4FP* boxLPMatFP[NUM_LILYPADS];
 T3DVec3 lilypadPos[NUM_LILYPADS];
 AABB lilypadBox[NUM_LILYPADS];
 rspq_block_t *dplLilypad[NUM_LILYPADS];
@@ -36,7 +36,7 @@ T3DModel *modelLilyPad;
 
 #if NUM_SPRINGS > 0
 T3DMat4FP* springMatFP[NUM_SPRINGS];
-T3DMat4FP* boxMatFP[NUM_SPRINGS];
+T3DMat4FP* boxSMatFP[NUM_SPRINGS];
 T3DVec3 springPos[NUM_SPRINGS];
 AABB springBox[NUM_SPRINGS];
 rspq_block_t *dplSpring[NUM_SPRINGS];
@@ -150,7 +150,7 @@ void hills_init(void){
 
     hillPos[i] = (T3DVec3){{translation[0],translation[1],translation[2]}};
     hillBox[i] = (AABB){{{hillPos[i].v[0] - 64.0f, -1.0f, hillPos[i].v[2] - 64.0f }},
-                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 25.0f, hillPos[i].v[2] + 64.0f}}}; // Hill's AABB
+                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 16.5f, hillPos[i].v[2] + 64.0f}}}; // Hill's AABB
 
     // Create gfx call to draw hill
     rspq_block_begin();
@@ -162,13 +162,13 @@ void hills_init(void){
 #if NUM_LILYPADS > 0
     check_actor_collisions(&hillPos[i], lilypadPos, &hillBox[i], lilypadBox, NUM_LILYPADS);
     hillBox[i] = (AABB){{{hillPos[i].v[0] - 64.0f, -1.0f, hillPos[i].v[2] - 64.0f }},
-                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 25.0f, hillPos[i].v[2] + 64.0f}}};
+                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 16.5f, hillPos[i].v[2] + 64.0f}}};
 #endif
 
 #if NUM_SPRINGS > 0
     check_actor_collisions(&hillPos[i], springPos, &hillBox[i], springBox, NUM_SPRINGS);
     hillBox[i] = (AABB){{{hillPos[i].v[0] - 64.0f, -1.0f, hillPos[i].v[2] - 64.0f }},
-                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 25.0f, hillPos[i].v[2] + 64.0f}}};
+                    {{hillPos[i].v[0] + 64.0f, hillPos[i].v[1] + 16.5f, hillPos[i].v[2] + 64.0f}}};
 #endif
   }
 }
@@ -181,10 +181,10 @@ void lilypads_init(void){
 	  float x = xValues[i];
     float z = zValues[i];
     lilypadMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-    boxMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
+    boxLPMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
 
     lilypadPos[i] = (T3DVec3){{x, 20.0f, z}};
-    lilypadBox[i] = (AABB){{{x - 20.0f, -1.0f, z - 20.0f}}, {{x + 20.0f, 38.0f, z + 20.0f}}};
+    lilypadBox[i] = (AABB){{{x - 20.0f, -1.0f, z - 20.0f}}, {{x + 20.0f, 28.0f, z + 20.0f}}};
 
     // Create gfx call to draw lily pad
     rspq_block_begin();
@@ -197,19 +197,19 @@ void lilypads_init(void){
 #if NUM_HILLS > 0
     check_actor_collisions(&lilypadPos[i], hillPos, &lilypadBox[i], hillBox, NUM_HILLS);
     lilypadBox[i] = (AABB){{{lilypadPos[i].v[0] - 20.0f, -1.0f, lilypadPos[i].v[2] - 20.0f}},
-                    {{lilypadPos[i].v[0] + 20.0f, 38.0f, lilypadPos[i].v[2] + 20.0f}}};
+                    {{lilypadPos[i].v[0] + 20.0f, 28.0f, lilypadPos[i].v[2] + 20.0f}}};
 #endif
 
 #if NUM_SPRINGS > 0
     check_actor_collisions(&lilypadPos[i], springPos, &lilypadBox[i], springBox, NUM_SPRINGS);
     lilypadBox[i] = (AABB){{{lilypadPos[i].v[0] - 20.0f, -1.0f, lilypadPos[i].v[2] - 20.0f}},
-                    {{lilypadPos[i].v[0] + 20.0f, 38.0f, lilypadPos[i].v[2] + 20.0f}}};
+                    {{lilypadPos[i].v[0] + 20.0f, 28.0f, lilypadPos[i].v[2] + 20.0f}}};
 #endif
 
     t3d_mat4fp_from_srt_euler(lilypadMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, lilypadPos[i].v);
-    t3d_mat4fp_from_srt_euler(boxMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, lilypadPos[i].v);
+    t3d_mat4fp_from_srt_euler(boxLPMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, lilypadPos[i].v);
     rspq_block_begin();
-      t3d_matrix_set(boxMatFP[i], true);
+      t3d_matrix_set(boxLPMatFP[i], true);
       rdpq_set_prim_color(RGBA32(255, 0, 0, 120));
       t3d_model_draw(modelDebugBox);
     dplDebugBox[i] = rspq_block_end();
@@ -225,7 +225,7 @@ void springs_init(void){
     float y = 20.0f;
     float z = zValues[i+5];
     springMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-    boxMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
+    boxSMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
     
     springSkels[i] = t3d_skeleton_create(modelSpring);
     springSkelBlends[i] = t3d_skeleton_clone(&springSkels[i], false);
@@ -237,9 +237,7 @@ void springs_init(void){
     springForce = 120.0f;
 
     springPos[i] = (T3DVec3){{x, y, z}};
-    springBox[i] = (AABB){{{x - 20.0f, -1.0f, z - 20.0f}}, {{x + 20.0f, 38.0f, z + 20.0f}}};
-
-    t3d_mat4fp_from_srt_euler(springMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, springPos[i].v);
+    springBox[i] = (AABB){{{x - 20.0f, -1.0f, z - 20.0f}}, {{x + 20.0f, 30.0f, z + 20.0f}}};
 
     // Create gfx call to draw spring
     rspq_block_begin();
@@ -253,18 +251,18 @@ void springs_init(void){
 #if NUM_HILLS > 0
     check_actor_collisions(&springPos[i], hillPos, &springBox[i], hillBox, NUM_HILLS);
     springBox[i] = (AABB){{{springPos[i].v[0] - 20.0f, -1.0f, springPos[i].v[2] - 20.0f}},
-                    {{springPos[i].v[0] + 20.0f, 38.0f, springPos[i].v[2] + 20.0f}}};
+                    {{springPos[i].v[0] + 20.0f, 30.0f, springPos[i].v[2] + 20.0f}}};
 #endif
 
 #if NUM_LILYPADS > 0
     check_actor_collisions(&springPos[i], lilypadPos, &springBox[i], lilypadBox, NUM_LILYPADS);
     springBox[i] = (AABB){{{springPos[i].v[0] - 20.0f, -1.0f, springPos[i].v[2] - 20.0f}},
-                    {{springPos[i].v[0] + 20.0f, 38.0f, springPos[i].v[2] + 20.0f}}};
+                    {{springPos[i].v[0] + 20.0f, 30.0f, springPos[i].v[2] + 20.0f}}};
 #endif
 
-    t3d_mat4fp_from_srt_euler(boxMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, springPos[i].v);
+    t3d_mat4fp_from_srt_euler(boxSMatFP[i], (float[3]){0.25f, 0.25f, 0.25f}, (float[3]){0, 0, 0}, springPos[i].v);
     rspq_block_begin();
-      t3d_matrix_push(boxMatFP[i]);
+      t3d_matrix_push(boxSMatFP[i]);
       rdpq_set_prim_color(RGBA32(255, 0, 0, 120));
       t3d_model_draw(modelDebugBox);
       t3d_matrix_pop(1);

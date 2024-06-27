@@ -127,6 +127,11 @@ int main()
 
 #if NUM_SPRINGS > 0
     for (int i = 0; i < NUM_SPRINGS; ++i) {
+      t3d_mat4fp_from_srt_euler(springMatFP[i], 
+      (float[3]){0.25f, 0.25f, 0.25f}, 
+      (float[3]){0, 0, 0}, 
+      springPos[i].v
+      );
       t3d_skeleton_blend(&springSkels[i], &springSkels[i], &springSkelBlends[i], 1);
     }
 #endif
@@ -162,15 +167,15 @@ int main()
     rdpq_attach(display_get(), &depthBuffer);
     t3d_frame_start();
 
-    color_t fogColor = (color_t){0x12, 0x03, 0x21, 0xFF};
-    rdpq_set_prim_color((color_t){0x12, 0x03, 0x21, 0xFF});
+    color_t fogColor = (color_t){0xC2, 0xB7, 0x7A, 0xFF};
+    rdpq_set_prim_color((color_t){0xC2, 0xB7, 0x7A, 0xFF});
     rdpq_mode_fog(RDPQ_FOG_STANDARD);
     rdpq_set_fog_color(fogColor);
 
     t3d_screen_clear_color(fogColor);
     t3d_screen_clear_depth();
 
-    t3d_fog_set_range(20.0f, 80.0f);
+    t3d_fog_set_range(80.0f, 100.0f);
     t3d_fog_set_enabled(true);
     
     t3d_light_set_ambient(colorAmbient);
@@ -341,7 +346,7 @@ int main()
   for (int i = 0; i < NUM_LILYPADS; ++i) {
     t3d_model_free(modelLilyPad);
     free_uncached(lilypadMatFP[i]);
-    free_uncached(boxMatFP[i]);
+    free_uncached(boxLPMatFP[i]);
     rspq_block_free(dplLilypad[i]);
     rspq_block_free(dplDebugBox[i]);
   }
@@ -354,7 +359,7 @@ int main()
     t3d_anim_destroy(&animsSpring[i]);
     t3d_model_free(modelSpring);
     free_uncached(springMatFP[i]);
-    free_uncached(boxMatFP[i]);
+    free_uncached(boxSMatFP[i]);
     rspq_block_free(dplSpring[i]);
     rspq_block_free(dplDebugBox2[i]);
   }

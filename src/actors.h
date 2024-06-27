@@ -30,7 +30,6 @@ void hills_init(void);
 #if NUM_LILYPADS > 0
 //Lilypads
 extern T3DMat4FP* lilypadMatFP[NUM_LILYPADS];
-extern T3DMat4FP* boxMatFP[NUM_LILYPADS];
 extern T3DVec3 lilypadPos[NUM_LILYPADS];
 extern AABB lilypadBox[NUM_LILYPADS];
 extern rspq_block_t *dplLilypad[NUM_LILYPADS];

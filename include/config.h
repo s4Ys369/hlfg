@@ -12,10 +12,10 @@
 // SEED is used to place objects at random
 #define SEED 69
 #define NUM_PLAYERS 1
-#define NUM_HILLS 0
-#define NUM_LILYPADS 0
-#define NUM_SPRINGS 1
-#define NUM_FLYS 0
+#define NUM_HILLS 4
+#define NUM_LILYPADS 5
+#define NUM_SPRINGS 3
+#define NUM_FLYS 20
 #define FLY_DRAW_DIST 150
 
 #endif // CONFIG_H

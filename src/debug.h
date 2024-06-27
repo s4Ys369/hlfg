@@ -16,7 +16,8 @@
 
 extern T3DModel *modelDebugBox;
 extern T3DModel *modelDebugSphere;
-extern T3DMat4FP* boxMatFP[];
+extern T3DMat4FP* boxLPMatFP[];
+extern T3DMat4FP* boxSMatFP[];
 extern int col_debug;
 
 void debug_models_init(void);

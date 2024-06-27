@@ -9,7 +9,7 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
 
-#define VERSION 0.1
-#define VERSION_SUFFIX 3
+#define VERSION 0.2
+#define VERSION_SUFFIX 0
 
 #endif // GLOBALS_H

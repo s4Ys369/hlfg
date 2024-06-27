@@ -50,15 +50,15 @@ void player_init(void){
   modelP1 = t3d_model_load("rom:/frog.t3dm");
   if(NUM_PLAYERS > 1){
     if(NUM_PLAYERS == 2){
-      modelP2 = t3d_model_load("rom:/frog_p2.t3dm");
+      modelP2 = t3d_model_load("rom:/frog_p3.t3dm");
     }
     if(NUM_PLAYERS == 3){
-      modelP2 = t3d_model_load("rom:/frog_p2.t3dm");
-      modelP3 = t3d_model_load("rom:/frog_p3.t3dm");
+      modelP2 = t3d_model_load("rom:/frog_p3.t3dm");
+      modelP3 = t3d_model_load("rom:/frog_p2.t3dm");
     }
     if(NUM_PLAYERS == 4){
-      modelP2 = t3d_model_load("rom:/frog_p2.t3dm");
-      modelP3 = t3d_model_load("rom:/frog_p3.t3dm");
+      modelP2 = t3d_model_load("rom:/frog_p3.t3dm");
+      modelP3 = t3d_model_load("rom:/frog_p2.t3dm");
       modelP4 = t3d_model_load("rom:/frog_p4.t3dm");
     }
   }
@@ -266,6 +266,7 @@ void check_midair_hill_collisions(AABB *hillBox, int hillCount, int playerCount)
             player[playerCount].isJumping = false;
             player[playerCount].isFalling = false;
           }
+          player[playerCount].playerBox.center.v[1] = player[playerCount].playerPos.v[1];
         } else {
           player[playerCount].isGrounded = false;
           player[playerCount].isJumping = false;
@@ -417,7 +418,7 @@ void player_update(void){
 
     float newAngle = atan2f(player[i].moveDir.v[0], player[i].moveDir.v[2]);
     player[i].rotY = t3d_lerp_angle(player[i].rotY, newAngle, 0.5f);
-    player[i].currSpeed = t3d_lerp(player[i].currSpeed, speed * 0.1f, 0.1f);
+    player[i].currSpeed = t3d_lerp(player[i].currSpeed, speed * 0.2f, 0.2f);
   } else if (player[i].isJumping && !player[i].isGrounded){
     float newAngle = atan2f((player[i].moveDir.v[0]), (player[i].moveDir.v[2]));
     player[i].rotY = t3d_lerp_angle(player[i].rotY, newAngle, 0.1f);
