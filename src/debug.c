@@ -12,6 +12,17 @@ T3DModel *modelDebugBox;
 T3DModel *modelDebugSphere;
 int col_debug;
 
+const char* playerStateStrings[NUM_PLAYER_STATES] = {
+    "Idle",
+    "Walk",
+    "Jump Start",
+    "Jump",
+    "Attack Start",
+    "Attack",
+    "Fall",
+    "Land"
+};
+
 void debug_models_init(void){
   col_debug = 0;
   modelDebugBox = t3d_model_load("rom:/box.t3dm");
@@ -50,8 +61,14 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX, posY, "X %.2f", player[0]->pos.v[0]);posY+=10;
     t3d_debug_printf(posX, posY, "Y %.2f", player[0]->pos.v[1]);posY+=10;
     t3d_debug_printf(posX, posY, "Z %.2f", player[0]->pos.v[2]);posY+=10;
-    t3d_debug_printf(posX, posY, "STATE %u", playerState[0]);posY+=10;
-    t3d_debug_printf(posX, posY, "STATE %d", player[0]->isGrounded);posY+=10;
+    t3d_debug_printf(posX, posY, "State %s", playerStateStrings[playerState[0]]);posY+=10;
+    t3d_debug_printf(posX, posY, "Grounded %d", player[0]->isGrounded);posY+=10;
+    t3d_debug_printf(posX, posY, "X %.2f", crates[0]->pos.v[0]);posY+=10;
+    t3d_debug_printf(posX, posY, "Y %.2f", crates[0]->pos.v[1]);posY+=10;
+    t3d_debug_printf(posX, posY, "Z %.2f", crates[0]->pos.v[2]);posY+=10;
+    t3d_debug_printf(posX, posY, "X %.2f", balls[0]->pos.v[0]);posY+=10;
+    t3d_debug_printf(posX, posY, "Y %.2f", balls[0]->pos.v[1]);posY+=10;
+    t3d_debug_printf(posX, posY, "Z %.2f", balls[0]->pos.v[2]);posY+=10;
   }
   
   posY = 200;
@@ -82,8 +99,9 @@ void draw_debug_ui(void){
 
   if(text_controls){
     posX = 80;
-    posY = 50;
+    posY = 40;
     rdpq_set_prim_color(RGBA32(0xAA, 0xFF, 0xAA, 0xFF));
+    t3d_debug_printf(posX, posY, "IBE: Itty Bitty Engine");posY+=10;
     t3d_debug_printf(posX, posY, "Game Engine for Tiny3D");posY+=10;
     t3d_debug_printf(posX+55, posY, "v%.1f.%u", VERSION, VERSION_SUFFIX);posY+=10;
     rdpq_set_prim_color(RGBA32(0xFF, 0xAA, 0xAA, 0xFF));

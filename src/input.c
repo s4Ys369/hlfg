@@ -31,6 +31,7 @@ void input_init(void){
 void input_update(void){
     joypad_poll();
     switch(numPlayers){
+        case PLAYERS_0:
         case PLAYERS_1:
             joypad[0] = joypad_get_inputs(JOYPAD_PORT_1);
             btn[0] = joypad_get_buttons_pressed(JOYPAD_PORT_1);

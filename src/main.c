@@ -15,7 +15,7 @@
 #include "sound.h"
 #include "utils.h"
 
-// 3D Game Engine for Tiny3D
+// IBE : Itty Bitty Engine, a 3D Game Engine for Tiny3D
 
 int main()
 {
@@ -56,22 +56,15 @@ int main()
       if(numPlayers < 3){
         sound_update_buffer();
       }
-  
-      // CAMERA_LOGIC
-      cam_update();
-  
-      //Player_logic
-      player_update();
-  
-      //actor logic
       actors_update();
-
+      player_update();
+      cam_update();
     }
 
     // Update actor matrices
     for (int i = 0; i < numCrates; ++i) {
       t3d_mat4fp_from_srt_euler(crateMatFP[i],
-        (float[3]){1.0f, 1.0f, 1.0f},
+        (float[3]){2.0f, 2.0f, 2.0f},
         (float[3]){0, 0, 0},
         crates[i]->pos.v
       );
@@ -85,22 +78,17 @@ int main()
       );
     }
 
-    // Update players matrices
+     // Update player's extra matrices separately
     for (int i = 0; i < numPlayers; ++i) {
-      t3d_mat4fp_from_srt_euler(playerMatFP[i],
-        (float[3]){1.0f, 1.0f, 1.0f},
-        (float[3]){0.0f, -player[i]->yaw, 0},
-        player[i]->pos.v
-      );
 
       t3d_mat4fp_from_srt_euler(projectileMatFP[i],
-        (float[3]){1.0f, 1.0f, 1.0f},
+        (float[3]){0.5f, 0.5f, 0.5f},
         (float[3]){0.0f, -player[i]->yaw, 0},
         player[i]->projectile.pos.v
       );
 
       t3d_mat4fp_from_srt_euler(shadowMatFP[i],
-        (float[3]){1.0f, 1.0f, 1.0f},
+        (float[3]){0.25f, 0.25f, 0.25f},
         (float[3]){0.0f, 0.0f, 0.0f},
         player[i]->shadowPos.v
       );
@@ -112,16 +100,30 @@ int main()
       );
 
       t3d_mat4fp_from_srt_euler(projectilehitboxMatFP[i],
-        (float[3]){0.5f*player[i]->projectile.hitbox.radius,
-                   0.5f*player[i]->projectile.hitbox.radius, 
-                   0.5f*player[i]->projectile.hitbox.radius},
+        (float[3]){(0.5f * player[i]->projectile.hitbox.radius),
+                   (0.5f * player[i]->projectile.hitbox.radius), 
+                   (0.5f * player[i]->projectile.hitbox.radius)},
         (float[3]){0.0f, 0.0f, 0.0f},
         player[i]->projectile.hitbox.center.v
       );
-  
-      // We now blend the walk animation with the idle/attack one
+
+    }
+
+    // Update players matrices
+    for (int i = 0; i < numPlayers; ++i) {
+      t3d_mat4fp_from_srt_euler(playerMatFP[i],
+        (float[3]){1.0f, 1.0f, 1.0f},
+        (float[3]){0.0f, -player[i]->yaw, 0},
+        player[i]->pos.v
+      );
+
+    }
+      
+    // We now blend the walk animation with the idle/attack one
+    for (int i = 0; i < numPlayers; ++i) {
       t3d_skeleton_blend(&playerSkel[i], &playerSkel[i], &playerSkelBlend[i], player[i]->animBlend);
     }
+
 
 
 
@@ -132,8 +134,6 @@ int main()
       t3d_skeleton_update(&playerSkel[i]);
     }
 
-
-    
 
     // ======== Draw (3D) ======== //
     rdpq_attach(display_get(), &depthBuffer);
@@ -209,7 +209,7 @@ int main()
           rspq_block_run(dplProjectile[i]);
         }
         if(col_debug){
-          rspq_block_run(dplPlayerHitBox[i]);
+          //rspq_block_run(dplPlayerHitBox[i]);
           rspq_block_run(dplProjectileHitBox[i]);
         }
       }

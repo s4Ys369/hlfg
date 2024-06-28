@@ -76,9 +76,11 @@ void resolve_box_collision_xz(AABB aabb, T3DVec3 *pos, float offset) {
 bool check_sphere_collision(Sphere a, Sphere b) {
     // Calculate the squared distance between centers
     float distanceSquared = t3d_vec3_distance(&a.center, &b.center);
+    float radiusSquared = a.radius * b.radius;
 
     // Check collision
-    if (distanceSquared <= a.radius) {
+    float e = 1e-6f;
+    if (distanceSquared <= (radiusSquared + e)) {
         return true; // Collision detected
     } else {
         return false; // No collision
@@ -93,11 +95,96 @@ void resolve_sphere_collision(Sphere sphere, T3DVec3 *pos) {
     // Normalize the direction vector
     t3d_vec3_norm(&direction);
 
-    // Move the point to the surface of the sphere plus a small epsilon
-    float epsilon = 1e-6f;
-    pos->v[0] = sphere.center.v[0] + direction.v[0] * (sphere.radius + epsilon);
-    pos->v[1] = sphere.center.v[1] + direction.v[1] * (sphere.radius + epsilon);
-    pos->v[2] = sphere.center.v[2] + direction.v[2] * (sphere.radius + epsilon);
+    // Calculate the distance from the sphere's center to the position
+    float distance = t3d_vec3_distance(&sphere.center, pos);
+
+    // If the point is within the sphere, resolve the collision
+    if (distance < sphere.radius) {
+        // Calculate the target position on the surface of the sphere
+        float targetDistance = sphere.radius + 1e-6f;
+        pos->v[0] = sphere.center.v[0] + direction.v[0] * targetDistance;
+        pos->v[1] = sphere.center.v[1] + direction.v[1] * targetDistance;
+        pos->v[2] = sphere.center.v[2] + direction.v[2] * targetDistance;
+
+        // Apply damping to smooth the movement
+        pos->v[0] = sphere.center.v[0] + (pos->v[0] - sphere.center.v[0]);
+        pos->v[1] = sphere.center.v[1] + (pos->v[1] - sphere.center.v[1]);
+        pos->v[2] = sphere.center.v[2] + (pos->v[2] - sphere.center.v[2]);
+    }
+}
+
+void resolve_sphere_collision_xz(Sphere sphere, T3DVec3 *pos) {
+    // Calculate the vector from the sphere's center to the point
+    T3DVec3 direction;
+    t3d_vec3_diff(&direction, pos, &sphere.center);
+
+    // Normalize the direction vector
+    t3d_vec3_norm(&direction);
+
+    // Calculate the distance from the sphere's center to the position
+    float distance = t3d_vec3_distance(&sphere.center, pos);
+
+    // If the point is within the sphere, resolve the collision
+    if (distance < sphere.radius) {
+        // Calculate the target position on the surface of the sphere
+        float targetDistance = sphere.radius + 1e-6f;
+        pos->v[0] = sphere.center.v[0] + direction.v[0] * targetDistance;
+        pos->v[2] = sphere.center.v[2] + direction.v[2] * targetDistance;
+
+        // Apply damping to smooth the movement
+        pos->v[0] = sphere.center.v[0] + (pos->v[0] - sphere.center.v[0]);
+        pos->v[2] = sphere.center.v[2] + (pos->v[2] - sphere.center.v[2]);
+    }
+}
+
+void resolve_sphere_collision_offset(Sphere sphere, T3DVec3 *pos, float damping) {
+    // Calculate the vector from the sphere's center to the point
+    T3DVec3 direction;
+    t3d_vec3_diff(&direction, pos, &sphere.center);
+
+    // Normalize the direction vector
+    t3d_vec3_norm(&direction);
+
+    // Calculate the distance from the sphere's center to the position
+    float distance = t3d_vec3_distance(&sphere.center, pos);
+
+    // If the point is within the sphere, resolve the collision
+    if (distance < sphere.radius) {
+        // Calculate the target position on the surface of the sphere
+        float targetDistance = sphere.radius + 1e-6f;
+        pos->v[0] = sphere.center.v[0] + direction.v[0] * targetDistance;
+        pos->v[1] = sphere.center.v[1] + direction.v[1] * targetDistance;
+        pos->v[2] = sphere.center.v[2] + direction.v[2] * targetDistance;
+
+        // Apply damping to smooth the movement
+        pos->v[0] = sphere.center.v[0] + (pos->v[0] - sphere.center.v[0]) * damping;
+        pos->v[1] = sphere.center.v[1] + (pos->v[1] - sphere.center.v[1]) * damping;
+        pos->v[2] = sphere.center.v[2] + (pos->v[2] - sphere.center.v[2]) * damping;
+    }
+}
+
+void resolve_sphere_collision_offset_xz(Sphere sphere, T3DVec3 *pos, float damping) {
+    // Calculate the vector from the sphere's center to the point
+    T3DVec3 direction;
+    t3d_vec3_diff(&direction, pos, &sphere.center);
+
+    // Normalize the direction vector
+    t3d_vec3_norm(&direction);
+
+    // Calculate the distance from the sphere's center to the position
+    float distance = t3d_vec3_distance(&sphere.center, pos);
+
+    // If the point is within the sphere, resolve the collision
+    if (distance < sphere.radius) {
+        // Calculate the target position on the surface of the sphere
+        float targetDistance = sphere.radius + 1e-6f;
+        pos->v[0] = sphere.center.v[0] + direction.v[0] * targetDistance;
+        pos->v[2] = sphere.center.v[2] + direction.v[2] * targetDistance;
+
+        // Apply damping to smooth the movement
+        pos->v[0] = sphere.center.v[0] + (pos->v[0] - sphere.center.v[0]) * damping;
+        pos->v[2] = sphere.center.v[2] + (pos->v[2] - sphere.center.v[2]) * damping;
+    }
 }
 
 

@@ -11,6 +11,9 @@ void resolve_box_collision(AABB aabb, T3DVec3 *pos, float offset);
 void resolve_box_collision_xz(AABB aabb, T3DVec3 *pos, float offset);
 bool check_sphere_collision(Sphere a, Sphere b);
 void resolve_sphere_collision(Sphere sphere, T3DVec3 *pos);
+void resolve_sphere_collision_xz(Sphere sphere, T3DVec3 *pos);
+void resolve_sphere_collision_offset(Sphere sphere, T3DVec3 *pos, float damping);
+void resolve_sphere_collision_offset_xz(Sphere sphere, T3DVec3 *pos, float damping);
 bool check_sphere_box_collision(Sphere sphere, AABB box);
 bool check_collisions(CollisionShape a, CollisionShape b);
 

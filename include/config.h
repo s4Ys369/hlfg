@@ -11,4 +11,7 @@
 #define MAX_CRATES 4
 #define MAX_BALLS 4
 
+#define JUMP_MODIFIER 10
+#define SPEED_MODIFIER 1.1
+
 #endif // CONFIG_H

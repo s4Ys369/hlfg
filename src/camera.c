@@ -240,7 +240,6 @@ void cam_update(void){
         break;
       case CAM_ROTATE:
         update_player_forward(&player[i]->forward, player[i]->yaw);
-        player[i]->cam.cam_mode = CAM_FOLLOW;
         break;
       case CAM_TOP_DOWN:
         update_player_forward(&player[i]->forward, player[i]->yaw);

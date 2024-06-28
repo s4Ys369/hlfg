@@ -29,8 +29,7 @@ T3DModel *modelBall;
 Actor *balls[MAX_BALLS];
 int numBalls;
 
-int cIndex = -1;
-
+// Handles all actor to actor collisions
 void resolve_actor_to_actor_col(Actor *origin, Actor **target, int targetCount, int originCount){
 
   // Set the closet actor to current actor 
@@ -121,15 +120,15 @@ void crates_init(void){
 
     crates[i]->pos = (T3DVec3){{X, groundLevel, Z}};
     crates[i]->hitbox.shape.type = SHAPE_BOX;
-    crates[i]->hitbox.shape.aabb = (AABB){{{crates[i]->pos.v[0] - 16.0f, groundLevel, crates[i]->pos.v[2] - 16.0f}},
-                                         {{crates[i]->pos.v[0] + 16.0f, 32.0f, crates[i]->pos.v[2] + 16.0f}}};
-    crates[i]->isSafe = RANDN(2);
-    crates[i]->IsBouncy = RANDN(2);
+    crates[i]->hitbox.shape.aabb = (AABB){{{crates[i]->pos.v[0] - 32.0f, crates[i]->pos.v[1], crates[i]->pos.v[2] - 32.0f}},
+                                         {{crates[i]->pos.v[0] + 32.0f, crates[i]->pos.v[1] + 64.0f, crates[i]->pos.v[2] + 32.0f}}};
+    crates[i]->isSafe = false;
+    crates[i]->IsBouncy = true;
 
     // Create gfx call to draw crate
     rspq_block_begin();
       t3d_matrix_set(crateMatFP[i], true);
-      rdpq_set_prim_color(RGBA16(255, 255, 255, 255));
+      rdpq_set_prim_color(YELLOW);
       t3d_model_draw(modelCrate);
     dplCrate[i] = rspq_block_end();
     
@@ -149,15 +148,16 @@ void balls_init(void){
 
     balls[i] = malloc(sizeof(Actor));
 
-    balls[i]->pos = (T3DVec3){{X, 16.0f, Z}};
+    balls[i]->pos = (T3DVec3){{X, 32.0f, Z}};
     balls[i]->hitbox.shape.type = SHAPE_SPHERE;
-    balls[i]->hitbox.shape.sphere = (Sphere){{{0.0f, 16.0f, 0.0f}}, 16.0f};
-    balls[i]->IsBouncy = RANDN(2);
+    balls[i]->hitbox.shape.sphere.center = balls[i]->pos;
+    balls[i]->hitbox.shape.sphere.radius = 16.0f;
+    balls[i]->IsBouncy = true;
 
     // Create gfx call to draw crate
     rspq_block_begin();
       t3d_matrix_set(ballMatFP[i], true);
-      rdpq_set_prim_color(RGBA16(255, 255, 255, 255));
+      rdpq_set_prim_color(ORANGE);
       t3d_model_draw(modelBall);
     dplBall[i] = rspq_block_end();
 
@@ -173,30 +173,66 @@ void actors_init(void){
 
   // Check and resolve collisions for each actor
   for (int c = 0; c <= numCrates; ++c) {
+    if (check_box_collision(crates[c]->hitbox.shape.aabb, FloorBox)) {
+      resolve_box_collision(FloorBox, &crates[c]->pos, 1.0f);
+    }
     resolve_actor_to_actor_col(crates[c], balls, numBalls, c);
     resolve_actor_to_actor_col(crates[c], crates, numCrates, c);
+    crates[c]->hitbox.shape.aabb = (AABB){{{crates[c]->pos.v[0] - 32.0f, crates[c]->pos.v[1], crates[c]->pos.v[2] - 32.0f}},
+                                         {{crates[c]->pos.v[0] + 32.0f, crates[c]->pos.v[1] + 64.0f, crates[c]->pos.v[2] + 32.0f}}};
   }
 
-  // Check and resolve collisions for each actor
   for (int b = 0; b <= numBalls; ++b) {
+    if (check_sphere_box_collision(balls[b]->hitbox.shape.sphere, FloorBox)) {
+      resolve_box_collision(FloorBox, &balls[b]->hitbox.shape.sphere.center, balls[b]->hitbox.shape.sphere.radius);
+    }
     resolve_actor_to_actor_col(balls[b], balls, numBalls, b);
     resolve_actor_to_actor_col(balls[b], crates, numCrates, b);
+    balls[b]->pos = balls[b]->hitbox.shape.sphere.center;
   }
 
 }
 
+// Applys gravity and resolves collisions for each actor
 void actors_update(void){
+  float ballVelY = 100;
+  bool ballBounced = false;
 
   for (int c = 0; c <= numCrates; ++c) {
+    
+    if (check_box_collision(crates[c]->hitbox.shape.aabb, FloorBox)) {
+      resolve_box_collision(FloorBox, &crates[c]->pos, 1.0f);
+    } else {
+      crates[c]->pos.v[1] += GRAVITY * jumpTime;
+    }
+
     resolve_actor_to_actor_col(crates[c], balls, numBalls, c);
     resolve_actor_to_actor_col(crates[c], crates, numCrates, c);
-    crates[c]->hitbox.shape.aabb = (AABB){{{crates[c]->pos.v[0] - 16.0f, groundLevel, crates[c]->pos.v[2] - 16.0f}},
-                                         {{crates[c]->pos.v[0] + 16.0f, 32.0f, crates[c]->pos.v[2] + 16.0f}}};
+
+    crates[c]->hitbox.shape.aabb = (AABB){{{crates[c]->pos.v[0] - 32.0f, crates[c]->pos.v[1], crates[c]->pos.v[2] - 32.0f}},
+                                         {{crates[c]->pos.v[0] + 32.0f, crates[c]->pos.v[1] + 64.0f, crates[c]->pos.v[2] + 32.0f}}};
   }
 
   for (int b = 0; b <= numBalls; ++b) {
+    
+    if (check_sphere_box_collision(balls[b]->hitbox.shape.sphere, FloorBox)) {
+      ballBounced = true;
+    } else {
+      ballBounced = false;
+    }
+
     resolve_actor_to_actor_col(balls[b], balls, numBalls, b);
     resolve_actor_to_actor_col(balls[b], crates, numCrates, b);
+
+    if(ballBounced == true){
+      ballVelY += GRAVITY * jumpTime;
+      balls[b]->hitbox.shape.sphere.center.v[1] += ballVelY * jumpTime;
+      balls[b]->pos = balls[b]->hitbox.shape.sphere.center;
+    } else {
+      balls[b]->hitbox.shape.sphere.center.v[1] += GRAVITY * jumpTime;
+      balls[b]->pos = balls[b]->hitbox.shape.sphere.center;
+    }
+
   }
 
 }
