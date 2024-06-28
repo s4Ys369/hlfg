@@ -5,7 +5,7 @@ T3D_INST=$(shell realpath $(T3D_DIR))
 include $(N64_INST)/include/n64.mk
 include $(T3D_INST)/t3d.mk
 
-PROJECT_NAME=hlfg
+PROJECT_NAME=ibe
 
 DEBUG=0
 
@@ -80,7 +80,7 @@ filesystem/%.wav64: assets/%.wav
 $(BUILD_DIR)/$(PROJECT_NAME).dfs: $(assets_conv)
 $(BUILD_DIR)/$(PROJECT_NAME).elf: $(src:%.c=$(BUILD_DIR)/%.o)
 
-$(PROJECT_NAME).z64: N64_ROM_TITLE="HLFG"
+$(PROJECT_NAME).z64: N64_ROM_TITLE="IBE Demo"
 $(PROJECT_NAME).z64: $(BUILD_DIR)/$(PROJECT_NAME).dfs
 
 clean:

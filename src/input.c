@@ -1,16 +1,18 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
+#include "../include/config.h"
 #include "../include/globals.h"
 #include "../include/enums.h"
 #include "input.h"
 
-joypad_inputs_t joypad[];
-joypad_buttons_t btn[];
-joypad_buttons_t btnheld[];
+joypad_inputs_t joypad[MAX_PLAYERS];
+joypad_buttons_t btn[MAX_PLAYERS];
+joypad_buttons_t btnheld[MAX_PLAYERS];
+
+int numPlayers;
 
 // Init joypads and check how many are plugged in
 void input_init(void){
-    joypad_init();
     if(joypad_is_connected(JOYPAD_PORT_1)){
         numPlayers++;
     }

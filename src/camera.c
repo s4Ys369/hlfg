@@ -22,41 +22,41 @@ void cam_init(void){
 
   // init player camera
   for (int i = 0; i < numPlayers; ++i) {
-    player[i].cam.camPos = (T3DVec3){{0, 45.0f, 80.0f}};
-    player[i].cam.camTarget = (T3DVec3){{0, 0,-10}};
-    player[i].cam.camForward = (T3DVec3){{0, 0, 0}};
-    player[i].cam.camRight = (T3DVec3){{0, 0, 0}};
-    player[i].cam.camYaw = 0.0f;
-    player[i].cam.cam_mode = 1;
+    player[i]->cam.camPos = (T3DVec3){{0, 45.0f, 80.0f}};
+    player[i]->cam.camTarget = (T3DVec3){{0, 0,-10}};
+    player[i]->cam.camForward = (T3DVec3){{0, 0, 0}};
+    player[i]->cam.camRight = (T3DVec3){{0, 0, 0}};
+    player[i]->cam.camYaw = 0.0f;
+    player[i]->cam.cam_mode = 1;
   }
 
   // create viewports
   if (numPlayers > 1) {
     if (numPlayers == 2) {
-      player[0].cam.viewport = t3d_viewport_create();
-      player[1].cam.viewport = t3d_viewport_create();
-      t3d_viewport_set_area(&player[0].cam.viewport, 0,             0,               SCREEN_WIDTH,   SCREEN_HEIGHT/2);
-      t3d_viewport_set_area(&player[1].cam.viewport, 0,             SCREEN_HEIGHT/2, SCREEN_WIDTH,   SCREEN_HEIGHT/2);
+      player[0]->cam.viewport = t3d_viewport_create();
+      player[1]->cam.viewport = t3d_viewport_create();
+      t3d_viewport_set_area(&player[0]->cam.viewport, 0,             0,               SCREEN_WIDTH,   SCREEN_HEIGHT/2);
+      t3d_viewport_set_area(&player[1]->cam.viewport, 0,             SCREEN_HEIGHT/2, SCREEN_WIDTH,   SCREEN_HEIGHT/2);
     } else if (numPlayers == 3) {
-      player[0].cam.viewport = t3d_viewport_create();
-      player[1].cam.viewport = t3d_viewport_create();
-      player[2].cam.viewport = t3d_viewport_create();
-      t3d_viewport_set_area(&player[0].cam.viewport, 0,              0,               SCREEN_WIDTH,     SCREEN_HEIGHT/2);
-      t3d_viewport_set_area(&player[1].cam.viewport, 0,              SCREEN_HEIGHT/2, SCREEN_WIDTH/2,   SCREEN_HEIGHT/2-2);
-      t3d_viewport_set_area(&player[2].cam.viewport, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, SCREEN_WIDTH/2-2, SCREEN_HEIGHT/2-2);
+      player[0]->cam.viewport = t3d_viewport_create();
+      player[1]->cam.viewport = t3d_viewport_create();
+      player[2]->cam.viewport = t3d_viewport_create();
+      t3d_viewport_set_area(&player[0]->cam.viewport, 0,              0,               SCREEN_WIDTH,     SCREEN_HEIGHT/2);
+      t3d_viewport_set_area(&player[1]->cam.viewport, 0,              SCREEN_HEIGHT/2, SCREEN_WIDTH/2,   SCREEN_HEIGHT/2-2);
+      t3d_viewport_set_area(&player[2]->cam.viewport, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, SCREEN_WIDTH/2-2, SCREEN_HEIGHT/2-2);
     } else if (numPlayers == 4) {
-      player[0].cam.viewport = t3d_viewport_create();
-      player[1].cam.viewport = t3d_viewport_create();
-      player[2].cam.viewport = t3d_viewport_create();
-      player[3].cam.viewport = t3d_viewport_create();
-      t3d_viewport_set_area(&player[0].cam.viewport, 0,              0,               SCREEN_WIDTH/2,   SCREEN_HEIGHT/2);
-      t3d_viewport_set_area(&player[1].cam.viewport, SCREEN_WIDTH/2, 0,               SCREEN_WIDTH/2-2, SCREEN_HEIGHT/2);
-      t3d_viewport_set_area(&player[2].cam.viewport, 0,              SCREEN_HEIGHT/2, SCREEN_WIDTH/2,   SCREEN_HEIGHT/2-2);
-      t3d_viewport_set_area(&player[3].cam.viewport, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, SCREEN_WIDTH/2-2, SCREEN_HEIGHT/2-2);
+      player[0]->cam.viewport = t3d_viewport_create();
+      player[1]->cam.viewport = t3d_viewport_create();
+      player[2]->cam.viewport = t3d_viewport_create();
+      player[3]->cam.viewport = t3d_viewport_create();
+      t3d_viewport_set_area(&player[0]->cam.viewport, 0,              0,               SCREEN_WIDTH/2,   SCREEN_HEIGHT/2);
+      t3d_viewport_set_area(&player[1]->cam.viewport, SCREEN_WIDTH/2, 0,               SCREEN_WIDTH/2-2, SCREEN_HEIGHT/2);
+      t3d_viewport_set_area(&player[2]->cam.viewport, 0,              SCREEN_HEIGHT/2, SCREEN_WIDTH/2,   SCREEN_HEIGHT/2-2);
+      t3d_viewport_set_area(&player[3]->cam.viewport, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, SCREEN_WIDTH/2-2, SCREEN_HEIGHT/2-2);
     }
   } else {
-    player[0].cam.viewport = t3d_viewport_create();
-    t3d_viewport_set_area(&player[0].cam.viewport,   0,               0,              SCREEN_WIDTH,      SCREEN_HEIGHT);
+    player[0]->cam.viewport = t3d_viewport_create();
+    t3d_viewport_set_area(&player[0]->cam.viewport,   0,               0,              SCREEN_WIDTH,      SCREEN_HEIGHT);
   }
 }
 
@@ -190,54 +190,66 @@ void cam_update(void){
   for (int i = 0; i < numPlayers; ++i) {
     
     // Update camera based on player
-    player[i].cam.camResults = get_cam_results(player[i].cam.camTarget, player[i].cam.camPos, &player[i].cam.camForward, &player[i].cam.camRight);
-    player[i].cam.camTarget = player[i].pos;
+    player[i]->cam.camResults = get_cam_results(player[i]->cam.camTarget,
+                                                player[i]->cam.camPos,
+                                                &player[i]->cam.camForward, 
+                                                &player[i]->cam.camRight);
+    player[i]->cam.camTarget = player[i]->pos;
     float angle = 90.0f;
     char axis;
     
     // Handle camera inputs
     if(btn[i].z) {
-      player[i].cam.cam_mode = CAM_RECENTER;
+      player[i]->cam.cam_mode = CAM_RECENTER;
     }
     if(btn[i].c_down) {
-      player[i].cam.cam_mode = CAM_FOLLOW;
+      player[i]->cam.cam_mode = CAM_FOLLOW;
     }
     if(btn[i].c_left) {
       axis = 'y';
-      player[i].cam.cam_mode = CAM_ROTATE;
-      rotate_cam_around_target(&player[i].cam.camPos, player[i].cam.camTarget, -angle, axis);
+      player[i]->cam.cam_mode = CAM_ROTATE;
+      rotate_cam_around_target(&player[i]->cam.camPos, player[i]->cam.camTarget, -angle, axis);
     }
     if(btn[i].c_right) {
       axis = 'y';
-      player[i].cam.cam_mode = CAM_ROTATE;
-      rotate_cam_around_target(&player[i].cam.camPos, player[i].cam.camTarget, angle, axis);
+      player[i]->cam.cam_mode = CAM_ROTATE;
+      rotate_cam_around_target(&player[i]->cam.camPos, player[i]->cam.camTarget, angle, axis);
     }
     if(btn[i].c_up) {
-      player[i].cam.cam_mode = CAM_TOP_DOWN;
+      player[i]->cam.cam_mode = CAM_TOP_DOWN;
     }
 
     // Update camera mode
-    switch (player[i].cam.cam_mode) {
+    switch (player[i]->cam.cam_mode) {
       case CAM_RECENTER:
-        update_player_forward(&player[i].forward, player[i].yaw);
-        cam_recenter(&player[i].cam.camTarget, &player[i].cam.camPos, &player[i].cam.camForward, &player[i].pos, player[i].forward, &player[i].cam.camYaw);
-        player[i].cam.cam_mode = CAM_FOLLOW;
+        update_player_forward(&player[i]->forward, player[i]->yaw);
+        cam_recenter(&player[i]->cam.camTarget,
+                     &player[i]->cam.camPos, 
+                     &player[i]->cam.camForward, 
+                     &player[i]->pos, 
+                     player[i]->forward, 
+                     &player[i]->cam.camYaw);
+        player[i]->cam.cam_mode = CAM_FOLLOW;
       case CAM_FOLLOW:
-        update_player_forward(&player[i].forward, player[i].yaw);
-        cam_follow_player_lag(&player[i].cam.camTarget, &player[i].cam.camPos, &player[i].cam.camForward, &player[i].cam.camYaw, &player[i].pos, player[i].yaw, 0.02f);
+        update_player_forward(&player[i]->forward, player[i]->yaw);
+        cam_follow_player_lag(&player[i]->cam.camTarget,
+                              &player[i]->cam.camPos, 
+                              &player[i]->cam.camForward, 
+                              &player[i]->cam.camYaw, 
+                              &player[i]->pos, player[i]->yaw, 0.02f);
         break;
       case CAM_ROTATE:
-        update_player_forward(&player[i].forward, player[i].yaw);
-        player[i].cam.cam_mode = CAM_FOLLOW;
+        update_player_forward(&player[i]->forward, player[i]->yaw);
+        player[i]->cam.cam_mode = CAM_FOLLOW;
         break;
       case CAM_TOP_DOWN:
-        update_player_forward(&player[i].forward, player[i].yaw);
-        top_down_view(&player[i].cam.camTarget, &player[i].cam.camPos, player[i].cam.camForward, &player[i].pos);
+        update_player_forward(&player[i]->forward, player[i]->yaw);
+        top_down_view(&player[i]->cam.camTarget, &player[i]->cam.camPos, player[i]->cam.camForward, &player[i]->pos);
         break;
     }
 
     // Resolve camera collisions
-    resolve_box_collision(FloorBox, &player[i].cam.camPos, 2.0f);
+    resolve_box_collision(FloorBox, &player[i]->cam.camPos, 2.0f);
 
   }
 }

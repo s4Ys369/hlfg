@@ -1,15 +1,11 @@
 #ifndef ACTORS_H
 #define ACTORS_H
 
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
+
 #include <libdragon.h>
 #include <t3d/t3d.h>
-#include <t3d/t3danim.h>
-#include <t3d/t3dmodel.h>
-#include <t3d/t3dskeleton.h>
 #include "../include/config.h"
+#include "../include/enums.h"
 #include "../include/types.h"
 #include "collision.h"
 #include "debug.h"
@@ -17,71 +13,25 @@
 #include "player.h"
 #include "utils.h"
 
-#if NUM_HILLS > 0
-//Hills
-extern T3DMat4FP* hillMatFP[NUM_HILLS];
-extern T3DVec3 hillPos[NUM_HILLS];
-extern AABB hillBox[NUM_HILLS];
-extern rspq_block_t *dplHill[NUM_HILLS];
-extern T3DModel *modelHill;
-void hills_init(void);
-#endif
+// Crates
+extern T3DMat4FP* crateMatFP[MAX_CRATES];
+extern rspq_block_t *dplCrate[MAX_CRATES];
+extern T3DModel *modelCrate;
+extern Actor crates[MAX_CRATES];
+extern int numCrates;
 
-#if NUM_LILYPADS > 0
-//Lilypads
-extern T3DMat4FP* lilypadMatFP[NUM_LILYPADS];
-extern T3DVec3 lilypadPos[NUM_LILYPADS];
-extern AABB lilypadBox[NUM_LILYPADS];
-extern rspq_block_t *dplLilypad[NUM_LILYPADS];
-extern rspq_block_t *dplDebugBox[NUM_LILYPADS];
-extern T3DModel *modelLilyPad;
-void lilypads_init(void);
-#endif
+// Balls
+extern T3DMat4FP* ballMatFP[MAX_BALLS];
+extern rspq_block_t *dplBall[MAX_BALLS];
+extern T3DModel *modelBall;
+extern Actor balls[MAX_BALLS];
+extern int numBalls;
 
-#if NUM_SPRINGS > 0
-// Springs
-extern T3DMat4FP* springMatFP[NUM_SPRINGS];
-extern T3DVec3 springPos[NUM_SPRINGS];
-extern AABB springBox[NUM_SPRINGS];
-extern rspq_block_t *dplSpring[NUM_SPRINGS];
-extern rspq_block_t *dplDebugBox2[NUM_SPRINGS];
-extern T3DModel *modelSpring;
-extern T3DSkeleton springSkels[NUM_SPRINGS];
-extern T3DSkeleton springSkelBlends[NUM_SPRINGS];
-extern T3DAnim animsSpring[NUM_SPRINGS];
-extern bool springActive[NUM_SPRINGS];
-extern float springForce[NUM_SPRINGS];
-void springs_init(void);
-void spring_update(void);
-#endif
-
-#if NUM_FLYS > 0
-// Flys
-extern T3DMat4FP* flyMatFP[NUM_FLYS];
-extern T3DMat4FP* sphereFlyMatFP[NUM_FLYS];
-extern T3DVec3 flyPos[NUM_FLYS];
-extern T3DVec3 flyDir[NUM_FLYS];
-extern float flyYaw[NUM_FLYS];
-extern float flyPitch[NUM_FLYS];
-extern Sphere flyBox[NUM_FLYS];
-extern float flySpeed[NUM_FLYS];
-extern bool flyActive[NUM_FLYS];
-extern int flyPointV[NUM_FLYS];
-extern FlyParams fly[NUM_FLYS];
-extern rspq_block_t *dplFly[NUM_FLYS];
-extern rspq_block_t *dplDebugSphereFly[NUM_FLYS];
-extern T3DModel *modelFly;
-extern T3DSkeleton flySkels[NUM_FLYS];
-extern T3DSkeleton flySkelBlends[NUM_FLYS];
-extern T3DAnim animsFlying[NUM_FLYS];
-extern T3DAnim animsDeath[NUM_FLYS];
-extern int flyHide[NUM_FLYS];
-void flys_init(void);
-void fly_update(void);
-#endif
-
-void check_actor_collisions(T3DVec3 *posA, T3DVec3 *posB, AABB *boxA, AABB *boxB, int targetCount);
+void resolve_actor_to_actor_col(Actor *origin, Actor *target, int targetCount, int originCount);
+void crates_init(void);
+void balls_init(void);
 void actors_init(void);
+void actors_update(void);
 
 
 #endif // ACTORS_H

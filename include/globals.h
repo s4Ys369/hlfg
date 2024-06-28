@@ -12,6 +12,4 @@
 
 #define GRAVITY -80
 
-extern int numPlayers;
-
 #endif // GLOBALS_H

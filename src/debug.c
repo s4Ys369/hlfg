@@ -17,6 +17,7 @@ void debug_models_init(void){
   modelDebugBox = t3d_model_load("rom:/box.t3dm");
   modelDebugSphere = t3d_model_load("rom:/testsphere.t3dm");
 }
+
 void draw_debug_ui(void){
   t3d_debug_print_start();
 
@@ -46,31 +47,31 @@ void draw_debug_ui(void){
 
   rdpq_set_prim_color(RGBA32(0xFF, 0xFF, 0xFF, 0xFF));
   if (text_debug){
-    t3d_debug_printf(posX, posY, "X %.2f", player[0].pos.v[0]);posY+=10;
-    t3d_debug_printf(posX, posY, "Y %.2f", player[0].pos.v[1]);posY+=10;
-    t3d_debug_printf(posX, posY, "Z %.2f", player[0].pos.v[2]);posY+=10;
+    t3d_debug_printf(posX, posY, "X %.2f", player[0]->pos.v[0]);posY+=10;
+    t3d_debug_printf(posX, posY, "Y %.2f", player[0]->pos.v[1]);posY+=10;
+    t3d_debug_printf(posX, posY, "Z %.2f", player[0]->pos.v[2]);posY+=10;
   }
   
   posY = 200;
   rdpq_set_prim_color(RGBA32(0xAA, 0xAA, 0xAA, 0xFF));
   if(numPlayers > 1) {
     if(numPlayers == 2) {
-      t3d_debug_printf(posX, posY/2, "SCORE %d", player[0].score);
-      t3d_debug_printf(posX, posY, "SCORE %d", player[1].score);
+      t3d_debug_printf(posX, posY/2, "SCORE %d", player[0]->score);
+      t3d_debug_printf(posX, posY, "SCORE %d", player[1]->score);
     }
     if(numPlayers == 3) {
-      t3d_debug_printf(posX, posY/2, "SCORE %d", player[0].score);
-      t3d_debug_printf(posX, posY, "SCORE %d", player[1].score);
-      t3d_debug_printf((posX*14)+4,  posY+20, "SCORE %d", player[2].score);
+      t3d_debug_printf(posX, posY/2, "SCORE %d", player[0]->score);
+      t3d_debug_printf(posX, posY, "SCORE %d", player[1]->score);
+      t3d_debug_printf((posX*14)+4,  posY+20, "SCORE %d", player[2]->score);
     }
     if(numPlayers == 4) {
-      t3d_debug_printf(posX, posY/2, "SCORE %d", player[0].score);
-      t3d_debug_printf((posX*14)+4,  posY/2, "SCORE %d", player[1].score);
-      t3d_debug_printf(posX, posY, "SCORE %d", player[2].score);
-      t3d_debug_printf((posX*14)+4, posY+20, "SCORE %d", player[3].score);
+      t3d_debug_printf(posX, posY/2, "SCORE %d", player[0]->score);
+      t3d_debug_printf((posX*14)+4,  posY/2, "SCORE %d", player[1]->score);
+      t3d_debug_printf(posX, posY, "SCORE %d", player[2]->score);
+      t3d_debug_printf((posX*14)+4, posY+20, "SCORE %d", player[3]->score);
     }
   } else {
-    t3d_debug_printf(posX, posY, "SCORE %d", player[0].score);
+    t3d_debug_printf(posX, posY, "SCORE %d", player[0]->score);
   }
 
 

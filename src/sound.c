@@ -49,3 +49,19 @@ void sound_update_buffer(void) {
 	}
 }
 
+void sound_bounce(void){
+	wav64_play(&sfx_bounce, 0);
+	wav64_play(&sfx_boing, 1);
+	mixer_try_play();
+}
+
+void sound_jump(void){
+	wav64_play(&sfx_jump, 0);
+	mixer_try_play();
+}
+
+void sound_attack(void){
+	wav64_play(&sfx_attack, 0);
+	mixer_try_play();
+}
+

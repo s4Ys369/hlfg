@@ -1,14 +1,14 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
+
 #include <libdragon.h>
 #include <t3d/t3d.h>
+#include <t3d/t3danim.h>
+#include <t3d/t3dskeleton.h>
 #include "../include/config.h"
+#include "../include/enums.h"
+#include "../include/globals.h"
 #include "../include/types.h"
 #include "actors.h"
 #include "camera.h"
@@ -19,53 +19,35 @@
 #include "sound.h"
 #include "utils.h"
 
-extern T3DMat4FP* modelMatFP[NUM_PLAYERS];
-extern T3DMat4FP* shadowMatFP[NUM_PLAYERS];
-extern T3DMat4FP* tongueMatFP[NUM_PLAYERS];
-extern T3DMat4FP* sphereMatFP[NUM_PLAYERS];
-extern T3DMat4FP* sphere2MatFP[NUM_PLAYERS];
-extern T3DModel *model[NUM_PLAYERS];
-extern T3DModel *modelP1;
-extern T3DModel *modelP2;
-extern T3DModel *modelP3;
-extern T3DModel *modelP4;
-extern T3DModel *modelTongue[NUM_PLAYERS];
-extern T3DModel *modelShadow[NUM_PLAYERS];
-extern T3DSkeleton skel[NUM_PLAYERS];
-extern T3DSkeleton skelBlend[NUM_PLAYERS];
-extern T3DAnim animIdle[NUM_PLAYERS];
-extern T3DAnim animWalk[NUM_PLAYERS];
-extern T3DAnim animJump[NUM_PLAYERS];
-extern T3DAnim animAttack[NUM_PLAYERS];
-extern T3DAnim animRetract[NUM_PLAYERS];
-extern rspq_block_t *dplDebugSphere[NUM_PLAYERS];
-extern rspq_block_t *dplDebugSphere2[NUM_PLAYERS];
-extern rspq_block_t *dplFrog[NUM_PLAYERS];
-extern rspq_block_t *dplTongue[NUM_PLAYERS];
-extern rspq_block_t *dplShadow[NUM_PLAYERS];
-extern PlayerParams player[NUM_PLAYERS];
+extern T3DMat4FP* playerMatFP[MAX_PLAYERS];
+extern T3DMat4FP* shadowMatFP[MAX_PLAYERS];
+extern T3DMat4FP* projectileMatFP[MAX_PLAYERS];
+extern T3DMat4FP* playerhitboxMatFP[MAX_PLAYERS];
+extern T3DMat4FP* projectilehitboxMatFP[MAX_PLAYERS];
+extern T3DModel *modelPlayer;
+extern T3DModel *modelProjectile;
+extern T3DModel *modelShadow;
+extern T3DSkeleton playerSkel[MAX_PLAYERS];
+extern T3DSkeleton playerSkelBlend[MAX_PLAYERS];
+extern T3DAnim animIdle[MAX_PLAYERS];
+extern T3DAnim animWalk[MAX_PLAYERS];
+extern T3DAnim animJump[MAX_PLAYERS];
+extern T3DAnim animAttack[MAX_PLAYERS];
+extern T3DAnim animFall[MAX_PLAYERS];
+extern rspq_block_t *dplPlayerHitBox[MAX_PLAYERS];
+extern rspq_block_t *dplProjectileHitBox[MAX_PLAYERS];
+extern rspq_block_t *dplPlayer[MAX_PLAYERS];
+extern rspq_block_t *dplProjectile[MAX_PLAYERS];
+extern rspq_block_t *dplShadow[MAX_PLAYERS];
+extern PlayerParams *player[MAX_PLAYERS];
+extern int playerState[MAX_PLAYERS];
 
+void check_player_collisions(PlayerParams *players[], int numPlayers);
 void player_init(void);
-int find_closest_actor(T3DVec3 origin, T3DVec3 actorPos[], int numActors);
-
-
-void check_player_collisions(Sphere *a, Sphere *b, int numPlayers);
-
-
-#if NUM_HILLS > 0
-void check_hill_collisions(AABB *hillBox, int hillCount, int playerCount);
-void check_midair_hill_collisions(AABB *hillBox, int hillCount, int playerCount);
-#endif
-
-#if NUM_LILYPADS > 0
-void check_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCount);
-void check_midair_lilypad_collisions(AABB *lilypadBox, int lilypadCount, int playerCount);
-#endif
-
-#if NUM_SPRINGS > 0
-void check_bouncepad_collisions(AABB *bouncepadBox, int bouncepadCount, int playerCount);
-#endif
-
+void check_actor_collisions(Actor *actor, int actorCount, int playerCount);
+void check_attack_collisions(Actor *actor, int actorCount, int playerCount);
+void player_bounced(PlayerParams *player[], int playerCount) ;
+void check_midair_actor_collisions(Actor *actor, int actorCount, int playerCount);
 void player_update(void);
 
 

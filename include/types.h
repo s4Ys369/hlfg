@@ -3,6 +3,7 @@
 
 #include <libdragon.h>
 #include <t3d/t3d.h>
+#include "enums.h"
 
 // CAMERA
 typedef struct {
@@ -38,6 +39,7 @@ typedef struct {
     union {
         AABB aabb;
         Sphere sphere;
+        // More to be added
     };
 } CollisionShape;
 
@@ -45,11 +47,18 @@ typedef struct {
     CollisionShape shape;
 } ActorHitBox;
 
+typedef struct {
+    T3DVec3 pos;
+    ActorHitBox hitbox;
+    bool isSafe;
+    bool IsBouncy;
+} Actor;
+
 // PLAYER
 typedef struct {
     T3DVec3 pos;
     T3DVec3 dir;
-    ActorHitBox hitbox;
+    Sphere hitbox;
     float speed;
     bool isActive;
     float length;
@@ -60,12 +69,13 @@ typedef struct {
     T3DVec3 pos;
     T3DVec3 shadowPos;
     T3DVec3 forward;
-    ActorHitBox hitbox;
+    Sphere hitbox;
     ProjectileParams projectile;
     CameraParams cam;
     float yaw;
     float currSpeed;
     float animBlend;
+    bool isIdle;
     bool isAttack;
     bool isJumpStart;
     bool isJumping;

@@ -1,5 +1,6 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
+#include "../include/enums.h"
 #include "../include/types.h"
 #include "collision.h"
 #include "utils.h"
@@ -40,6 +41,7 @@ void resolve_box_collision(AABB aabb, T3DVec3 *pos, float offset) {
     }
 }
 
+// Move position outside AABB only along X and Z
 void resolve_box_collision_xz(AABB aabb, T3DVec3 *pos, float offset) {
      // Calculate the dimensions of the AABB
     float width = aabb.max.v[0] - aabb.min.v[0];
@@ -75,7 +77,7 @@ bool check_sphere_collision(Sphere a, Sphere b) {
     // Calculate the squared distance between centers
     float distanceSquared = t3d_vec3_distance(&a.center, &b.center);
 
-    // Check collision, have to hardcode the desired collision distance
+    // Check collision
     if (distanceSquared <= a.radius) {
         return true; // Collision detected
     } else {
@@ -93,9 +95,9 @@ void resolve_sphere_collision(Sphere sphere, T3DVec3 *pos) {
 
     // Move the point to the surface of the sphere plus a small epsilon
     float epsilon = 1e-6f;
-    pos->v[0] = sphere.center.v[0] + direction.v[0] * (15 + epsilon);
-    pos->v[1] = sphere.center.v[1] + direction.v[1] * (15 + epsilon);
-    pos->v[2] = sphere.center.v[2] + direction.v[2] * (15 + epsilon);
+    pos->v[0] = sphere.center.v[0] + direction.v[0] * (sphere.radius + epsilon);
+    pos->v[1] = sphere.center.v[1] + direction.v[1] * (sphere.radius + epsilon);
+    pos->v[2] = sphere.center.v[2] + direction.v[2] * (sphere.radius + epsilon);
 }
 
 

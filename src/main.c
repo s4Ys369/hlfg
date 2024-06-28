@@ -1,12 +1,9 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include <t3d/t3ddebug.h>
 #include "../include/config.h"
+#include "../include/enums.h"
+#include "../include/globals.h"
 #include "../include/types.h"
 #include "actors.h"
 #include "camera.h"
@@ -18,7 +15,7 @@
 #include "sound.h"
 #include "utils.h"
 
-// HAPPY LITTLE FROG GAME
+// 3D Game Engine for Tiny3D
 
 int main()
 {
@@ -33,15 +30,17 @@ int main()
 
   rdpq_init();
   joypad_init();
+  input_init();
 
   t3d_init((T3DInitParams){});
   t3d_debug_print_init();
   debug_models_init();
+
+  map_init();
   actors_init();
   player_init();
   cam_init();
   sound_init();
-  map_init();
 
   rspq_syncpoint_t syncPoint = 0;
 
@@ -54,7 +53,7 @@ int main()
 
 
     if (!btnheld[0].start){
-      if(NUM_PLAYERS < 3){
+      if(numPlayers < 3){
         sound_update_buffer();
       }
   
@@ -65,101 +64,74 @@ int main()
       player_update();
   
       //actor logic
-#if NUM_SPRINGS > 0
-      spring_update();
-#endif
-#if NUM_FLYS > 0
-      fly_update();
-#endif
+      actors_update();
 
     }
 
-#if NUM_FLYS > 0
-    for (int i = 0; i < NUM_FLYS; ++i) {
-      t3d_mat4fp_from_srt_euler(flyMatFP[i],
-        (float[3]){0.025f, 0.025f, 0.025f},
-        (float[3]){flyPitch[i], -flyYaw[i], 0},
-        flyPos[i].v
-      );
-      t3d_mat4fp_from_srt_euler(sphereFlyMatFP[i],
-        (float[3]){0.025f, 0.025f, 0.025f},
-        (float[3]){0, 0, 0}, 
-        flyBox[i].center.v
+    // Update actor matrices
+    for (int i = 0; i < numCrates; ++i) {
+      t3d_mat4fp_from_srt_euler(crateMatFP[i],
+        (float[3]){1.0f, 1.0f, 1.0f},
+        (float[3]){0, 0, 0},
+        crates[i].pos.v
       );
     }
-#endif
 
-    for (int i = 0; i < NUM_PLAYERS; ++i) {
-    // Update players matrix
-    t3d_mat4fp_from_srt_euler(modelMatFP[i],
-      (float[3]){0.125f, 0.125f, 0.125f},
-      (float[3]){0.0f, -player[i].rotY, 0},
-      player[i].playerPos.v
-    );
+    for (int i = 0; i < numBalls; ++i) {
+      t3d_mat4fp_from_srt_euler(ballMatFP[i],
+        (float[3]){1.0f, 1.0f, 1.0f},
+        (float[3]){0, 0, 0},
+        balls[i].pos.v
+      );
+    }
 
-    t3d_mat4fp_from_srt_euler(tongueMatFP[i],
-      (float[3]){0.125f, 0.125f, 0.125f},
-      (float[3]){0.0f, -player[i].rotY, 0},
-      player[i].tongue[i].pos.v
-    );
+    // Update players matrices
+    for (int i = 0; i < numPlayers; ++i) {
+      t3d_mat4fp_from_srt_euler(playerMatFP[i],
+        (float[3]){1.0f, 1.0f, 1.0f},
+        (float[3]){0.0f, -player[i]->yaw, 0},
+        player[i]->pos.v
+      );
 
-    t3d_mat4fp_from_srt_euler(shadowMatFP[i],
-      (float[3]){0.125f, 0.125f, 0.125f},
-      (float[3]){0.0f, 0.0f, 0.0f},
-      player[i].shadowPos.v
-    );
+      t3d_mat4fp_from_srt_euler(projectileMatFP[i],
+        (float[3]){1.0f, 1.0f, 1.0f},
+        (float[3]){0.0f, -player[i]->yaw, 0},
+        player[i]->projectile.pos.v
+      );
 
-    t3d_mat4fp_from_srt_euler(sphereMatFP[i],
-      (float[3]){0.125f, 0.125f, 0.125f},
-      (float[3]){0.0f, 0.0f, 0.0f},
-      player[i].playerBox.center.v
-    );
+      t3d_mat4fp_from_srt_euler(shadowMatFP[i],
+        (float[3]){1.0f, 1.0f, 1.0f},
+        (float[3]){0.0f, 0.0f, 0.0f},
+        player[i]->shadowPos.v
+      );
 
-    t3d_mat4fp_from_srt_euler(sphere2MatFP[i],
-      (float[3]){0.0025f*player[i].tongue[i].hitbox.radius, 0.0025f*player[i].tongue[i].hitbox.radius, 0.0025f*player[i].tongue[i].hitbox.radius},
-      (float[3]){0.0f, 0.0f, 0.0f},
-      player[i].tongue[i].hitbox.center.v
-    );
+      t3d_mat4fp_from_srt_euler(playerhitboxMatFP[i],
+        (float[3]){1.0f, 1.0f, 1.0f},
+        (float[3]){0.0f, 0.0f, 0.0f},
+        player[i]->hitbox.center.v
+      );
+
+      t3d_mat4fp_from_srt_euler(projectilehitboxMatFP[i],
+        (float[3]){0.5f*player[i]->projectile.hitbox.radius,
+                   0.5f*player[i]->projectile.hitbox.radius, 
+                   0.5f*player[i]->projectile.hitbox.radius},
+        (float[3]){0.0f, 0.0f, 0.0f},
+        player[i]->projectile.hitbox.center.v
+      );
   
-    // We now blend the walk animation with the idle/attack one
-    t3d_skeleton_blend(&skel[i], &skel[i], &skelBlend[i], player[i].animBlend);
+      // We now blend the walk animation with the idle/attack one
+      t3d_skeleton_blend(&playerSkel[i], &playerSkel[i], &playerSkelBlend[i], player[i]->animBlend);
     }
 
-#if NUM_SPRINGS > 0
-    for (int i = 0; i < NUM_SPRINGS; ++i) {
-      t3d_mat4fp_from_srt_euler(springMatFP[i], 
-      (float[3]){0.25f, 0.25f, 0.25f}, 
-      (float[3]){0, 0, 0}, 
-      springPos[i].v
-      );
-      t3d_skeleton_blend(&springSkels[i], &springSkels[i], &springSkelBlends[i], 1);
-    }
-#endif
 
-#if NUM_FLYS > 0
-    for (int i = 0; i < NUM_FLYS; ++i) {
-      t3d_skeleton_blend(&flySkels[i], &flySkels[i], &flySkelBlends[i], 1);
-    }
-#endif
 
     if(syncPoint)rspq_syncpoint_wait(syncPoint); // wait for the RSP to process the previous frame
 
     // Now recalc. the matrices, this will cause any model referencing them to use the new pose
-    for (int i = 0; i < NUM_PLAYERS; ++i) {
-      t3d_skeleton_update(&skel[i]);
+    for (int i = 0; i < numPlayers; ++i) {
+      t3d_skeleton_update(&playerSkel[i]);
     }
 
-#if NUM_SPRINGS > 0
-    for (int i = 0; i < NUM_SPRINGS; ++i) {
-      t3d_skeleton_update(&springSkels[i]);
-    }
-#endif
-
-#if NUM_FLYS > 0
-    for (int i = 0; i < NUM_FLYS; ++i) {
-      t3d_skeleton_update(&flySkels[i]);
-    }
-#endif
 
     
 
@@ -167,8 +139,8 @@ int main()
     rdpq_attach(display_get(), &depthBuffer);
     t3d_frame_start();
 
-    color_t fogColor = (color_t){0xC2, 0xB7, 0x7A, 0xFF};
-    rdpq_set_prim_color((color_t){0xC2, 0xB7, 0x7A, 0xFF});
+    color_t fogColor = BLACK;
+    rdpq_set_prim_color(BLACK);
     rdpq_mode_fog(RDPQ_FOG_STANDARD);
     rdpq_set_fog_color(fogColor);
 
@@ -181,90 +153,68 @@ int main()
     t3d_light_set_ambient(colorAmbient);
     t3d_light_set_count(1);
 
-    // Run gfx calls
+    // Draw viewports
     float fov = T3D_DEG_TO_RAD(75.0f);
     float fov2p = T3D_DEG_TO_RAD(50.0f);
-    for (int i = 0; i < NUM_PLAYERS; ++i) {
-      T3DViewport *vp = &viewport[i];
-      T3DVec3 CP = camPos[i];
-      T3DVec3 CT = camTarget[i];
+    float fov4p = T3D_DEG_TO_RAD(85.0f);
+    for (int i = 0; i < numPlayers; ++i) {
+      T3DViewport *vp = &player[i]->cam.viewport;
+      T3DVec3 CP = player[i]->cam.camPos;
+      T3DVec3 CT = player[i]->cam.camTarget;
 
-      if (NUM_PLAYERS == 2){
+      // FOV looks off at different window sizes, so adjust
+      if (numPlayers == 2){
         t3d_viewport_set_projection(vp, fov2p, 10.0f, 150.0f);
-      }else if (NUM_PLAYERS == 3){
-        t3d_viewport_set_projection(&viewport[0], fov2p, 10.0f, 150.0f);
-        t3d_viewport_set_projection(&viewport[1], fov, 10.0f, 150.0f);
-        t3d_viewport_set_projection(&viewport[2], fov, 10.0f, 150.0f);
+      }else if (numPlayers == 3){
+        t3d_viewport_set_projection(&player[0]->cam.viewport, fov2p, 10.0f, 150.0f);
+        t3d_viewport_set_projection(&player[1]->cam.viewport, fov4p, 10.0f, 150.0f);
+        t3d_viewport_set_projection(&player[2]->cam.viewport, fov4p, 10.0f, 150.0f);
+      } else if (numPlayers == 4){
+        t3d_viewport_set_projection(vp, fov4p, 10.0f, 150.0f);
       } else {
         t3d_viewport_set_projection(vp, fov, 10.0f, 150.0f);
       }
+
       t3d_viewport_look_at(vp, &CP, &CT, &(T3DVec3){{0,1,0}});
       t3d_viewport_attach(vp);
       t3d_light_set_directional(0, colorDir, &lightDirVec);
 
-      for (int i = 0; i < NUM_PLAYERS; ++i) {
-        rspq_block_run(dplFrog[i]);
-      }
 
-#if NUM_SPRINGS > 0
-      for (int i = 0; i < NUM_SPRINGS; ++i) {
-        rspq_block_run(dplSpring[i]);
-          if(col_debug){
-            rspq_block_run(dplDebugBox2[i]);
-          }
+      // Run player blocks
+      for (int i = 0; i < numPlayers; ++i) {
+        rspq_block_run(dplPlayer[i]);
       }
-#endif
-
-      t3d_matrix_push_pos(1);
+      
+      // then map
       rspq_block_run(dplMap);
-      t3d_matrix_pop(1);
-
-#if NUM_FLYS > 0
+      
+      // then actors
       t3d_matrix_push_pos(1);
-      for (int i = 0; i < NUM_FLYS; ++i) {
-        if(flyActive[i] == true) {
-          if(flyHide[i] == 0) {
-            rspq_block_run(dplFly[i]);
-          }
-          if(col_debug){
-            rspq_block_run(dplDebugSphereFly[i]);
-          }
-        }
+      for (int i = 0; i < numCrates; ++i) {
+        rspq_block_run(dplCrate[i]);
       }
       t3d_matrix_pop(1);
-#endif
 
       t3d_matrix_push_pos(1);
-      for (int i = 0; i < NUM_PLAYERS; ++i) {
+      for (int i = 0; i < numBalls; ++i) {
+        rspq_block_run(dplBall[i]);
+      }
+      t3d_matrix_pop(1);
+
+      // then finally the player's extra blocks
+      t3d_matrix_push_pos(1);
+      for (int i = 0; i < numPlayers; ++i) {
         rspq_block_run(dplShadow[i]);
-        if(player[i].tongue[i].isActive == true) {
-          rspq_block_run(dplTongue[i]);
+        if(player[i]->projectile.isActive == true) {
+          rspq_block_run(dplProjectile[i]);
         }
         if(col_debug){
-          rspq_block_run(dplDebugSphere[i]);
-          rspq_block_run(dplDebugSphere2[i]);
+          rspq_block_run(dplPlayerHitBox[i]);
+          rspq_block_run(dplProjectileHitBox[i]);
         }
       }
       t3d_matrix_pop(1);
 
-#if NUM_HILLS > 0
-      t3d_matrix_push_pos(1);
-      for (int i = 0; i < NUM_HILLS; ++i) {
-        rspq_block_run(dplHill[i]);
-      }
-      t3d_matrix_pop(1);
-#endif
-
-#if NUM_LILYPADS > 0
-      t3d_matrix_push_pos(1);
-      for (int i = 0; i < NUM_LILYPADS; ++i) {
-        rspq_block_run(dplLilypad[i]);
-          if(col_debug){
-            rspq_block_run(dplDebugBox[i]);
-          }
-      }
-      t3d_matrix_pop(1);
-#endif
     }
 
     syncPoint = rspq_syncpoint_new();
@@ -279,7 +229,7 @@ int main()
     rdpq_set_mode_fill(RGBA32(0, 0, 0, 0xFF));
 
     // draw thick lines between the screens
-    switch (NUM_PLAYERS){
+    switch (numPlayers){
       case 1:
         break;
       case 2:
@@ -307,78 +257,45 @@ int main()
   t3d_model_free(modelDebugBox);
   t3d_model_free(modelDebugSphere);
 
-  for (int i = 0; i < NUM_PLAYERS; ++i) {
-    t3d_skeleton_destroy(&skel[i]);
-    t3d_skeleton_destroy(&skelBlend[i]);
+  for (int i = 0; i < numPlayers; ++i) {
+    t3d_skeleton_destroy(&playerSkel[i]);
+    t3d_skeleton_destroy(&playerSkelBlend[i]);
 
     t3d_anim_destroy(&animIdle[i]);
     t3d_anim_destroy(&animWalk[i]);
     t3d_anim_destroy(&animJump[i]);
     t3d_anim_destroy(&animAttack[i]);
-    t3d_anim_destroy(&animRetract[i]);
+    t3d_anim_destroy(&animFall[i]);
 
-    t3d_model_free(model[i]);
-    t3d_model_free(modelShadow[i]);
-    t3d_model_free(modelTongue[i]);
+    t3d_model_free(modelPlayer);
+    t3d_model_free(modelShadow);
+    t3d_model_free(modelProjectile);
   
-    free_uncached(modelMatFP[i]);
+    free_uncached(playerMatFP[i]);
     free_uncached(shadowMatFP[i]);
-    free_uncached(tongueMatFP[i]);
-    free_uncached(sphereMatFP[i]);
-    free_uncached(sphere2MatFP[i]);
+    free(projectileMatFP[i]);
+    free(playerhitboxMatFP[i]);
+    free(projectilehitboxMatFP[i]);
   
-    rspq_block_free(dplDebugSphere[i]);
-    rspq_block_free(dplDebugSphere2[i]);
-    rspq_block_free(dplFrog[i]);
-    rspq_block_free(dplTongue[i]);
+    rspq_block_free(dplPlayerHitBox[i]);
+    rspq_block_free(dplProjectileHitBox[i]);
     rspq_block_free(dplShadow[i]);
+    rspq_block_free(dplProjectile[i]);
+    rspq_block_free(dplPlayer[i]);
   }
 
-#if NUM_HILLS > 0
-  for (int i = 0; i < NUM_HILLS; ++i) {
-    t3d_model_free(modelHill);
-    free_uncached(hillMatFP[i]);
-    rspq_block_free(dplHill[i]);
-  }
-#endif
 
-#if NUM_LILYPADS > 0
-  for (int i = 0; i < NUM_LILYPADS; ++i) {
-    t3d_model_free(modelLilyPad);
-    free_uncached(lilypadMatFP[i]);
-    free_uncached(boxLPMatFP[i]);
-    rspq_block_free(dplLilypad[i]);
-    rspq_block_free(dplDebugBox[i]);
+  for (int i = 0; i < numCrates; ++i) {
+    t3d_model_free(modelCrate);
+    free(crateMatFP[i]);
+    rspq_block_free(dplCrate[i]);
   }
-#endif
 
-#if NUM_SPRINGS > 0
-  for (int i = 0; i < NUM_SPRINGS; ++i) {
-    t3d_skeleton_destroy(&springSkels[i]);
-    t3d_skeleton_destroy(&springSkelBlends[i]);
-    t3d_anim_destroy(&animsSpring[i]);
-    t3d_model_free(modelSpring);
-    free_uncached(springMatFP[i]);
-    free_uncached(boxSMatFP[i]);
-    rspq_block_free(dplSpring[i]);
-    rspq_block_free(dplDebugBox2[i]);
+  for (int i = 0; i < numBalls; ++i) {
+    t3d_model_free(modelBall);
+    free(ballMatFP[i]);
+    rspq_block_free(dplBall[i]);
   }
-#endif
-
-    
-#if NUM_FLYS > 0
-  for (int i = 0; i < NUM_FLYS; ++i) {
-    t3d_skeleton_destroy(&flySkels[i]);
-    t3d_skeleton_destroy(&flySkelBlends[i]);
-    t3d_anim_destroy(&animsFlying[i]);
-    t3d_anim_destroy(&animsDeath[i]);
-    t3d_model_free(modelFly);
-    free_uncached(flyMatFP[i]);
-    free_uncached(sphereFlyMatFP[i]);
-    rspq_block_free(dplFly[i]);
-    rspq_block_free(dplDebugSphereFly[i]);
-  }
-#endif
 
   t3d_destroy();
   return 0;

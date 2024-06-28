@@ -7,4 +7,8 @@
 // SEED is used to place objects at random
 #define SEED 69
 
+#define MAX_PLAYERS 4
+#define MAX_CRATES 4
+#define MAX_BALLS 4
+
 #endif // CONFIG_H
