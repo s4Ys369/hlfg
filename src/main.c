@@ -73,7 +73,7 @@ int main()
       t3d_mat4fp_from_srt_euler(crateMatFP[i],
         (float[3]){1.0f, 1.0f, 1.0f},
         (float[3]){0, 0, 0},
-        crates[i].pos.v
+        crates[i]->pos.v
       );
     }
 
@@ -81,7 +81,7 @@ int main()
       t3d_mat4fp_from_srt_euler(ballMatFP[i],
         (float[3]){1.0f, 1.0f, 1.0f},
         (float[3]){0, 0, 0},
-        balls[i].pos.v
+        balls[i]->pos.v
       );
     }
 
@@ -273,6 +273,7 @@ int main()
   
     free_uncached(playerMatFP[i]);
     free_uncached(shadowMatFP[i]);
+    free_uncached(player[i]);
     free(projectileMatFP[i]);
     free(playerhitboxMatFP[i]);
     free(projectilehitboxMatFP[i]);
@@ -288,12 +289,14 @@ int main()
   for (int i = 0; i < numCrates; ++i) {
     t3d_model_free(modelCrate);
     free(crateMatFP[i]);
+    free(crates[i]);
     rspq_block_free(dplCrate[i]);
   }
 
   for (int i = 0; i < numBalls; ++i) {
     t3d_model_free(modelBall);
     free(ballMatFP[i]);
+    free(balls[i]);
     rspq_block_free(dplBall[i]);
   }
 

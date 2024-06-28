@@ -44,10 +44,10 @@ extern int playerState[MAX_PLAYERS];
 
 void check_player_collisions(PlayerParams *players[], int numPlayers);
 void player_init(void);
-void check_actor_collisions(Actor *actor, int actorCount, int playerCount);
-void check_attack_collisions(Actor *actor, int actorCount, int playerCount);
+void check_actor_collisions(Actor **actor, int actorCount, int playerCount);
+void check_attack_collisions(Actor **actor, int actorCount, int playerCount);
 void player_bounced(PlayerParams *player[], int playerCount) ;
-void check_midair_actor_collisions(Actor *actor, int actorCount, int playerCount);
+void check_midair_actor_collisions(Actor **actor, int actorCount, int playerCount);
 void player_update(void);
 
 

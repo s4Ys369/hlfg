@@ -1,6 +1,7 @@
 #include <float.h>
 #include <libdragon.h>
 #include "../include/config.h"
+#include "../include/types.h"
 #include "utils.h"
 
 float lastTime;
@@ -63,13 +64,15 @@ float clamp(float value, float min, float max) {
 
 // Function to find the closest object
 int closestIndex = -1;
-int find_closest(T3DVec3 origin, T3DVec3 target[], int numObjects) {
+int find_closest(T3DVec3 origin, Actor **target, int numObjects) {
   float minDistance = FLT_MAX;
   for (int i = 0; i < numObjects; i++) {
-    float dist = t3d_vec3_distance(&origin, &target[i]);
-    if (dist < minDistance) {
-      minDistance = dist;
-      closestIndex = i;
+    if(target[i]){
+        float dist = t3d_vec3_distance(&origin, &target[i]->pos);
+        if (dist < minDistance) {
+            minDistance = dist;
+            closestIndex = i;
+        }
     }
   }
   return closestIndex;

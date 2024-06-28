@@ -19,26 +19,26 @@
 T3DMat4FP* crateMatFP[MAX_CRATES];
 rspq_block_t *dplCrate[MAX_CRATES];
 T3DModel *modelCrate;
-Actor crates[MAX_CRATES];
+Actor *crates[MAX_CRATES];
 int numCrates;
 
 // Balls
 T3DMat4FP* ballMatFP[MAX_BALLS];
 rspq_block_t *dplBall[MAX_BALLS];
 T3DModel *modelBall;
-Actor balls[MAX_BALLS];
+Actor *balls[MAX_BALLS];
 int numBalls;
 
 int cIndex = -1;
 
-void resolve_actor_to_actor_col(Actor *origin, Actor *target, int targetCount, int originCount){
+void resolve_actor_to_actor_col(Actor *origin, Actor **target, int targetCount, int originCount){
 
   // Set the closet actor to current actor 
   Actor *currActor;
-  int closestActor = find_closest(origin->pos, &target->pos , targetCount);
+  int closestActor = find_closest(origin->pos, target, targetCount);
 
   if (closestActor != -1 && closestActor != originCount){
-    currActor = &target[closestActor];
+    currActor = target[closestActor];
 
     if(origin[originCount].hitbox.shape.type == SHAPE_SPHERE) {
       // Handles if actor has a AABB hitbox
@@ -117,12 +117,14 @@ void crates_init(void){
     float X = random_float(-400.0f, 400.0f);
     float Z = random_float(-400.0f, 400.0f);
 
-    crates[i].pos = (T3DVec3){{X, groundLevel, Z}};
-    crates[i].hitbox.shape.type = SHAPE_BOX;
-    crates[i].hitbox.shape.aabb = (AABB){{{crates[i].pos.v[0] - 16.0f, groundLevel, crates[i].pos.v[2] - 16.0f}},
-                                         {{crates[i].pos.v[0] + 16.0f, 32.0f, crates[i].pos.v[2] + 16.0f}}};
-    crates[i].isSafe = RANDN(2);
-    crates[i].IsBouncy = RANDN(2);
+    crates[i] = malloc(sizeof(Actor));
+
+    crates[i]->pos = (T3DVec3){{X, groundLevel, Z}};
+    crates[i]->hitbox.shape.type = SHAPE_BOX;
+    crates[i]->hitbox.shape.aabb = (AABB){{{crates[i]->pos.v[0] - 16.0f, groundLevel, crates[i]->pos.v[2] - 16.0f}},
+                                         {{crates[i]->pos.v[0] + 16.0f, 32.0f, crates[i]->pos.v[2] + 16.0f}}};
+    crates[i]->isSafe = RANDN(2);
+    crates[i]->IsBouncy = RANDN(2);
 
     // Create gfx call to draw crate
     rspq_block_begin();
@@ -130,11 +132,9 @@ void crates_init(void){
       rdpq_set_prim_color(RGBA16(255, 255, 255, 255));
       t3d_model_draw(modelCrate);
     dplCrate[i] = rspq_block_end();
-
-    // Check and resolve collisions for each actor
-    resolve_actor_to_actor_col(crates, balls, numBalls, i);
-    resolve_actor_to_actor_col(crates, crates, numCrates, i);
+    
   }
+
 }
 
 // Initialize crates
@@ -147,10 +147,12 @@ void balls_init(void){
     float X = random_float(-400.0f, 400.0f);
     float Z = random_float(-400.0f, 400.0f);
 
-    balls[i].pos = (T3DVec3){{X, groundLevel, Z}};
-    balls[i].hitbox.shape.type = SHAPE_SPHERE;
-    balls[i].hitbox.shape.sphere = (Sphere){{{0.0f, 16.0f, 0.0f}}, 16.0f};
-    balls[i].IsBouncy = RANDN(2);
+    balls[i] = malloc(sizeof(Actor));
+
+    balls[i]->pos = (T3DVec3){{X, 16.0f, Z}};
+    balls[i]->hitbox.shape.type = SHAPE_SPHERE;
+    balls[i]->hitbox.shape.sphere = (Sphere){{{0.0f, 16.0f, 0.0f}}, 16.0f};
+    balls[i]->IsBouncy = RANDN(2);
 
     // Create gfx call to draw crate
     rspq_block_begin();
@@ -159,9 +161,6 @@ void balls_init(void){
       t3d_model_draw(modelBall);
     dplBall[i] = rspq_block_end();
 
-    // Check and resolve collisions for each actor
-    resolve_actor_to_actor_col(balls, balls, numBalls, i);
-    resolve_actor_to_actor_col(balls, crates, numCrates, i);
   }
 }
 
@@ -172,20 +171,32 @@ void actors_init(void){
   modelBall = t3d_model_load("rom:/sphere.t3dm");
   balls_init();
 
+  // Check and resolve collisions for each actor
+  for (int c = 0; c <= numCrates; ++c) {
+    resolve_actor_to_actor_col(crates[c], balls, numBalls, c);
+    resolve_actor_to_actor_col(crates[c], crates, numCrates, c);
+  }
+
+  // Check and resolve collisions for each actor
+  for (int b = 0; b <= numBalls; ++b) {
+    resolve_actor_to_actor_col(balls[b], balls, numBalls, b);
+    resolve_actor_to_actor_col(balls[b], crates, numCrates, b);
+  }
+
 }
 
 void actors_update(void){
 
   for (int c = 0; c <= numCrates; ++c) {
-    resolve_actor_to_actor_col(crates, balls, numBalls, c);
-    resolve_actor_to_actor_col(crates, crates, numCrates, c);
-    crates[c].hitbox.shape.aabb = (AABB){{{crates[c].pos.v[0] - 16.0f, groundLevel, crates[c].pos.v[2] - 16.0f}},
-                                         {{crates[c].pos.v[0] + 16.0f, 32.0f, crates[c].pos.v[2] + 16.0f}}};
+    resolve_actor_to_actor_col(crates[c], balls, numBalls, c);
+    resolve_actor_to_actor_col(crates[c], crates, numCrates, c);
+    crates[c]->hitbox.shape.aabb = (AABB){{{crates[c]->pos.v[0] - 16.0f, groundLevel, crates[c]->pos.v[2] - 16.0f}},
+                                         {{crates[c]->pos.v[0] + 16.0f, 32.0f, crates[c]->pos.v[2] + 16.0f}}};
   }
 
   for (int b = 0; b <= numBalls; ++b) {
-    resolve_actor_to_actor_col(balls, balls, numBalls, b);
-    resolve_actor_to_actor_col(balls, crates, numCrates, b);
+    resolve_actor_to_actor_col(balls[b], balls, numBalls, b);
+    resolve_actor_to_actor_col(balls[b], crates, numCrates, b);
   }
 
 }

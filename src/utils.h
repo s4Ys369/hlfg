@@ -4,6 +4,7 @@
 #include <float.h>
 #include <libdragon.h>
 #include "../include/config.h"
+#include "../include/types.h"
 
 extern float lastTime;
 extern float deltaTime;
@@ -31,6 +32,6 @@ float get_jump_time();
 float random_float(float min, float max);
 void shuffle_array(float arr[], int size);
 float clamp(float value, float min, float max);
-int find_closest(T3DVec3 origin, T3DVec3 target[], int numObjects);
+int find_closest(T3DVec3 origin, Actor **target, int numObjects);
 
 #endif // UTILS_H

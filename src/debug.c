@@ -15,7 +15,7 @@ int col_debug;
 void debug_models_init(void){
   col_debug = 0;
   modelDebugBox = t3d_model_load("rom:/box.t3dm");
-  modelDebugSphere = t3d_model_load("rom:/testsphere.t3dm");
+  modelDebugSphere = t3d_model_load("rom:/sphere.t3dm");
 }
 
 void draw_debug_ui(void){
@@ -50,6 +50,8 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX, posY, "X %.2f", player[0]->pos.v[0]);posY+=10;
     t3d_debug_printf(posX, posY, "Y %.2f", player[0]->pos.v[1]);posY+=10;
     t3d_debug_printf(posX, posY, "Z %.2f", player[0]->pos.v[2]);posY+=10;
+    t3d_debug_printf(posX, posY, "STATE %u", playerState[0]);posY+=10;
+    t3d_debug_printf(posX, posY, "STATE %d", player[0]->isGrounded);posY+=10;
   }
   
   posY = 200;

@@ -133,6 +133,7 @@ void player_init(void){
     dplShadow[i] = rspq_block_end();
 
     // Init player params
+    player[i] = malloc_uncached(sizeof(PlayerParams));
     player[i]->moveDir = (T3DVec3){{0,0,0}};
     player[i]->pos = (T3DVec3){{0,groundLevel,0}};
     player[i]->shadowPos = player[i]->pos;
@@ -144,7 +145,7 @@ void player_init(void){
     player[i]->projectile.hitbox = (Sphere){player[i]->hitbox.center,8.0f};
     player[i]->projectile.speed = 0.0f;
     player[i]->projectile.isActive = false;
-    player[i]->projectile.length = 10.0f;
+    player[i]->projectile.length = 16.0f;
 
     player[i]->yaw = 0.0f;
 
@@ -152,11 +153,11 @@ void player_init(void){
 
     player[i]->animBlend = 0.0f;
 
-    player[i]->isIdle = true;
+    player[i]->isIdle = false;
     player[i]->isAttack = false;
     player[i]->isJumpStart = false;
     player[i]->isJumping = false;
-    player[i]->isGrounded = true;
+    player[i]->isGrounded = false;
     player[i]->isFalling = false;
     player[i]->isWalking = false;
 
@@ -165,29 +166,30 @@ void player_init(void){
 
     player[i]->score = 0;
 
+  }
 
-    if(numPlayers > 1){
-      // If more than 1 player, place the players randomly and check for collisions
-      player[i]->pos = (T3DVec3){{random_float(-50.0f, 50.0f),groundLevel,random_float(-50.0f, 50.0f)}};
+  // If more than 1 player, place the players randomly and check for collisions
+  if(numPlayers > 1){
+    for (int p = 0; p < numPlayers; ++p){
+      player[p]->pos = (T3DVec3){{random_float(-50.0f, 50.0f),groundLevel,random_float(-50.0f, 50.0f)}};
       check_player_collisions(player, numPlayers);
 
-      if (check_sphere_box_collision(player[i]->hitbox, FloorBox)) {
-        resolve_box_collision(FloorBox, &player[i]->pos, 0.01f);
+      if (check_sphere_box_collision(player[p]->hitbox, FloorBox)) {
+        resolve_box_collision(FloorBox, &player[p]->pos, 0.01f);
       }
     }
-
   }
 }
 
 // General actor interaction
-void check_actor_collisions(Actor *actor, int actorCount, int playerCount) {
+void check_actor_collisions(Actor **actor, int actorCount, int playerCount) {
 
   // Set the closet actor to current actor 
   Actor *currActor;
-  int closestActor = find_closest(player[playerCount]->pos, &actor->pos , actorCount);
+  int closestActor = find_closest(player[playerCount]->pos, actor, actorCount);
 
   if (closestActor != -1){
-    currActor = &actor[closestActor];
+    currActor = actor[closestActor];
 
     // Handles if actor has a AABB hitbox
     if(currActor->hitbox.shape.type == SHAPE_BOX){
@@ -212,10 +214,6 @@ void check_actor_collisions(Actor *actor, int actorCount, int playerCount) {
         resolve_sphere_collision(currActor->hitbox.shape.sphere, &player[playerCount]->hitbox.center);
         resolve_sphere_collision(currActor->hitbox.shape.sphere, &player[playerCount]->pos);
 
-        // If the actor is movable ie. bouncy, player pushes actor
-        if(currActor->IsBouncy == true){
-          resolve_sphere_collision(player[playerCount]->hitbox, &currActor->pos);
-        }
       }
     }
 
@@ -225,14 +223,14 @@ void check_actor_collisions(Actor *actor, int actorCount, int playerCount) {
 }
 
 // General attack interaction
-void check_attack_collisions(Actor *actor, int actorCount, int playerCount) {
+void check_attack_collisions(Actor **actor, int actorCount, int playerCount) {
 
   // Set the closet actor to current actor 
   Actor *currActor;
-  int closestActor = find_closest(player[playerCount]->projectile.hitbox.center, &actor->pos , actorCount);
+  int closestActor = find_closest(player[playerCount]->projectile.hitbox.center, actor , actorCount);
 
   if (closestActor != -1){
-    currActor = &actor[closestActor];
+    currActor = actor[closestActor];
 
     // Handles if actor has a AABB hitbox
     if(currActor->hitbox.shape.type == SHAPE_BOX){
@@ -287,14 +285,14 @@ void player_bounced(PlayerParams *player[], int playerCount) {
 
 
 // General airbourne actor interaction
-void check_midair_actor_collisions(Actor *actor, int actorCount, int playerCount) {
+void check_midair_actor_collisions(Actor **actor, int actorCount, int playerCount) {
  
   // Set the closet actor to current actor 
   Actor *currActor;
-  int closestActor = find_closest(player[playerCount]->pos, &actor->pos , actorCount);
+  int closestActor = find_closest(player[playerCount]->pos, actor , actorCount);
 
   if (closestActor != -1){
-    currActor = &actor[closestActor];
+    currActor = actor[closestActor];
 
     // Handles if actor has a AABB hitbox
     if(currActor->hitbox.shape.type == SHAPE_BOX){
@@ -373,13 +371,10 @@ void player_update(void){
 
   // Player Attack Input
   if((btn[i].b) && !animJump[i].isPlaying && !animAttack[i].isPlaying) {
-    if (player[i]->isGrounded)
-    {
       sound_jump();
       t3d_anim_set_playing(&animAttack[i], true);
       t3d_anim_set_time(&animAttack[i], 0.0f);
       playerState[i] = PLAYER_ATTACK;
-    }
   }
 
   // Player movement
@@ -430,8 +425,8 @@ void player_update(void){
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
     }
-    //check_actor_collisions(crates, numCrates, i);
-    //check_actor_collisions(balls, numBalls, i);
+    check_actor_collisions(crates, numCrates, i);
+    check_actor_collisions(balls, numBalls, i);
   }
 
   if(player[i]->pos.v[1] != groundLevel && player[i]->isGrounded){
@@ -439,8 +434,8 @@ void player_update(void){
       check_player_collisions(player, numPlayers);
     }
 
-    //check_midair_actor_collisions(crates, numCrates, i);
-    //check_actor_collisions(balls, numBalls, i);
+    check_midair_actor_collisions(crates, numCrates, i);
+    check_actor_collisions(balls, numBalls, i);
 
   }
 
@@ -448,6 +443,10 @@ void player_update(void){
   if (player[i]->currSpeed > 0.1f) {
     if(player[i]->isGrounded) {
       playerState[i] = PLAYER_WALK;
+    }
+  } else {
+    if(player[i]->isGrounded) {
+      playerState[i] = PLAYER_IDLE;
     }
   }
 
@@ -461,12 +460,12 @@ void player_update(void){
       check_player_collisions(player, numPlayers);
     }
 
-    //check_midair_actor_collisions(crates, numCrates, i);
-    //check_actor_collisions(balls, numBalls, i);
+    check_midair_actor_collisions(crates, numCrates, i);
+    check_actor_collisions(balls, numBalls, i);
 
     if (player[i]->pos.v[1] > groundLevel) {
       player[i]->velY += GRAVITY * deltaTime;
-      player[i]->pos.v[1] += player[i]->velY;
+      player[i]->pos.v[1] += player[i]->velY * deltaTime;
     } else {
       player[i]->pos.v[1] = groundLevel;
       playerState[i] = PLAYER_LAND;
@@ -525,8 +524,8 @@ void player_update(void){
 
     player[i]->projectile.hitbox.center.v[1] = player[i]->projectile.pos.v[1] + 5;
 
-    //check_actor_collisions(crates, numCrates, i);
-    //check_actor_collisions(balls, numBalls, i);
+    check_actor_collisions(crates, numCrates, i);
+    check_actor_collisions(balls, numBalls, i);
 
     if(!animAttack[i].isPlaying){
       player[i]->projectile.hitbox.center = player[i]->hitbox.center;
@@ -546,8 +545,8 @@ void player_update(void){
       check_player_collisions(player, numPlayers);
     }
 
-    //check_actor_collisions(crates, numCrates, i);
-    //check_actor_collisions(balls, numBalls, i);
+    check_actor_collisions(crates, numCrates, i);
+    check_actor_collisions(balls, numBalls, i);
 
     playerState[i] = PLAYER_JUMP;
   }
@@ -580,8 +579,8 @@ void player_update(void){
       check_player_collisions(player, numPlayers);
     }
 
-    //check_midair_actor_collisions(crates, numCrates, i);
-    //check_actor_collisions(balls, numBalls, i);
+    check_midair_actor_collisions(crates, numCrates, i);
+    check_actor_collisions(balls, numBalls, i);
 
     if (check_sphere_box_collision(player[i]->hitbox, FloorBox)) {
       resolve_box_collision(FloorBox, &player[i]->pos, 0.01f);
@@ -593,9 +592,6 @@ void player_update(void){
   if(player[i]->isGrounded) {
     if (player[i]->pos.v[1] < groundLevel) {
         player[i]->pos.v[1] = groundLevel;
-      if (check_sphere_box_collision(player[i]->hitbox, FloorBox)) {
-        resolve_box_collision(FloorBox, &player[i]->pos, 0.01f);
-      }
     }
   }
 
@@ -617,20 +613,11 @@ void player_update(void){
   switch(playerState[i]){
     case PLAYER_IDLE:
       player[i]->isIdle = true;
-      player[i]->isAttack = false;
-      player[i]->isJumpStart = false;
-      player[i]->isJumping = false;
       player[i]->isGrounded = true;
-      player[i]->isFalling = false;
-      player[i]->isWalking = false;
       break;
     case PLAYER_WALK:
       player[i]->isIdle = true;
-      player[i]->isAttack = false;
-      player[i]->isJumpStart = false;
-      player[i]->isJumping = false;
       player[i]->isGrounded = true;
-      player[i]->isFalling = false;
       player[i]->isWalking = true;
       break;
     case PLAYER_JUMP_START:
@@ -638,16 +625,15 @@ void player_update(void){
       player[i]->isAttack = false;
       player[i]->isJumpStart = true;
       player[i]->isJumping = false;
-      player[i]->isGrounded = true;
       player[i]->isFalling = false;
       player[i]->isWalking = false;
       break;
     case PLAYER_JUMP:
       player[i]->isIdle = false;
+      player[i]->isGrounded = false;
       player[i]->isAttack = false;
       player[i]->isJumpStart = false;
       player[i]->isJumping = true;
-      player[i]->isGrounded = false;
       player[i]->isFalling = false;
       player[i]->isWalking = false;
       break;
@@ -656,27 +642,18 @@ void player_update(void){
       player[i]->isAttack = true;
       player[i]->isJumpStart = false;
       player[i]->isJumping = false;
-      player[i]->isGrounded = false;
       player[i]->isFalling = false;
       player[i]->isWalking = false;
       break;
     case PLAYER_FALL:
       player[i]->isIdle = true;
-      player[i]->isAttack = false;
-      player[i]->isJumpStart = false;
-      player[i]->isJumping = false;
       player[i]->isGrounded = false;
+      player[i]->isJumping = false;
       player[i]->isFalling = true;
-      player[i]->isWalking = false;
       break;
     case PLAYER_LAND:
-      player[i]->isIdle = true;
-      player[i]->isAttack = false;
-      player[i]->isJumpStart = false;
-      player[i]->isJumping = false;
-      player[i]->isGrounded = true;
       player[i]->isFalling = false;
-      player[i]->isWalking = false;
+      player[i]->isGrounded = true;
       break;
     }
 
