@@ -28,6 +28,9 @@ rspq_block_t *dplBall[MAX_BALLS];
 T3DModel *modelBall;
 Actor *balls[MAX_BALLS];
 int numBalls;
+bool ballBounced[MAX_BALLS];
+float ballVelY[MAX_BALLS];
+float ballBounceForce[MAX_BALLS];
 
 // Handles all actor to actor collisions
 void resolve_actor_to_actor_col(Actor *origin, Actor **target, int targetCount, int originCount){
@@ -111,7 +114,7 @@ void crates_init(void){
   numCrates = (int)(random_float(1.0f,MAX_CRATES));
 
   for (int i = 0; i <= numCrates; ++i) {
-    crateMatFP[i] = malloc(sizeof(T3DMat4FP));
+    crateMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
 
     float X = random_float(-400.0f, 400.0f);
     float Z = random_float(-400.0f, 400.0f);
@@ -127,9 +130,10 @@ void crates_init(void){
 
     // Create gfx call to draw crate
     rspq_block_begin();
-      t3d_matrix_set(crateMatFP[i], true);
+      t3d_matrix_push(crateMatFP[i]);
       rdpq_set_prim_color(YELLOW);
       t3d_model_draw(modelCrate);
+      t3d_matrix_pop(1);
     dplCrate[i] = rspq_block_end();
     
   }
@@ -141,7 +145,7 @@ void balls_init(void){
   numBalls = (int)(random_float(1.0f,MAX_BALLS));
 
   for (int i = 0; i <= numBalls; ++i) {
-   ballMatFP[i] = malloc(sizeof(T3DMat4FP));
+   ballMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
 
     float X = random_float(-400.0f, 400.0f);
     float Z = random_float(-400.0f, 400.0f);
@@ -154,11 +158,16 @@ void balls_init(void){
     balls[i]->hitbox.shape.sphere.radius = 16.0f;
     balls[i]->IsBouncy = true;
 
+    ballBounced[i] = false;
+    ballVelY[i] = 0.0f;
+    ballBounceForce[i] = 150.0f;
+
     // Create gfx call to draw crate
     rspq_block_begin();
-      t3d_matrix_set(ballMatFP[i], true);
+      t3d_matrix_push(ballMatFP[i]);
       rdpq_set_prim_color(ORANGE);
       t3d_model_draw(modelBall);
+      t3d_matrix_pop(1);
     dplBall[i] = rspq_block_end();
 
   }
@@ -193,47 +202,79 @@ void actors_init(void){
 
 }
 
-// Applys gravity and resolves collisions for each actor
-void actors_update(void){
-  float ballVelY = 100;
-  bool ballBounced = false;
+// Bouncing simulation
+void balls_update(void){
+  float bounceModifier = 0.8f; // Simulates energy loss
+  float maxBounceHeight = 100.0f;
 
-  for (int c = 0; c <= numCrates; ++c) {
+  for (int b = 0; b <= numBalls; ++b) {
+
+    // Apply gravity every frame
+    ballVelY[b] += GRAVITY * jumpTime;
+
     
-    if (check_box_collision(crates[c]->hitbox.shape.aabb, FloorBox)) {
-      resolve_box_collision(FloorBox, &crates[c]->pos, 1.0f);
+    // Check for the ball is on or below floor
+    if (balls[b]->hitbox.shape.sphere.center.v[1] <= FloorBox.max.v[1] + balls[b]->hitbox.shape.sphere.radius) {
+
+      
+      // If so set the ball to bouncing state
+      ballBounced[b] = true;
+
+      // Make sure the ball doesn't get stuck in the ground
+      balls[b]->hitbox.shape.sphere.center.v[1] = FloorBox.max.v[1] + balls[b]->hitbox.shape.sphere.radius;
+      
+      // Apply the bounce to Y velocity
+      ballBounceForce[b] = ballBounceForce[b] * bounceModifier;
+      ballVelY[b] = ballBounceForce[b];
+
     } else {
-      crates[c]->pos.v[1] += GRAVITY * jumpTime;
+      ballBounced[b] = false;
     }
 
-    resolve_actor_to_actor_col(crates[c], balls, numBalls, c);
+    // Update hitbox, then position
+    balls[b]->hitbox.shape.sphere.center.v[1] += ballVelY[b] * jumpTime;
+    if (balls[b]->hitbox.shape.sphere.center.v[1] >= maxBounceHeight){
+      ballBounced[b] = false;
+    }
+    balls[b]->pos = balls[b]->hitbox.shape.sphere.center;
+    if (balls[b]->pos.v[1] < FloorBox.max.v[1] + balls[b]->hitbox.shape.sphere.radius) {
+      balls[b]->pos.v[1] = FloorBox.max.v[1] + balls[b]->hitbox.shape.sphere.radius;
+    }
+
+    // Resolve all other collisions
+    resolve_actor_to_actor_col(balls[b], balls, numBalls, b);
+    resolve_actor_to_actor_col(balls[b], crates, numCrates, b);
+
+
+  }
+
+}
+
+
+void crates_update(void){
+  
+  for (int c = 0; c <= numCrates; ++c) {
+
+    crates[c]->pos.v[1] += GRAVITY * jumpTime;
+    
+    if (crates[c]->pos.v[1] < FloorBox.max.v[1] + crates[c]->hitbox.shape.aabb.min.v[1]) {
+      crates[c]->pos.v[1] = FloorBox.max.v[1];
+    }
+
     resolve_actor_to_actor_col(crates[c], crates, numCrates, c);
+
+    // Checking this again causes a FPU error, to be fixed
+    resolve_actor_to_actor_col(crates[c], balls, numBalls, c);
 
     crates[c]->hitbox.shape.aabb = (AABB){{{crates[c]->pos.v[0] - 32.0f, crates[c]->pos.v[1], crates[c]->pos.v[2] - 32.0f}},
                                          {{crates[c]->pos.v[0] + 32.0f, crates[c]->pos.v[1] + 64.0f, crates[c]->pos.v[2] + 32.0f}}};
   }
 
-  for (int b = 0; b <= numBalls; ++b) {
-    
-    if (check_sphere_box_collision(balls[b]->hitbox.shape.sphere, FloorBox)) {
-      ballBounced = true;
-    } else {
-      ballBounced = false;
-    }
+}
 
-    resolve_actor_to_actor_col(balls[b], balls, numBalls, b);
-    resolve_actor_to_actor_col(balls[b], crates, numCrates, b);
 
-    if(ballBounced == true){
-      ballVelY += GRAVITY * jumpTime;
-      balls[b]->hitbox.shape.sphere.center.v[1] += ballVelY * jumpTime;
-      balls[b]->pos = balls[b]->hitbox.shape.sphere.center;
-    } else {
-      balls[b]->hitbox.shape.sphere.center.v[1] += GRAVITY * jumpTime;
-      balls[b]->pos = balls[b]->hitbox.shape.sphere.center;
-    }
-
-  }
-
+void actors_update(void){
+  balls_update();
+  crates_update();
 }
 

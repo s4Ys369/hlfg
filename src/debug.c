@@ -63,12 +63,8 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX, posY, "Z %.2f", player[0]->pos.v[2]);posY+=10;
     t3d_debug_printf(posX, posY, "State %s", playerStateStrings[playerState[0]]);posY+=10;
     t3d_debug_printf(posX, posY, "Grounded %d", player[0]->isGrounded);posY+=10;
-    t3d_debug_printf(posX, posY, "X %.2f", crates[0]->pos.v[0]);posY+=10;
-    t3d_debug_printf(posX, posY, "Y %.2f", crates[0]->pos.v[1]);posY+=10;
-    t3d_debug_printf(posX, posY, "Z %.2f", crates[0]->pos.v[2]);posY+=10;
-    t3d_debug_printf(posX, posY, "X %.2f", balls[0]->pos.v[0]);posY+=10;
-    t3d_debug_printf(posX, posY, "Y %.2f", balls[0]->pos.v[1]);posY+=10;
-    t3d_debug_printf(posX, posY, "Z %.2f", balls[0]->pos.v[2]);posY+=10;
+    t3d_debug_printf(posX, posY, "VelY %.2f", player[0]->velY);posY+=10;
+    t3d_debug_printf(posX, posY, "Force %.2f", player[0]->jumpForce);posY+=10;
   }
   
   posY = 200;

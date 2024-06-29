@@ -64,16 +64,11 @@ void player_init(void){
   for (int i = 0; i < numPlayers; ++i) {
 
     // Allocate player matrices
-    if(numPlayers == 1){
-      playerMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-      shadowMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-    } else {
-      playerMatFP[i] = malloc(sizeof(T3DMat4FP));
-      shadowMatFP[i] = malloc(sizeof(T3DMat4FP));
-    }
-    projectileMatFP[i] = malloc(sizeof(T3DMat4FP));
-    playerhitboxMatFP[i] = malloc(sizeof(T3DMat4FP));
-    projectilehitboxMatFP[i] = malloc(sizeof(T3DMat4FP));
+    playerMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
+    shadowMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
+    projectileMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
+    playerhitboxMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
+    projectilehitboxMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
 
     
     // Create skeleton and anims for each player
@@ -100,8 +95,6 @@ void player_init(void){
     t3d_anim_attach(&animAttack[i], &playerSkel[i]);
 
     animFall[i] = t3d_anim_create(modelPlayer, "fall");
-    t3d_anim_set_speed(&animFall[i], 3.5f);
-    t3d_anim_set_playing(&animAttack[i], false);
     t3d_anim_attach(&animFall[i], &playerSkelBlend[i]);
 
 
@@ -114,31 +107,35 @@ void player_init(void){
     dplPlayer[i] = rspq_block_end();
 
     rspq_block_begin();
-      t3d_matrix_set(playerhitboxMatFP[i], true);
+      t3d_matrix_push(playerhitboxMatFP[i]);
       rdpq_set_prim_color(RED);
       t3d_model_draw(modelDebugSphere);
+      t3d_matrix_pop(1);
     dplPlayerHitBox[i] = rspq_block_end();
 
     rspq_block_begin();
-      t3d_matrix_set(projectileMatFP[i], true);
+      t3d_matrix_push(projectileMatFP[i]);
       rdpq_set_prim_color(INDIGO);
       t3d_model_draw(modelProjectile);
+      t3d_matrix_pop(1);
     dplProjectile[i] = rspq_block_end();
 
     rspq_block_begin();
-      t3d_matrix_set(projectileMatFP[i], true);
+      t3d_matrix_push(projectileMatFP[i]);
       rdpq_set_prim_color(ORANGE);
       t3d_model_draw(modelDebugSphere);
+      t3d_matrix_pop(1);
     dplProjectileHitBox[i] = rspq_block_end();
 
     rspq_block_begin();
-      t3d_matrix_set(shadowMatFP[i], true);
+      t3d_matrix_push(shadowMatFP[i]);
       rdpq_set_prim_color(TRANSPARENT);
       t3d_model_draw(modelShadow);
+      t3d_matrix_pop(1);
     dplShadow[i] = rspq_block_end();
 
     // Init player params
-    player[i] = malloc_uncached(sizeof(PlayerParams));
+    player[i] = malloc(sizeof(PlayerParams));
     player[i]->moveDir = (T3DVec3){{0,0,0}};
     player[i]->pos = (T3DVec3){{0,groundLevel,0}};
     player[i]->shadowPos = player[i]->pos;
@@ -167,7 +164,7 @@ void player_init(void){
     player[i]->isWalking = false;
 
     player[i]->velY = 0.0f;
-    player[i]->jumpForce = JUMP_MODIFIER;
+    player[i]->jumpForce = 10.0f * JUMP_MODIFIER;
 
     player[i]->score = 0;
 
@@ -433,8 +430,8 @@ void player_update(void){
 
   // Update the animation and modify the skeleton, this will however NOT recalculate the matrices
   t3d_anim_update(&animIdle[i], deltaTime);
-  t3d_anim_set_speed(&animWalk[i], player[i]->animBlend);
   if (playerState[i] == PLAYER_IDLE || playerState[i] == PLAYER_WALK){
+    t3d_anim_set_speed(&animWalk[i], player[i]->animBlend);
     t3d_anim_update(&animWalk[i], deltaTime);
   }
   
@@ -473,8 +470,6 @@ void player_update(void){
 
   // do fall
   if(playerState[i] == PLAYER_FALL) {
-
-    t3d_anim_set_speed(&animFall[i], player[i]->animBlend);
     t3d_anim_update(&animFall[i], deltaTime);
 
     if(numPlayers > 1){
@@ -490,8 +485,8 @@ void player_update(void){
         player[i]->pos.v[1] += player[i]->velY * jumpTime;
       } else if (player[i]->pos.v[1] <= groundLevel) {
         playerState[i] = PLAYER_LAND;
-        t3d_anim_set_playing(&animFall[i], false);
-        player[i]->jumpForce = 100.0f;
+        player[i]->velY = 0.0f;
+        player[i]->jumpForce = 10.0f * JUMP_MODIFIER;
       }
     }
   }
@@ -585,6 +580,9 @@ void player_update(void){
     check_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
 
+    // Apply jump force modifier
+    player[i]->velY = player[i]->jumpForce;
+
     playerState[i] = PLAYER_JUMP;
   }
 
@@ -594,11 +592,8 @@ void player_update(void){
 
     if (!animJump[i].isPlaying){
       playerState[i] = PLAYER_FALL;
-      t3d_anim_set_playing(&animFall[i], true);
+      t3d_anim_set_time(&animFall[i], player[i]->animBlend);
     }
-
-    // Apply jump force modifier
-    player[i]->velY = player[i]->jumpForce;
 
     // Apply gravity
     player[i]->velY += GRAVITY * jumpTime;

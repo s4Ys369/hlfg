@@ -26,11 +26,16 @@ extern rspq_block_t *dplBall[MAX_BALLS];
 extern T3DModel *modelBall;
 extern Actor *balls[MAX_BALLS];
 extern int numBalls;
+extern bool ballBounced[MAX_BALLS];
+extern float ballVelY[MAX_BALLS];
+extern float ballBounceForce[MAX_BALLS];
 
 void resolve_actor_to_actor_col(Actor *origin, Actor **target, int targetCount, int originCount);
 void crates_init(void);
 void balls_init(void);
 void actors_init(void);
+void balls_update(void);
+void crates_update(void);
 void actors_update(void);
 
 

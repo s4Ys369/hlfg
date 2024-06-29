@@ -13,6 +13,14 @@ int numPlayers;
 
 // Init joypads and check how many are plugged in
 void input_init(void){
+    joypad_init();
+
+/*  Ares always sets every port as connected when loading,
+    so until I finding a good way to detect Ares vs console,
+    use this define for testing in single player mode */
+#ifdef ARES_1_PLAYER
+    numPlayers = PLAYERS_1;
+#else
     if(joypad_is_connected(JOYPAD_PORT_1)){
         numPlayers++;
     }
@@ -25,6 +33,7 @@ void input_init(void){
     if(joypad_is_connected(JOYPAD_PORT_4)){
         numPlayers++;
     }
+#endif
 }
 
 // Poll joypads based on number of players
