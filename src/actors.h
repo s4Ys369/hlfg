@@ -27,8 +27,10 @@ extern T3DModel *modelBall;
 extern Actor *balls[MAX_BALLS];
 extern int numBalls;
 extern bool ballBounced[MAX_BALLS];
-extern float ballVelY[MAX_BALLS];
 extern float ballBounceForce[MAX_BALLS];
+
+extern float dist;
+extern float minDist;
 
 void resolve_actor_to_actor_col(Actor *origin, Actor **target, int targetCount, int originCount);
 void crates_init(void);

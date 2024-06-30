@@ -81,7 +81,7 @@ int main()
     for (int b = 0; b < numBalls; ++b) {
       t3d_mat4fp_from_srt_euler(ballMatFP[b],
         (float[3]){1.0f, 1.0f, 1.0f},
-        (float[3]){0, 0, 0},
+        balls[b]->rot.v,
         balls[b]->pos.v
       );
     }
@@ -200,16 +200,20 @@ int main()
       // then the player blocks
       for (int i = 0; i < numPlayers; ++i) {
         rspq_block_run(dplPlayer[i]);
+
+        // Lose shadows after 2 players for performance
+        if(numPlayers <= 2){
+          rspq_block_run(dplShadow[i]);
+        }
       }
 
       // then the player's extra blocks
       for (int i = 0; i < numPlayers; ++i) {
-        rspq_block_run(dplShadow[i]);
         if(player[i]->projectile.isActive == true) {
           rspq_block_run(dplProjectile[i]);
         }
         if(col_debug){
-          //rspq_block_run(dplPlayerHitBox[i]);
+          rspq_block_run(dplPlayerHitBox[i]);
           rspq_block_run(dplProjectileHitBox[i]);
         }
       }

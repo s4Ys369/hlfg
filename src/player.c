@@ -100,36 +100,51 @@ void player_init(void){
 
     // Create player's RSPQ blocks
     rspq_block_begin();
-      t3d_matrix_push(playerMatFP[i]);
+      t3d_matrix_push_pos(1);
+      matCount++;
+      t3d_matrix_set(playerMatFP[i], true);
       rdpq_set_prim_color(BLUE);
+      t3d_matrix_set(playerMatFP[i], true);
       t3d_model_draw_skinned(modelPlayer, &playerSkel[i]);
       t3d_matrix_pop(1);
     dplPlayer[i] = rspq_block_end();
 
     rspq_block_begin();
-      t3d_matrix_push(playerhitboxMatFP[i]);
+      t3d_matrix_push_pos(1);
+      matCount++;
+      t3d_matrix_set(playerhitboxMatFP[i], true);
       rdpq_set_prim_color(RED);
+      t3d_matrix_set(playerhitboxMatFP[i], true);
       t3d_model_draw(modelDebugSphere);
       t3d_matrix_pop(1);
     dplPlayerHitBox[i] = rspq_block_end();
 
     rspq_block_begin();
-      t3d_matrix_push(projectileMatFP[i]);
+      t3d_matrix_push_pos(1);
+      matCount++;
+      t3d_matrix_set(projectileMatFP[i], true);
       rdpq_set_prim_color(INDIGO);
+      t3d_matrix_set(projectileMatFP[i], true);
       t3d_model_draw(modelProjectile);
       t3d_matrix_pop(1);
     dplProjectile[i] = rspq_block_end();
 
     rspq_block_begin();
-      t3d_matrix_push(projectileMatFP[i]);
+      t3d_matrix_push_pos(1);
+      matCount++;
+      t3d_matrix_set(projectilehitboxMatFP[i], true);
       rdpq_set_prim_color(ORANGE);
+      t3d_matrix_set(projectilehitboxMatFP[i], true);
       t3d_model_draw(modelDebugSphere);
       t3d_matrix_pop(1);
     dplProjectileHitBox[i] = rspq_block_end();
 
     rspq_block_begin();
-      t3d_matrix_push(shadowMatFP[i]);
+      t3d_matrix_push_pos(1);
+      matCount++;
+      t3d_matrix_set(shadowMatFP[i], true);
       rdpq_set_prim_color(TRANSPARENT);
+      t3d_matrix_set(shadowMatFP[i], true);
       t3d_model_draw(modelShadow);
       t3d_matrix_pop(1);
     dplShadow[i] = rspq_block_end();
@@ -200,7 +215,7 @@ void check_actor_collisions(Actor **actor, int actorCount, int playerCount) {
 
         // If the actor is movable ie. bouncy, player pushes actor
         if(currActor->IsBouncy == true){
-          resolve_sphere_collision_offset_xz(player[playerCount]->hitbox, &currActor->pos, 2.0f);
+          resolve_sphere_collision_offset(player[playerCount]->hitbox, &currActor->pos, 2.0f);
         }
 
         // Move model and hitbox separately to blend later

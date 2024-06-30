@@ -76,7 +76,7 @@ void resolve_box_collision_xz(AABB aabb, T3DVec3 *pos, float offset) {
 bool check_sphere_collision(Sphere a, Sphere b) {
     // Calculate the squared distance between centers
     float distanceSquared = t3d_vec3_distance(&a.center, &b.center);
-    float radiusSquared = a.radius * b.radius;
+    float radiusSquared = a.radius + b.radius;
 
     // Check collision
     float e = 1e-6f;

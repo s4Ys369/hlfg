@@ -2,6 +2,7 @@
 #include <t3d/t3d.h>
 #include <t3d/t3dmodel.h>
 #include "../include/types.h"
+#include "debug.h"
 #include "map.h"
 #include "utils.h"
 
@@ -23,6 +24,7 @@ void map_init(void){
     // Create map's RSPQ block
     rspq_block_begin();
         t3d_matrix_push(mapMatFP);
+        matCount++;
         rdpq_set_prim_color(WHITE);
         t3d_model_draw(modelMap);
         t3d_matrix_pop(1);

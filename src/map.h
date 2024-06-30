@@ -5,6 +5,7 @@
 #include <t3d/t3d.h>
 #include <t3d/t3dmodel.h>
 #include "../include/types.h"
+#include "debug.h"
 #include "utils.h"
 
 extern T3DMat4FP* mapMatFP;

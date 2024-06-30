@@ -10,6 +10,9 @@
 // Set for single player testing, see src/input.c
 #define ARES_1_PLAYER
 
+// Always print instead of just when R trigger is held
+#define DEBUG_PRINT
+
 // Used for struct memory allocation
 #define MAX_PLAYERS 4
 #define MAX_CRATES 4

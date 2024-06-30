@@ -49,6 +49,10 @@ typedef struct {
 
 typedef struct {
     T3DVec3 pos;
+    T3DVec3 moveDir;
+    T3DVec3 forward;
+    T3DVec3 vel;
+    T3DVec3 rot;
     ActorHitBox hitbox;
     bool isSafe;
     bool IsBouncy;

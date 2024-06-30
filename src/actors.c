@@ -29,7 +29,6 @@ T3DModel *modelBall;
 Actor *balls[MAX_BALLS];
 int numBalls;
 bool ballBounced[MAX_BALLS];
-float ballVelY[MAX_BALLS];
 float ballBounceForce[MAX_BALLS];
 
 // Handles all actor to actor collisions
@@ -122,6 +121,10 @@ void crates_init(void){
     crates[i] = malloc(sizeof(Actor));
 
     crates[i]->pos = (T3DVec3){{X, groundLevel, Z}};
+    crates[i]->moveDir = (T3DVec3){{0, 0, 0}};
+    crates[i]->forward = (T3DVec3){{0, 0, 1}};
+    crates[i]->vel = (T3DVec3){{0, 0, 0}};
+    crates[i]->rot = (T3DVec3){{0, 0, 0}};
     crates[i]->hitbox.shape.type = SHAPE_BOX;
     crates[i]->hitbox.shape.aabb = (AABB){{{crates[i]->pos.v[0] - 32.0f, crates[i]->pos.v[1], crates[i]->pos.v[2] - 32.0f}},
                                          {{crates[i]->pos.v[0] + 32.0f, crates[i]->pos.v[1] + 64.0f, crates[i]->pos.v[2] + 32.0f}}};
@@ -130,8 +133,11 @@ void crates_init(void){
 
     // Create gfx call to draw crate
     rspq_block_begin();
-      t3d_matrix_push(crateMatFP[i]);
+      t3d_matrix_push_pos(1);
+      matCount++;
+      t3d_matrix_set(crateMatFP[i], true);
       rdpq_set_prim_color(YELLOW);
+      t3d_matrix_set(crateMatFP[i], true);
       t3d_model_draw(modelCrate);
       t3d_matrix_pop(1);
     dplCrate[i] = rspq_block_end();
@@ -153,19 +159,25 @@ void balls_init(void){
     balls[i] = malloc(sizeof(Actor));
 
     balls[i]->pos = (T3DVec3){{X, 32.0f, Z}};
+    balls[i]->moveDir = (T3DVec3){{0, 0, 0}};
+    balls[i]->forward = (T3DVec3){{0, 0, 1}};
+    balls[i]->vel = (T3DVec3){{0, 0, 0}};
+    balls[i]->rot = (T3DVec3){{0, 0, 0}};
     balls[i]->hitbox.shape.type = SHAPE_SPHERE;
     balls[i]->hitbox.shape.sphere.center = balls[i]->pos;
     balls[i]->hitbox.shape.sphere.radius = 16.0f;
     balls[i]->IsBouncy = true;
 
     ballBounced[i] = false;
-    ballVelY[i] = 0.0f;
     ballBounceForce[i] = 150.0f;
 
     // Create gfx call to draw crate
     rspq_block_begin();
-      t3d_matrix_push(ballMatFP[i]);
+      t3d_matrix_push_pos(1);
+      matCount++;
+      t3d_matrix_set(ballMatFP[i], true);
       rdpq_set_prim_color(ORANGE);
+      t3d_matrix_set(ballMatFP[i], true);
       t3d_model_draw(modelBall);
       t3d_matrix_pop(1);
     dplBall[i] = rspq_block_end();
@@ -202,15 +214,24 @@ void actors_init(void){
 
 }
 
+
+float dist = 0;
+float minDist = 0;
+
 // Bouncing simulation
 void balls_update(void){
   float bounceModifier = 0.8f; // Simulates energy loss
   float maxBounceHeight = 100.0f;
+  float playerBumpForce = 32.0f;
+  float friction = 0.9f;
+  float newPitch = 0.0f;
+  float newYaw = 0.0f;
+  float newRoll = 0.0f;
 
   for (int b = 0; b <= numBalls; ++b) {
 
     // Apply gravity every frame
-    ballVelY[b] += GRAVITY * jumpTime;
+    balls[b]->vel.v[1] += GRAVITY * jumpTime;
 
     
     // Check for the ball is on or below floor
@@ -223,20 +244,22 @@ void balls_update(void){
       // Make sure the ball doesn't get stuck in the ground
       balls[b]->hitbox.shape.sphere.center.v[1] = FloorBox.max.v[1] + balls[b]->hitbox.shape.sphere.radius;
       
-      // Apply the bounce to Y velocity
-      ballBounceForce[b] = ballBounceForce[b] * bounceModifier;
-      ballVelY[b] = ballBounceForce[b];
 
     } else {
       ballBounced[b] = false;
     }
 
+    if(ballBounced[b]){
+      // Apply the bounce to Y velocity
+      ballBounceForce[b] = ballBounceForce[b] * bounceModifier;
+      balls[b]->vel.v[1] = ballBounceForce[b];
+    } 
+
     // Update hitbox, then position
-    balls[b]->hitbox.shape.sphere.center.v[1] += ballVelY[b] * jumpTime;
     if (balls[b]->hitbox.shape.sphere.center.v[1] >= maxBounceHeight){
       ballBounced[b] = false;
     }
-    balls[b]->pos = balls[b]->hitbox.shape.sphere.center;
+    
     if (balls[b]->pos.v[1] < FloorBox.max.v[1] + balls[b]->hitbox.shape.sphere.radius) {
       balls[b]->pos.v[1] = FloorBox.max.v[1] + balls[b]->hitbox.shape.sphere.radius;
     }
@@ -245,7 +268,60 @@ void balls_update(void){
     resolve_actor_to_actor_col(balls[b], balls, numBalls, b);
     resolve_actor_to_actor_col(balls[b], crates, numCrates, b);
 
+    // Check for the ball colliding with the player
+    if(check_sphere_collision(balls[b]->hitbox.shape.sphere, player[0]->hitbox)){
+      // Add player's current forward to the ball
+      balls[b]->vel.v[0] += player[0]->forward.v[0] * player[0]->currSpeed;
+      balls[b]->vel.v[2] += player[0]->forward.v[2] * player[0]->currSpeed;
 
+      // then bounce it
+      ballBounceForce[b] = playerBumpForce * player[0]->currSpeed;
+      ballBounced[b] = true;
+
+    } else {
+
+      // else add friction to X and Z if grounded
+      if (balls[b]->hitbox.shape.sphere.center.v[1] <= FloorBox.max.v[1] + balls[b]->hitbox.shape.sphere.radius) {
+        balls[b]->vel.v[0] *= friction;
+        balls[b]->vel.v[2] *= friction;
+      }
+    }
+
+    // Update position based on velocity
+    balls[b]->hitbox.shape.sphere.center.v[0] += balls[b]->vel.v[0] * jumpTime;
+    balls[b]->hitbox.shape.sphere.center.v[1] += balls[b]->vel.v[1] * jumpTime;
+    balls[b]->hitbox.shape.sphere.center.v[2] += balls[b]->vel.v[2] * jumpTime;
+    balls[b]->pos = balls[b]->hitbox.shape.sphere.center;
+
+    // Limit position inside of bounds
+    if(balls[b]->pos.v[0] < FloorBox.min.v[0]){
+      balls[b]->pos.v[0] = FloorBox.min.v[0];
+      balls[b]->vel.v[0] = -balls[b]->vel.v[0];
+    }
+    if(balls[b]->pos.v[0] >  FloorBox.max.v[0]){
+      balls[b]->pos.v[0] = FloorBox.max.v[0];
+      balls[b]->vel.v[0] = -balls[b]->vel.v[0];
+    }
+    if(balls[b]->pos.v[2] < FloorBox.min.v[2]){
+      balls[b]->pos.v[2] = FloorBox.min.v[2];
+      balls[b]->vel.v[2] = -balls[b]->vel.v[2];
+    }
+    if(balls[b]->pos.v[2] >  FloorBox.max.v[2]){
+      balls[b]->pos.v[2] = FloorBox.max.v[2];
+      balls[b]->vel.v[2] = -balls[b]->vel.v[2];
+    }
+
+    // Calculate new pitch (rotation around x-axis based on move direction)
+    newPitch = atan2f(-balls[b]->vel.v[1], balls[b]->vel.v[2]); // Assuming vel.v[1] is y-axis velocity
+    balls[b]->rot.v[0] = t3d_lerp_angle(balls[b]->rot.v[0], newPitch, 0.1f);
+
+    // Calculate new yaw (rotation around y-axis based on move direction)
+    newYaw = atan2f(-balls[b]->vel.v[0], balls[b]->vel.v[2]); // Assuming vel.v[0] is x-axis velocity
+    balls[b]->rot.v[1] = t3d_lerp_angle(balls[b]->rot.v[1], newYaw, 0.1f);
+
+    // Calculate new roll (rotation around z-axis based on move direction)
+    newRoll = atan2f(-balls[b]->vel.v[0], balls[b]->vel.v[1]); // Assuming vel.v[0] is x-axis velocity
+    balls[b]->rot.v[2] = t3d_lerp_angle(balls[b]->rot.v[2], newRoll, 0.1f);
   }
 
 }
@@ -264,7 +340,7 @@ void crates_update(void){
     resolve_actor_to_actor_col(crates[c], crates, numCrates, c);
 
     // Checking this again causes a FPU error, to be fixed
-    resolve_actor_to_actor_col(crates[c], balls, numBalls, c);
+    //resolve_actor_to_actor_col(crates[c], balls, numBalls, c);
 
     crates[c]->hitbox.shape.aabb = (AABB){{{crates[c]->pos.v[0] - 32.0f, crates[c]->pos.v[1], crates[c]->pos.v[2] - 32.0f}},
                                          {{crates[c]->pos.v[0] + 32.0f, crates[c]->pos.v[1] + 64.0f, crates[c]->pos.v[2] + 32.0f}}};
