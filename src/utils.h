@@ -19,6 +19,7 @@ extern color_t INDIGO;
 extern color_t VIOLET;
 extern color_t BLACK;
 extern color_t WHITE;
+extern color_t GREY;
 extern color_t TRANSPARENT;
 
 extern uint32_t myrand(void);

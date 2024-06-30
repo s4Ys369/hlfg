@@ -36,6 +36,7 @@ src =   src/main.c \
 		src/map.c \
 		src/player.c \
 		src/sound.c \
+		src/ui.c \
 		src/utils.c
 assets_png = $(wildcard assets/*.png)
 assets_gltf = $(wildcard assets/*.glb)

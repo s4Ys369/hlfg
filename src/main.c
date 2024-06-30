@@ -13,6 +13,7 @@
 #include "map.h"
 #include "player.h"
 #include "sound.h"
+#include "ui.h"
 #include "utils.h"
 
 // IBE : Itty Bitty Engine, a 3D Game Engine for Tiny3D
@@ -43,6 +44,7 @@ int main()
   player_init();
   cam_init();
   sound_init();
+  ui_init();
 
   rspq_syncpoint_t syncPoint = 0;
 
@@ -53,9 +55,8 @@ int main()
     get_jump_time();
     input_update();
 
-
     // Simple Pause State
-    if (!btnheld[0].start){
+    if (!isPaused){
 
       //Don't worry about sound when dealing multiplayer
       if(numPlayers < 2){
@@ -247,6 +248,7 @@ int main()
         rdpq_fill_rectangle(sizeX/2-1, 0, sizeX/2+1, sizeY);
         break;
     }
+    ui_update();
     draw_debug_ui();
     rdpq_detach_show();
   }

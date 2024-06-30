@@ -17,6 +17,7 @@ color_t INDIGO = (color_t){34, 0, 102, 255};
 color_t VIOLET = (color_t){51, 0, 68, 255};
 color_t BLACK = (color_t){0,0,0,255};
 color_t WHITE = (color_t){255, 255, 255, 255};
+color_t GREY = (color_t){192, 192, 192, 255};
 color_t TRANSPARENT = (color_t){0, 0, 0, 127};
 
 // Fair and fast random generation (using xorshift32, with explicit seed)

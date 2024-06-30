@@ -51,7 +51,6 @@ void draw_debug_ui(void){
   t3d_debug_print_start();
 
   int text_debug = 0;
-  int text_controls = 0;
 
 #ifndef DEBUG_PRINT
   if(btnheld[0].r){
@@ -69,11 +68,6 @@ void draw_debug_ui(void){
     col_debug = 0;
   }
 
-  if(btnheld[0].start){
-    text_controls = 1;
-  } else {
-    text_controls = 0;
-  }
 
   rdpq_set_prim_color(RGBA32(0xFF, 0xFF, 0xFF, 0xFF));
   if (text_debug){
@@ -93,53 +87,8 @@ void draw_debug_ui(void){
       t3d_debug_printf(posX, posY, "Stack FULL at %llu", timeMS);posY+=10;
       print_stack_memory_uint32(???, 8 * sizeof(T3DMat4FP));
     */
+
+    t3d_debug_printf(posX, 220, "FPS %.1f", display_get_fps());
   }
   
-  posY = 200;
-  rdpq_set_prim_color(RGBA32(0xAA, 0xAA, 0xAA, 0xFF));
-  if(numPlayers > 1) {
-    if(numPlayers == 2) {
-      t3d_debug_printf(posX, posY/2, "SCORE %d", player[0]->score);
-      t3d_debug_printf(posX, posY, "SCORE %d", player[1]->score);
-    }
-    if(numPlayers == 3) {
-      t3d_debug_printf(posX, posY/2, "SCORE %d", player[0]->score);
-      t3d_debug_printf(posX, posY, "SCORE %d", player[1]->score);
-      t3d_debug_printf((posX*14)+4,  posY+20, "SCORE %d", player[2]->score);
-    }
-    if(numPlayers == 4) {
-      t3d_debug_printf(posX, posY/2, "SCORE %d", player[0]->score);
-      t3d_debug_printf((posX*14)+4,  posY/2, "SCORE %d", player[1]->score);
-      t3d_debug_printf(posX, posY, "SCORE %d", player[2]->score);
-      t3d_debug_printf((posX*14)+4, posY+20, "SCORE %d", player[3]->score);
-    }
-  } else {
-    t3d_debug_printf(posX, posY, "SCORE %d", player[0]->score);
-  }
-
-
-  t3d_debug_printf(posX, posY+20, "FPS %.1f", display_get_fps());
-  
-
-  if(text_controls){
-    posX = 80;
-    posY = 40;
-    rdpq_set_prim_color(RGBA32(0xAA, 0xFF, 0xAA, 0xFF));
-    t3d_debug_printf(posX, posY, "IBE: Itty Bitty Engine");posY+=10;
-    t3d_debug_printf(posX, posY, "Game Engine for Tiny3D");posY+=10;
-    t3d_debug_printf(posX+55, posY, "v%.1f.%u", VERSION, VERSION_SUFFIX);posY+=10;
-    rdpq_set_prim_color(RGBA32(0xFF, 0xAA, 0xAA, 0xFF));
-    t3d_debug_printf(posX+50, posY, "by s4ys");posY+=10;
-    rdpq_set_prim_color(RGBA32(0xFF, 0xFF, 0xFF, 0xFF));
-    t3d_debug_printf(posX, posY, "Control Stick : Move");posY+=10;
-    t3d_debug_printf(posX, posY, "A : Jump");posY+=10;
-    t3d_debug_printf(posX, posY, "B : Attack");posY+=10;
-    t3d_debug_printf(posX, posY, "C Down : Normal Cam");posY+=10;
-    t3d_debug_printf(posX, posY, "C Left & Right :");posY+=10;
-    t3d_debug_printf(posX+10, posY, "Rotate Fixed Cam");posY+=10;
-    t3d_debug_printf(posX, posY, "C Up : Top Down Cam");posY+=10;
-    t3d_debug_printf(posX, posY, "Z : Recenter Cam");posY+=10;
-    t3d_debug_printf(posX, posY, "Hold R : Debug");posY+=10;
-    t3d_debug_printf(posX, posY, "Hold L : HitBoxes");posY+=10;
-  }
 }

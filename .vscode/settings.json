@@ -81,6 +81,7 @@
         "player.h": "c",
         "globals.h": "c",
         "config.h": "c",
-        "enums.h": "c"
+        "enums.h": "c",
+        "utils.h": "c"
     }
 }
