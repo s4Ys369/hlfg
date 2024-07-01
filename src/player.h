@@ -41,6 +41,7 @@ extern rspq_block_t *dplProjectile[MAX_PLAYERS];
 extern rspq_block_t *dplShadow[MAX_PLAYERS];
 extern PlayerParams *player[MAX_PLAYERS];
 extern int playerState[MAX_PLAYERS];
+extern float playerScaleY[MAX_PLAYERS];
 
 void check_player_collisions(PlayerParams *players[], int numPlayers);
 void player_init(void);

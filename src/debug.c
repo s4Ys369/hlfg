@@ -88,7 +88,7 @@ void draw_debug_ui(void){
       print_stack_memory_uint32(???, 8 * sizeof(T3DMat4FP));
     */
 
-    t3d_debug_printf(posX, 220, "FPS %.1f", display_get_fps());
+    t3d_debug_printf(posX, 200, "FPS %.1f", display_get_fps());
   }
   
 }

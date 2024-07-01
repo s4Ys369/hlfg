@@ -103,7 +103,7 @@ int main()
       );
 
       t3d_mat4fp_from_srt_euler(playerhitboxMatFP[p],
-        (float[3]){1.0f, 1.0f, 1.0f},
+        (float[3]){1.0f, playerScaleY[p], 1.0f},
         (float[3]){0.0f, 0.0f, 0.0f},
         player[p]->hitbox.center.v
       );
@@ -122,7 +122,7 @@ int main()
     for (int np = 0; np < numPlayers; ++np) {
       // Update players matrices
       t3d_mat4fp_from_srt_euler(playerMatFP[np],
-          (float[3]){1.0f, 1.0f, 1.0f},
+          (float[3]){1.0f, playerScaleY[np], 1.0f},
           (float[3]){0.0f, -player[np]->yaw, 0},
           player[np]->pos.v
         );
@@ -146,8 +146,8 @@ int main()
     rdpq_attach(display_get(), &depthBuffer);
     t3d_frame_start();
 
-    color_t fogColor = BLACK;
-    rdpq_set_prim_color(BLACK);
+    color_t fogColor = WHITE;
+    rdpq_set_prim_color(WHITE);
     rdpq_mode_fog(RDPQ_FOG_STANDARD);
     rdpq_set_fog_color(fogColor);
 

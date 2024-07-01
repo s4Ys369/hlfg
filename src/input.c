@@ -21,6 +21,9 @@ void input_init(void){
 #ifdef ARES_1_PLAYER
     numPlayers = PLAYERS_1;
 #else
+#ifdef FORCE_4_PORTS
+    numPlayers = PLAYERS_4;
+#else
     if(joypad_is_connected(JOYPAD_PORT_1)){
         numPlayers++;
     }
@@ -33,7 +36,8 @@ void input_init(void){
     if(joypad_is_connected(JOYPAD_PORT_4)){
         numPlayers++;
     }
-#endif
+#endif // FORCE_4_PORTS
+#endif // ARES_1_PLAYER
 }
 
 // Poll joypads based on number of players

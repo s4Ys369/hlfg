@@ -39,6 +39,7 @@ rspq_block_t *dplProjectile[MAX_PLAYERS];
 rspq_block_t *dplShadow[MAX_PLAYERS];
 PlayerParams *player[MAX_PLAYERS];
 int playerState[MAX_PLAYERS];
+float playerScaleY[MAX_PLAYERS];
 
 
 // Check for PvP interaction, delcared first because used in init function
@@ -54,8 +55,11 @@ void check_player_collisions(PlayerParams *players[], int numPlayers) {
       if (check_sphere_collision(player[i]->hitbox, player[j]->hitbox)) {
         resolve_sphere_collision_offset(player[i]->hitbox, &player[j]->pos,1.4f);
         resolve_sphere_collision_offset(player[j]->hitbox, &player[i]->pos,1.4f);
-        player[j]->pos.v[0] += player[i]->forward.v[0] * player[i]->currSpeed;
-        player[j]->pos.v[2] += player[i]->forward.v[2] * player[i]->currSpeed;
+        // Adjust both players' positions based on their current speed and direction
+        players[j]->pos.v[0] += players[i]->forward.v[0] * players[i]->currSpeed;
+        players[j]->pos.v[2] += players[i]->forward.v[2] * players[i]->currSpeed;
+        players[i]->pos.v[0] += players[j]->forward.v[0];
+        players[i]->pos.v[2] += players[j]->forward.v[2];
       }
     }
   } 
@@ -83,15 +87,13 @@ void player_init(void){
     playerSkel[i] = t3d_skeleton_create(modelPlayer);
     playerSkelBlend[i] = t3d_skeleton_clone(&playerSkel[i], false);
     animIdle[i] = t3d_anim_create(modelPlayer, "idle");
-    t3d_anim_set_speed(&animIdle[i], 2.0f);
     t3d_anim_attach(&animIdle[i], &playerSkel[i]);
 
     animWalk[i] = t3d_anim_create(modelPlayer, "walk");
-    t3d_anim_set_speed(&animWalk[i], 2.0f);
     t3d_anim_attach(&animWalk[i], &playerSkelBlend[i]);
 
     animJump[i] = t3d_anim_create(modelPlayer, "jump");
-    t3d_anim_set_speed(&animJump[i], 3.5f);
+    t3d_anim_set_speed(&animAttack[i], 2.5f);
     t3d_anim_set_looping(&animJump[i], false);
     t3d_anim_set_playing(&animJump[i], false);
     t3d_anim_attach(&animJump[i], &playerSkel[i]);
@@ -194,6 +196,7 @@ void player_init(void){
     }
 
     player[i]->score = 0;
+    playerScaleY[i] = 1.0f;
 
   }
 
@@ -205,7 +208,7 @@ void player_init(void){
       check_player_collisions(player, numPlayers);
 
       if (check_sphere_box_collision(player[p]->hitbox, FloorBox)) {
-        resolve_box_collision(FloorBox, &player[p]->pos, 0.01f);
+        resolve_box_collision_offset(FloorBox, &player[p]->pos, 0.01f);
       }
     }
   }
@@ -233,8 +236,8 @@ void check_actor_collisions(Actor **actor, int actorCount, int playerCount) {
         }
 
         // Move model and hitbox separately to blend later
-        resolve_box_collision_xz(currActor->hitbox.shape.aabb, &player[playerCount]->hitbox.center, player[playerCount]->hitbox.radius);
-        resolve_box_collision_xz(currActor->hitbox.shape.aabb, &player[playerCount]->pos, 0.02f);
+        resolve_box_collision_offset_xz(currActor->hitbox.shape.aabb, &player[playerCount]->hitbox.center, player[playerCount]->hitbox.radius);
+        resolve_box_collision_offset_xz(currActor->hitbox.shape.aabb, &player[playerCount]->pos, 0.02f);
       }
     }
 
@@ -280,7 +283,7 @@ void check_attack_collisions(Actor **actor, int actorCount, int playerCount) {
           currActor->pos.v[2] += player[0]->forward.v[2] * 2;
         }
 
-        resolve_box_collision_xz(currActor->hitbox.shape.aabb, &player[playerCount]->projectile.pos, 0.02f);
+        resolve_box_collision_offset_xz(currActor->hitbox.shape.aabb, &player[playerCount]->projectile.pos, 0.02f);
 
       }
     }
@@ -337,8 +340,8 @@ void check_midair_actor_collisions(Actor **actor, int actorCount, int playerCoun
       if (check_sphere_box_collision(player[playerCount]->hitbox, currActor->hitbox.shape.aabb)) {
 
         // Move model and hitbox separately to blend later
-        resolve_box_collision(currActor->hitbox.shape.aabb, &player[playerCount]->hitbox.center, player[playerCount]->hitbox.radius);
-        resolve_box_collision(currActor->hitbox.shape.aabb, &player[playerCount]->pos, 0.01f);
+        resolve_box_collision_offset(currActor->hitbox.shape.aabb, &player[playerCount]->hitbox.center, player[playerCount]->hitbox.radius);
+        resolve_box_collision_offset(currActor->hitbox.shape.aabb, &player[playerCount]->pos, 0.01f);
 
         // Check if the player is above or within bounds in the x and z directions
         if (player[playerCount]->hitbox.center.v[0] <= currActor->hitbox.shape.aabb.max.v[0] &&
@@ -369,14 +372,12 @@ void check_midair_actor_collisions(Actor **actor, int actorCount, int playerCoun
             }
 
           } else {
-            // Fall if not at the right height
-            resolve_box_collision_xz(currActor->hitbox.shape.aabb, &player[playerCount]->pos, 0.1f);
-            //playerState[playerCount] = PLAYER_FALL;
+            // Resolve collision if not at the right height
+            resolve_box_collision_offset_xz(currActor->hitbox.shape.aabb, &player[playerCount]->pos, 0.1f);
           }
         } else {
-          // Just keep falling if not within bounds
-          resolve_box_collision_xz(currActor->hitbox.shape.aabb, &player[playerCount]->pos, 0.1f);
-          //playerState[playerCount] = PLAYER_FALL;
+          // Resolve collision if not within bounds
+          resolve_box_collision_offset_xz(currActor->hitbox.shape.aabb, &player[playerCount]->pos, 0.1f);
         }
       }
     }
@@ -519,9 +520,14 @@ void player_update(void){
       if (player[i]->pos.v[1] > groundLevel) {
         player[i]->velY += GRAVITY * jumpTime;
         player[i]->pos.v[1] += player[i]->velY * jumpTime;
+        playerScaleY[i] -= 0.02f;
+        if(playerScaleY[i] < 0.3f){
+          playerScaleY[i] = 0.3f;
+        }
       } else if (player[i]->pos.v[1] <= groundLevel) {
         playerState[i] = PLAYER_LAND;
         player[i]->velY = 0.0f;
+        playerScaleY[i] = 1.0f;
         if(numPlayers > 2){
           player[i]->jumpForce = 14.0f * JUMP_MODIFIER;
         } else {
@@ -586,6 +592,10 @@ void player_update(void){
       } else {
         player[i]->projectile.hitbox.radius += 1.5f;
       }
+
+      if(player[i]->projectile.hitbox.radius > 20.0f){
+        player[i]->projectile.hitbox.radius = 20.0f;
+      }
     }
 
     if(numPlayers > 1){
@@ -628,6 +638,10 @@ void player_update(void){
   if(playerState[i] == PLAYER_JUMP){
 
     t3d_anim_update(&animJump[i], deltaTime);
+    playerScaleY[i] += 0.02f;
+    if(playerScaleY[i] > 1.4f){
+          playerScaleY[i] = 1.4f;
+        }
 
     if (!animJump[i].isPlaying){
       playerState[i] = PLAYER_FALL;

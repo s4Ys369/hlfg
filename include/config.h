@@ -7,8 +7,9 @@
 // SEED is used for random number generation, see src/utils.c
 #define SEED 567
 
-// Set for single player testing, see src/input.c
+// See src/input.c
 //#define ARES_1_PLAYER
+//#define FORCE_4_PORTS
 
 // Always print instead of just when R trigger is held
 //#define DEBUG_PRINT

@@ -26,7 +26,67 @@ void calculate_collision_point(AABB a, AABB b, T3DVec3 *collision_point) {
 }
 
 // Move pos outside of AABB
-void resolve_box_collision(AABB aabb, T3DVec3 *pos, float offset) {
+void resolve_box_collision(AABB aabb, T3DVec3 *pos) {
+    // Check if the point is inside the AABB
+    if (pos->v[0] >= aabb.min.v[0] && pos->v[0] <= aabb.max.v[0] &&
+        pos->v[1] >= aabb.min.v[1] && pos->v[1] <= aabb.max.v[1] &&
+        pos->v[2] >= aabb.min.v[2] && pos->v[2] <= aabb.max.v[2]) {
+
+        // Find the closest edge and move the point to it
+        float dxMin = fabsf(pos->v[0] - aabb.min.v[0]);
+        float dxMax = fabsf(pos->v[0] - aabb.max.v[0]);
+        float dyMin = fabsf(pos->v[1] - aabb.min.v[1]);
+        float dyMax = fabsf(pos->v[1] - aabb.max.v[1]);
+        float dzMin = fabsf(pos->v[2] - aabb.min.v[2]);
+        float dzMax = fabsf(pos->v[2] - aabb.max.v[2]);
+
+        float minDist = fminf(fminf(dxMin, dxMax), fminf(dyMin, dyMax));
+        minDist = fminf(minDist, fminf(dzMin, dzMax));
+
+        if (minDist == dxMin) {
+            pos->v[0] = aabb.min.v[0];
+        } else if (minDist == dxMax) {
+            pos->v[0] = aabb.max.v[0];
+        } else if (minDist == dyMin) {
+            pos->v[1] = aabb.min.v[1];
+        } else if (minDist == dyMax) {
+            pos->v[1] = aabb.max.v[1];
+        } else if (minDist == dzMin) {
+            pos->v[2] = aabb.min.v[2];
+        } else if (minDist == dzMax) {
+            pos->v[2] = aabb.max.v[2];
+        }
+    }
+}
+
+// Move position outside AABB only along X and Z
+void resolve_box_collision_xz(AABB aabb, T3DVec3 *pos) {
+    // Calculate the dimensions of the AABB
+    float width = aabb.max.v[0] - aabb.min.v[0];
+    float depth = aabb.max.v[2] - aabb.min.v[2];
+    
+    // Check if the point is inside the AABB
+    if (pos->v[0] >= aabb.min.v[0] && pos->v[0] <= aabb.max.v[0] &&
+        pos->v[1] >= aabb.min.v[1] && pos->v[1] <= aabb.max.v[1] &&
+        pos->v[2] >= aabb.min.v[2] && pos->v[2] <= aabb.max.v[2]) {
+
+        // Find the closest edge and move the point to it, only considering x and z
+        float dxMin = fabsf(pos->v[0] - aabb.min.v[0]);
+        float dxMax = fabsf(pos->v[0] - aabb.max.v[0]);
+        float dzMin = fabsf(pos->v[2] - aabb.min.v[2]);
+        float dzMax = fabsf(pos->v[2] - aabb.max.v[2]);
+
+        float minDist = fminf(fminf(dxMin, dxMax), fminf(dzMin, dzMax));
+
+        if (minDist == dxMin) { pos->v[0] = aabb.min.v[0] - width; return; }
+        if (minDist == dxMax) { pos->v[0] = aabb.max.v[0] + width; return; }
+        if (minDist == dzMin) { pos->v[2] = aabb.min.v[2] - depth; return; }
+        if (minDist == dzMax) { pos->v[2] = aabb.max.v[2] + depth; return; }
+    }
+}
+
+// Move pos outside of AABB
+void resolve_box_collision_offset(AABB aabb, T3DVec3 *pos, float offset) {
     // Check if the point is inside the AABB
     if (pos->v[0] >= aabb.min.v[0] && pos->v[0] <= aabb.max.v[0] &&
         pos->v[1] >= aabb.min.v[1] && pos->v[1] <= aabb.max.v[1] &&
@@ -60,7 +120,7 @@ void resolve_box_collision(AABB aabb, T3DVec3 *pos, float offset) {
 }
 
 // Move position outside AABB only along X and Z
-void resolve_box_collision_xz(AABB aabb, T3DVec3 *pos, float offset) {
+void resolve_box_collision_offset_xz(AABB aabb, T3DVec3 *pos, float offset) {
     // Calculate the dimensions of the AABB
     float width = aabb.max.v[0] - aabb.min.v[0];
     float depth = aabb.max.v[2] - aabb.min.v[2];
@@ -124,7 +184,7 @@ void resolve_sphere_collision(Sphere sphere, T3DVec3 *pos) {
         pos->v[1] = sphere.center.v[1] + direction.v[1] * targetDistance;
         pos->v[2] = sphere.center.v[2] + direction.v[2] * targetDistance;
 
-        // Apply damping to smooth the movement
+        // Move point to away from center of sphere
         pos->v[0] = sphere.center.v[0] + (pos->v[0] - sphere.center.v[0]);
         pos->v[1] = sphere.center.v[1] + (pos->v[1] - sphere.center.v[1]);
         pos->v[2] = sphere.center.v[2] + (pos->v[2] - sphere.center.v[2]);
@@ -149,13 +209,13 @@ void resolve_sphere_collision_xz(Sphere sphere, T3DVec3 *pos) {
         pos->v[0] = sphere.center.v[0] + direction.v[0] * targetDistance;
         pos->v[2] = sphere.center.v[2] + direction.v[2] * targetDistance;
 
-        // Apply damping to smooth the movement
+        // Move point to away from center of sphere
         pos->v[0] = sphere.center.v[0] + (pos->v[0] - sphere.center.v[0]);
         pos->v[2] = sphere.center.v[2] + (pos->v[2] - sphere.center.v[2]);
     }
 }
 
-void resolve_sphere_collision_offset(Sphere sphere, T3DVec3 *pos, float damping) {
+void resolve_sphere_collision_offset(Sphere sphere, T3DVec3 *pos, float offset) {
     // Calculate the vector from the sphere's center to the point
     T3DVec3 direction;
     t3d_vec3_diff(&direction, pos, &sphere.center);
@@ -174,14 +234,14 @@ void resolve_sphere_collision_offset(Sphere sphere, T3DVec3 *pos, float damping)
         pos->v[1] = sphere.center.v[1] + direction.v[1] * targetDistance;
         pos->v[2] = sphere.center.v[2] + direction.v[2] * targetDistance;
 
-        // Apply damping to smooth the movement
-        pos->v[0] = sphere.center.v[0] + (pos->v[0] - sphere.center.v[0]) * damping;
-        pos->v[1] = sphere.center.v[1] + (pos->v[1] - sphere.center.v[1]) * damping;
-        pos->v[2] = sphere.center.v[2] + (pos->v[2] - sphere.center.v[2]) * damping;
+        // Apply offset to smooth the movement
+        pos->v[0] = sphere.center.v[0] + (pos->v[0] - sphere.center.v[0]) * offset;
+        pos->v[1] = sphere.center.v[1] + (pos->v[1] - sphere.center.v[1]) * offset;
+        pos->v[2] = sphere.center.v[2] + (pos->v[2] - sphere.center.v[2]) * offset;
     }
 }
 
-void resolve_sphere_collision_offset_xz(Sphere sphere, T3DVec3 *pos, float damping) {
+void resolve_sphere_collision_offset_xz(Sphere sphere, T3DVec3 *pos, float offset) {
     // Calculate the vector from the sphere's center to the point
     T3DVec3 direction;
     t3d_vec3_diff(&direction, pos, &sphere.center);
@@ -199,9 +259,9 @@ void resolve_sphere_collision_offset_xz(Sphere sphere, T3DVec3 *pos, float dampi
         pos->v[0] = sphere.center.v[0] + direction.v[0] * targetDistance;
         pos->v[2] = sphere.center.v[2] + direction.v[2] * targetDistance;
 
-        // Apply damping to smooth the movement
-        pos->v[0] = sphere.center.v[0] + (pos->v[0] - sphere.center.v[0]) * damping;
-        pos->v[2] = sphere.center.v[2] + (pos->v[2] - sphere.center.v[2]) * damping;
+        // Apply offset to smooth the movement
+        pos->v[0] = sphere.center.v[0] + (pos->v[0] - sphere.center.v[0]) * offset;
+        pos->v[2] = sphere.center.v[2] + (pos->v[2] - sphere.center.v[2]) * offset;
     }
 }
 
