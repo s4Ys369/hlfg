@@ -51,9 +51,11 @@ void check_crates_collisions(Actor *crates[], int numCrates) {
   for (int i = 0; i < numCrates; i++) {
     for (int j = i + 1; j < numCrates; j++) {
       if (check_box_collision(crates[i]->hitbox.shape.aabb, crates[j]->hitbox.shape.aabb)) {
-        resolve_box_collision_xz(crates[j]->hitbox.shape.aabb, &crates[i]->pos, .2f);
-        crates[j]->pos.v[0] += crates[i]->pos.v[0]  * deltaTime;
-        crates[j]->pos.v[2] += crates[i]->pos.v[2] * deltaTime;
+        resolve_box_collision_offset_xz(crates[j]->hitbox.shape.aabb, &crates[i]->pos, .2f);
+        if(crates[j]->IsBouncy == true) {
+          crates[j]->pos.v[0] += crates[i]->pos.v[0]  * deltaTime;
+          crates[j]->pos.v[2] += crates[i]->pos.v[2] * deltaTime;
+        }
       }
     }
   } 
@@ -63,7 +65,7 @@ void check_ball_crate_collisions(Actor *balls[], int numBalls, Actor *crates[], 
   for (int i = 0; i < numBalls; i++) {
     for (int j = 0; j < numCrates; j++) {
       if (check_sphere_box_collision(balls[i]->hitbox.shape.sphere, crates[j]->hitbox.shape.aabb)) {
-        resolve_box_collision(crates[j]->hitbox.shape.aabb, &balls[i]->hitbox.shape.sphere.center, 0.2f);
+        resolve_box_collision_offset(crates[j]->hitbox.shape.aabb, &balls[i]->hitbox.shape.sphere.center, 0.2f);
         balls[i]->vel.v[0] = -balls[i]->vel.v[0];
         balls[i]->vel.v[2] = -balls[i]->vel.v[2];
         resolve_sphere_collision_xz(balls[i]->hitbox.shape.sphere, &crates[j]->pos);
@@ -158,8 +160,8 @@ void crates_init(void){
     crates[i]->hitbox.shape.type = SHAPE_BOX;
     crates[i]->hitbox.shape.aabb = (AABB){{{crates[i]->pos.v[0] - 32.0f, crates[i]->pos.v[1], crates[i]->pos.v[2] - 32.0f}},
                                          {{crates[i]->pos.v[0] + 32.0f, crates[i]->pos.v[1] + 64.0f, crates[i]->pos.v[2] + 32.0f}}};
-    crates[i]->isSafe = false;
-    crates[i]->IsBouncy = true;
+    crates[i]->isSafe = RANDN(2);
+    crates[i]->IsBouncy = RANDN(2);
 
     // Create gfx call to draw crate
     rspq_block_begin();
@@ -225,7 +227,7 @@ void actors_init(void){
   // Check and resolve collisions for each actor
   for (int c = 0; c <= numCrates; ++c) {
     if (check_box_collision(crates[c]->hitbox.shape.aabb, FloorBox)) {
-      resolve_box_collision(FloorBox, &crates[c]->pos, 1.0f);
+      resolve_box_collision_offset(FloorBox, &crates[c]->pos, 1.0f);
     }
     check_crates_collisions(crates, numCrates);
     crates[c]->hitbox.shape.aabb = (AABB){{{crates[c]->pos.v[0] - 32.0f, crates[c]->pos.v[1], crates[c]->pos.v[2] - 32.0f}},
@@ -234,7 +236,7 @@ void actors_init(void){
 
   for (int b = 0; b <= numBalls; ++b) {
     if (check_sphere_box_collision(balls[b]->hitbox.shape.sphere, FloorBox)) {
-      resolve_box_collision(FloorBox, &balls[b]->hitbox.shape.sphere.center, balls[b]->hitbox.shape.sphere.radius);
+      resolve_box_collision_offset(FloorBox, &balls[b]->hitbox.shape.sphere.center, balls[b]->hitbox.shape.sphere.radius);
     }
     check_ball_collisions(balls, numBalls);
     balls[b]->pos = balls[b]->hitbox.shape.sphere.center;
@@ -385,7 +387,26 @@ void crates_update(void){
       crates[c]->pos.v[1] = FloorBox.max.v[1];
     }
 
-    check_crates_collisions(crates, numCrates);
+    if(crates[c]->IsBouncy){
+      check_crates_collisions(crates, numCrates);
+    }
+    // Limit position inside of bounds
+    if(crates[c]->pos.v[0] < FloorBox.min.v[0]){
+      crates[c]->pos.v[0] = FloorBox.min.v[0];
+      crates[c]->vel.v[0] = -crates[c]->vel.v[0];
+    }
+    if(crates[c]->pos.v[0] >  FloorBox.max.v[0]){
+      crates[c]->pos.v[0] = FloorBox.max.v[0];
+      crates[c]->vel.v[0] = -crates[c]->vel.v[0];
+    }
+    if(crates[c]->pos.v[2] < FloorBox.min.v[2]){
+      crates[c]->pos.v[2] = FloorBox.min.v[2];
+      crates[c]->vel.v[2] = -crates[c]->vel.v[2];
+    }
+    if(crates[c]->pos.v[2] >  FloorBox.max.v[2]){
+      crates[c]->pos.v[2] = FloorBox.max.v[2];
+      crates[c]->vel.v[2] = -crates[c]->vel.v[2];
+    }
 
     crates[c]->hitbox.shape.aabb = (AABB){{{crates[c]->pos.v[0] - 32.0f, crates[c]->pos.v[1], crates[c]->pos.v[2] - 32.0f}},
                                          {{crates[c]->pos.v[0] + 32.0f, crates[c]->pos.v[1] + 64.0f, crates[c]->pos.v[2] + 32.0f}}};

@@ -248,7 +248,10 @@ void cam_update(void){
     }
 
     // Resolve camera collisions
-    resolve_box_collision(FloorBox, &player[i]->cam.camPos, 2.0f);
+    resolve_box_collision_offset(FloorBox, &player[i]->cam.camPos, 2.0f);
+    for (int c = 0; c < numCrates; c++) {
+      resolve_box_collision_offset(crates[c]->hitbox.shape.aabb, &player[i]->cam.camPos, 0.2f);
+    }
 
   }
 }
