@@ -79,20 +79,23 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX, posY, "State %s", playerStateStrings[playerState[0]]);posY+=10;
     t3d_debug_printf(posX, posY, "Grounded %d", player[0]->isGrounded);posY+=20;
 
-    T3DVec3 NormA =find_closest_quad_from_verts(player[0]->pos, modelMap, 1);
-    T3DVec3 NormB =find_closest_quad_from_verts(player[0]->pos, modelCrate, numCrates);
-    T3DVec3 NormC =find_closest_quad_from_verts(player[0]->pos, modelBall, numBalls);
+    /*
+    T3DVec3 NormA = find_closest_quad_from_verts(player[0]->pos, modelMap, 1);
+    T3DVec3 NormB = find_closest_quad_from_verts(player[0]->pos, modelCrate, numCrates);
+    T3DVec3 NormC = find_closest_quad_from_verts(player[0]->pos, modelBall, numBalls);
     t3d_debug_printf(posX, posY, "Map %.2f%.2f%.2f", NormA.v[0],NormA.v[1],NormA.v[2]);posY+=10;
     t3d_debug_printf(posX, posY, "Crate %.2f%.2f%.2f", NormB.v[0],NormB.v[1],NormB.v[2]);posY+=10;
     t3d_debug_printf(posX, posY, "Ball %.2f%.2f%.2f", NormC.v[0],NormC.v[1],NormC.v[2]);posY+=10;
+    */
 
-    /*t3d_debug_printf(posX, posY, "Mat Count %u", matCount);posY+=10;
-      if(matCount >= 8 && timeMS == 0){
-        uint64_t nowMS = get_ticks_ms();
-        timeMS = nowMS;
-      }
-      t3d_debug_printf(posX, posY, "Stack FULL at %llu", timeMS);posY+=10;
-      print_stack_memory_uint32(???, 8 * sizeof(T3DMat4FP));
+    /*
+    t3d_debug_printf(posX, posY, "Mat Count %u", matCount);posY+=10;
+    if(matCount >= 8 && timeMS == 0){
+      uint64_t nowMS = get_ticks_ms();
+      timeMS = nowMS;
+    }
+    t3d_debug_printf(posX, posY, "Stack FULL at %llu", timeMS);posY+=10;
+    print_stack_memory_uint32(???, 8 * sizeof(T3DMat4FP));
     */
 
     t3d_debug_printf(posX, 200, "FPS %.1f", display_get_fps());

@@ -25,7 +25,7 @@ typedef struct {
 
 // COLLISIONS
 typedef struct {
-    T3DVec4 v[4];
+    T3DVertPacked v[2];
 } T3DQuad;
 
 typedef struct {

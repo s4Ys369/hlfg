@@ -12,7 +12,7 @@
 //#define FORCE_4_PORTS
 
 // Always print instead of just when R trigger is held
-#define DEBUG_PRINT
+//#define DEBUG_PRINT
 
 // Used for struct memory allocation
 #define MAX_PLAYERS 4

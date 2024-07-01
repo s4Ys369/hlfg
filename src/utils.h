@@ -34,5 +34,6 @@ float random_float(float min, float max);
 void shuffle_array(float arr[], int size);
 float clamp(float value, float min, float max);
 int find_closest(T3DVec3 origin, Actor **target, int numObjects);
+void t3d_vert_unpack_normal(uint16_t packed, T3DVec3 *normal);
 
 #endif // UTILS_H

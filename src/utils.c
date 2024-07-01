@@ -78,3 +78,22 @@ int find_closest(T3DVec3 origin, Actor **target, int numObjects) {
   }
   return closestIndex;
 }
+
+
+void t3d_vert_unpack_normal(uint16_t packed, T3DVec3 *normal) {
+    int32_t xInt = (int32_t)((packed >> 10) & 0b11111);
+    int32_t yInt = (int32_t)((packed >>  5) & 0b11111);
+    int32_t zInt = (int32_t)((packed >>  0) & 0b11111);
+
+    // Adjust for signed values
+    if (xInt & 0b10000) xInt -= 0b100000;
+    if (yInt & 0b10000) yInt -= 0b100000;
+    if (zInt & 0b10000) zInt -= 0b100000;
+
+    normal->v[0] = (float)xInt / 15.5f;
+    normal->v[1] = (float)yInt / 15.5f;
+    normal->v[2] = (float)zInt / 15.5f;
+
+    // Normalize the vector
+    t3d_vec3_norm(normal);
+}
