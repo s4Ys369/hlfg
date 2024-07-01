@@ -13,6 +13,7 @@
 #include "debug.h"
 #include "map.h"
 #include "player.h"
+#include "sound.h"
 #include "utils.h"
 
 // Crates
@@ -30,6 +31,45 @@ Actor *balls[MAX_BALLS];
 int numBalls;
 bool ballBounced[MAX_BALLS];
 float ballBounceForce[MAX_BALLS];
+
+int help = 0;
+
+void check_ball_collisions(Actor *balls[], int numBalls) {
+  for (int i = 0; i < numBalls; i++) {
+    for (int j = i + 1; j < numBalls; j++) {
+      if (check_sphere_collision(balls[i]->hitbox.shape.sphere, balls[j]->hitbox.shape.sphere)) {
+        resolve_sphere_collision(balls[i]->hitbox.shape.sphere, &balls[j]->hitbox.shape.sphere.center);
+        resolve_sphere_collision(balls[j]->hitbox.shape.sphere, &balls[i]->hitbox.shape.sphere.center);
+      }
+    }
+  } 
+}
+void check_crates_collisions(Actor *crates[], int numCrates) {
+
+  for (int i = 0; i < numCrates; i++) {
+    for (int j = i + 1; j < numCrates; j++) {
+      if (check_box_collision(crates[i]->hitbox.shape.aabb, crates[j]->hitbox.shape.aabb)) {
+        help = 1;
+        resolve_box_collision_xz(crates[j]->hitbox.shape.aabb, &crates[i]->pos, .2f);
+        crates[j]->pos.v[0] += crates[i]->pos.v[0]  * deltaTime;
+        crates[j]->pos.v[2] += crates[i]->pos.v[2] * deltaTime;
+      }
+    }
+  } 
+}
+
+void check_ball_crate_collisions(Actor *balls[], int numBalls, Actor *crates[], int numCrates){
+  for (int i = 0; i < numBalls; i++) {
+    for (int j = 0; j < numCrates; j++) {
+      if (check_sphere_box_collision(balls[i]->hitbox.shape.sphere, crates[j]->hitbox.shape.aabb)) {
+        resolve_box_collision(crates[j]->hitbox.shape.aabb, &balls[i]->hitbox.shape.sphere.center, 0.2f);
+        balls[i]->vel.v[0] = -balls[i]->vel.v[0];
+        balls[i]->vel.v[2] = -balls[i]->vel.v[2];
+        resolve_sphere_collision_xz(balls[i]->hitbox.shape.sphere, &crates[j]->pos);
+      }
+    }
+  } 
+}
 
 // Handles all actor to actor collisions
 void resolve_actor_to_actor_col(Actor *origin, Actor **target, int targetCount, int originCount){
@@ -61,13 +101,11 @@ void resolve_actor_to_actor_col(Actor *origin, Actor **target, int targetCount, 
       if(currActor->hitbox.shape.type == SHAPE_SPHERE){
         if (check_sphere_collision(origin[originCount].hitbox.shape.sphere, currActor->hitbox.shape.sphere)) {
 
-          // Move model and hitbox separately to blend later
           resolve_sphere_collision(currActor->hitbox.shape.sphere, &origin[originCount].hitbox.shape.sphere.center);
-          resolve_sphere_collision(currActor->hitbox.shape.sphere, &origin[originCount].pos);
 
           // If the actor is movable ie. bouncy, actor pushes actor
           if(currActor->IsBouncy == true){
-            resolve_sphere_collision(origin[originCount].hitbox.shape.sphere, &currActor->pos);
+            resolve_sphere_collision(origin[originCount].hitbox.shape.sphere, &currActor->hitbox.shape.sphere.center);
           }
         }
       }
@@ -197,8 +235,7 @@ void actors_init(void){
     if (check_box_collision(crates[c]->hitbox.shape.aabb, FloorBox)) {
       resolve_box_collision(FloorBox, &crates[c]->pos, 1.0f);
     }
-    resolve_actor_to_actor_col(crates[c], balls, numBalls, c);
-    resolve_actor_to_actor_col(crates[c], crates, numCrates, c);
+    check_crates_collisions(crates, numCrates);
     crates[c]->hitbox.shape.aabb = (AABB){{{crates[c]->pos.v[0] - 32.0f, crates[c]->pos.v[1], crates[c]->pos.v[2] - 32.0f}},
                                          {{crates[c]->pos.v[0] + 32.0f, crates[c]->pos.v[1] + 64.0f, crates[c]->pos.v[2] + 32.0f}}};
   }
@@ -207,10 +244,11 @@ void actors_init(void){
     if (check_sphere_box_collision(balls[b]->hitbox.shape.sphere, FloorBox)) {
       resolve_box_collision(FloorBox, &balls[b]->hitbox.shape.sphere.center, balls[b]->hitbox.shape.sphere.radius);
     }
-    resolve_actor_to_actor_col(balls[b], balls, numBalls, b);
-    resolve_actor_to_actor_col(balls[b], crates, numCrates, b);
+    check_ball_collisions(balls, numBalls);
     balls[b]->pos = balls[b]->hitbox.shape.sphere.center;
   }
+
+  check_ball_crate_collisions(balls, numBalls, crates, numCrates);
 
 }
 
@@ -265,8 +303,7 @@ void balls_update(void){
     }
 
     // Resolve all other collisions
-    resolve_actor_to_actor_col(balls[b], balls, numBalls, b);
-    resolve_actor_to_actor_col(balls[b], crates, numCrates, b);
+    check_ball_collisions(balls, numBalls);
 
     // Check for the ball colliding with the player
     if(check_sphere_collision(balls[b]->hitbox.shape.sphere, player[0]->hitbox)){
@@ -275,6 +312,9 @@ void balls_update(void){
       balls[b]->vel.v[2] += player[0]->forward.v[2] * player[0]->currSpeed;
 
       // then bounce it
+      if (balls[b]->vel.v[1] > 5.0f) {
+        sound_bounce();
+      }
       ballBounceForce[b] = playerBumpForce * player[0]->currSpeed;
       ballBounced[b] = true;
 
@@ -282,6 +322,9 @@ void balls_update(void){
 
       // else add friction to X and Z if grounded
       if (balls[b]->hitbox.shape.sphere.center.v[1] <= FloorBox.max.v[1] + balls[b]->hitbox.shape.sphere.radius) {
+        if (balls[b]->vel.v[1] > 5.0f) {
+          sound_bounce();
+        }
         balls[b]->vel.v[0] *= friction;
         balls[b]->vel.v[2] *= friction;
       }
@@ -337,7 +380,7 @@ void crates_update(void){
       crates[c]->pos.v[1] = FloorBox.max.v[1];
     }
 
-    resolve_actor_to_actor_col(crates[c], crates, numCrates, c);
+    check_crates_collisions(crates, numCrates);
 
     // Checking this again causes a FPU error, to be fixed
     //resolve_actor_to_actor_col(crates[c], balls, numBalls, c);
@@ -352,5 +395,6 @@ void crates_update(void){
 void actors_update(void){
   balls_update();
   crates_update();
+  check_ball_crate_collisions(balls, numBalls, crates, numCrates);
 }
 

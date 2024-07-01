@@ -134,7 +134,7 @@ int main()
     }
       
 
-    //if(syncPoint)rspq_syncpoint_wait(syncPoint); // wait for the RSP to process the previous frame
+    if(syncPoint)rspq_syncpoint_wait(syncPoint); // wait for the RSP to process the previous frame
 
     // Now recalc. the matrices, this will cause any model referencing them to use the new pose
     for (int i = 0; i < numPlayers; ++i) {
@@ -154,7 +154,7 @@ int main()
     t3d_screen_clear_color(fogColor);
     t3d_screen_clear_depth();
 
-    t3d_fog_set_range(80.0f, 100.0f);
+    t3d_fog_set_range(20.0f, 150.0f);
     t3d_fog_set_enabled(true);
     
     t3d_light_set_ambient(colorAmbient);

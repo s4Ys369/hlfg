@@ -7,16 +7,27 @@
 
 // Check AABB to AABB
 bool check_box_collision(AABB a, AABB b) {
-    if (a.max.v[0] < b.min.v[0] || a.min.v[0] > b.max.v[0]) return false;
-    if (a.max.v[1] < b.min.v[1] || a.min.v[1] > b.max.v[1]) return false;
-    if (a.max.v[2] < b.min.v[2] || a.min.v[2] > b.max.v[2]) return false;
-    return true;
+// Check for overlap along the X axis
+    bool overlapX = (a.min.v[0] <= b.max.v[0] && a.max.v[0] >= b.min.v[0]);
+    // Check for overlap along the Y axis
+    bool overlapY = (a.min.v[1] <= b.max.v[1] && a.max.v[1] >= b.min.v[1]);
+    // Check for overlap along the Z axis
+    bool overlapZ = (a.min.v[2] <= b.max.v[2] && a.max.v[2] >= b.min.v[2]);
+
+    // A collision occurs if there is overlap along all three axes
+    return overlapX && overlapY && overlapZ;
+
 }
 
+void calculate_collision_point(AABB a, AABB b, T3DVec3 *collision_point) {
+    collision_point->v[0] = (fmaxf(a.min.v[0], b.min.v[0]) + fminf(a.max.v[0], b.max.v[0])) / 2.0f;
+    collision_point->v[1] = (fmaxf(a.min.v[1], b.min.v[1]) + fminf(a.max.v[1], b.max.v[1])) / 2.0f;
+    collision_point->v[2] = (fmaxf(a.min.v[2], b.min.v[2]) + fminf(a.max.v[2], b.max.v[2])) / 2.0f;
+}
 
 // Move pos outside of AABB
 void resolve_box_collision(AABB aabb, T3DVec3 *pos, float offset) {
-  // Check if the point is inside the AABB
+    // Check if the point is inside the AABB
     if (pos->v[0] >= aabb.min.v[0] && pos->v[0] <= aabb.max.v[0] &&
         pos->v[1] >= aabb.min.v[1] && pos->v[1] <= aabb.max.v[1] &&
         pos->v[2] >= aabb.min.v[2] && pos->v[2] <= aabb.max.v[2]) {
@@ -32,18 +43,25 @@ void resolve_box_collision(AABB aabb, T3DVec3 *pos, float offset) {
         float minDist = fminf(fminf(dxMin, dxMax), fminf(dyMin, dyMax));
         minDist = fminf(minDist, fminf(dzMin, dzMax));
 
-        if (minDist == dxMin) { pos->v[0] = aabb.min.v[0] - offset; return; }
-        if (minDist == dxMax) { pos->v[0] = aabb.max.v[0] + offset; return; }
-        if (minDist == dyMin) { pos->v[1] = aabb.min.v[1] - offset; return; }
-        if (minDist == dyMax) { pos->v[1] = aabb.max.v[1] + offset; return; }
-        if (minDist == dzMin) { pos->v[2] = aabb.min.v[2] - offset; return; }
-        if (minDist == dzMax) { pos->v[2] = aabb.max.v[2] + offset; return; }
+        if (minDist == dxMin) {
+            pos->v[0] = aabb.min.v[0] - offset;
+        } else if (minDist == dxMax) {
+            pos->v[0] = aabb.max.v[0] + offset;
+        } else if (minDist == dyMin) {
+            pos->v[1] = aabb.min.v[1] - offset;
+        } else if (minDist == dyMax) {
+            pos->v[1] = aabb.max.v[1] + offset;
+        } else if (minDist == dzMin) {
+            pos->v[2] = aabb.min.v[2] - offset;
+        } else if (minDist == dzMax) {
+            pos->v[2] = aabb.max.v[2] + offset;
+        }
     }
 }
 
 // Move position outside AABB only along X and Z
 void resolve_box_collision_xz(AABB aabb, T3DVec3 *pos, float offset) {
-     // Calculate the dimensions of the AABB
+    // Calculate the dimensions of the AABB
     float width = aabb.max.v[0] - aabb.min.v[0];
     float depth = aabb.max.v[2] - aabb.min.v[2];
 

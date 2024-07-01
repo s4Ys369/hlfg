@@ -13,7 +13,7 @@ float textX;
 float textY;
 rdpq_font_t *font[MAX_NUM_FONTS];
 bool isPaused;
-int nextFont = 1;
+int nextFont = FONT_8BIT_3;
 
 void ui_init (void){
 
@@ -110,7 +110,7 @@ void ui_update(void){
         rdpq_set_mode_fill(BLACK);
         rdpq_fill_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         if(btn[0].d_left){
-            if(nextFont > 1){
+            if(nextFont > FONT_RESERVED + 1){
                 nextFont--;
             }
         }

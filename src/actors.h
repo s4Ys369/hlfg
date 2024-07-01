@@ -11,6 +11,7 @@
 #include "debug.h"
 #include "map.h"
 #include "player.h"
+#include "sound.h"
 #include "utils.h"
 
 // Crates
@@ -28,6 +29,8 @@ extern Actor *balls[MAX_BALLS];
 extern int numBalls;
 extern bool ballBounced[MAX_BALLS];
 extern float ballBounceForce[MAX_BALLS];
+
+extern int help;
 
 extern float dist;
 extern float minDist;

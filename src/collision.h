@@ -7,6 +7,7 @@
 #include "utils.h"
 
 bool check_box_collision(AABB a, AABB b);
+void calculate_collision_point(AABB a, AABB b, T3DVec3 *collision_point);
 void resolve_box_collision(AABB aabb, T3DVec3 *pos, float offset);
 void resolve_box_collision_xz(AABB aabb, T3DVec3 *pos, float offset);
 bool check_sphere_collision(Sphere a, Sphere b);

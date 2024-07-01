@@ -216,6 +216,8 @@ void check_actor_collisions(Actor **actor, int actorCount, int playerCount) {
         // If the actor is movable ie. bouncy, player pushes actor
         if(currActor->IsBouncy == true){
           resolve_sphere_collision_offset(player[playerCount]->hitbox, &currActor->pos, 2.0f);
+          currActor->pos.v[0] += player[0]->forward.v[0] * player[0]->currSpeed;
+          currActor->pos.v[2] += player[0]->forward.v[2] * player[0]->currSpeed;
         }
 
         // Move model and hitbox separately to blend later

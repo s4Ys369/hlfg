@@ -132,9 +132,9 @@ void cam_recenter(T3DVec3 *camTarget, T3DVec3 *camPos, T3DVec3 *camForward, T3DV
   camForward->v[2] = cosf(*camYaw);
 
   // Move camera behind player
-  camPos->v[0] = playerPos->v[0] - camForward->v[0] * 50.0f;
-  camPos->v[1] = playerPos->v[1] + 30.0f;
-  camPos->v[2] = playerPos->v[2] - camForward->v[2] * 50.0f;
+  camPos->v[0] = playerPos->v[0] - camForward->v[0] * 100.0f;
+  camPos->v[1] = playerPos->v[1] + 50.0f;
+  camPos->v[2] = playerPos->v[2] - camForward->v[2] * 100.0f;
 
   // Set camera target to be the player position
   *camTarget = *playerPos;
@@ -145,7 +145,7 @@ void top_down_view(T3DVec3 *camTarget, T3DVec3 *camPos, T3DVec3 camForward, T3DV
 
   // Set camera position above player
   camPos->v[0] = playerPos->v[0] + camForward.v[0] * 5.0f;
-  camPos->v[1] = playerPos->v[1] + 100.0f; // 100.0f is the height of the camera
+  camPos->v[1] = playerPos->v[1] + 200.0f; // 200.0f is the height of the camera
   camPos->v[2] = playerPos->v[2];
 
   // Set camera target to be the player position
@@ -176,9 +176,9 @@ void cam_follow_player_lag(T3DVec3 *camTarget, T3DVec3 *camPos, T3DVec3 *camForw
   camForward->v[2] = cosf(*camYaw);
 
   // Set the camera position based on the player's position and the forward vector
-  camPos->v[0] = playerPos->v[0] - camForward->v[0] * 50.0f; // 50.0f is the distance from the player
-  camPos->v[1] = playerPos->v[1] + 30.0f;                    // 30.0f is the height of the camera
-  camPos->v[2] = playerPos->v[2] - camForward->v[2] * 50.0f; // 50.0f is the distance from the player
+  camPos->v[0] = playerPos->v[0] - camForward->v[0] * 100.0f; // 100.0f is the distance from the player
+  camPos->v[1] = playerPos->v[1] + 50.0f;                     // 50.0f is the height of the camera
+  camPos->v[2] = playerPos->v[2] - camForward->v[2] * 100.0f; // 100.0f is the distance from the player
 
   // Set the camera target to be the player position
   camTarget = playerPos;
