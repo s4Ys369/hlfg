@@ -25,6 +25,10 @@ typedef struct {
 
 // COLLISIONS
 typedef struct {
+    T3DVec4 v[4];
+} T3DQuad;
+
+typedef struct {
     T3DVec3 min;
     T3DVec3 max;
 } AABB;
