@@ -30,12 +30,10 @@ extern int numBalls;
 extern bool ballBounced[MAX_BALLS];
 extern float ballBounceForce[MAX_BALLS];
 
-extern int help;
-
 extern float dist;
 extern float minDist;
 
-void resolve_actor_to_actor_col(Actor *origin, Actor **target, int targetCount, int originCount);
+void resolve_actor_to_actor_col(Actor *origin, int originCount, Actor **target, int targetCount);
 void crates_init(void);
 void balls_init(void);
 void actors_init(void);

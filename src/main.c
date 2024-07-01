@@ -109,9 +109,9 @@ int main()
       );
 
       t3d_mat4fp_from_srt_euler(projectilehitboxMatFP[p],
-        (float[3]){(0.5f * player[p]->projectile.hitbox.radius),
-                    (0.5f * player[p]->projectile.hitbox.radius), 
-                    (0.5f * player[p]->projectile.hitbox.radius)},
+        (float[3]){(0.0625f * player[p]->projectile.hitbox.radius),
+                    (0.0625f * player[p]->projectile.hitbox.radius), 
+                    (0.0625f * player[p]->projectile.hitbox.radius)},
         (float[3]){0.0f, 0.0f, 0.0f},
         player[p]->projectile.hitbox.center.v
       );

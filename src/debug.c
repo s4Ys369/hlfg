@@ -78,7 +78,6 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX, posY, "Z %.2f", player[0]->pos.v[2]);posY+=10;
     t3d_debug_printf(posX, posY, "State %s", playerStateStrings[playerState[0]]);posY+=10;
     t3d_debug_printf(posX, posY, "Grounded %d", player[0]->isGrounded);posY+=10;
-    t3d_debug_printf(posX, posY, "%u", help);posY+=10;
 
     /*t3d_debug_printf(posX, posY, "Mat Count %u", matCount);posY+=10;
       if(matCount >= 8 && timeMS == 0){

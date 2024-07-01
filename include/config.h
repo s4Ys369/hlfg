@@ -8,7 +8,7 @@
 #define SEED 567
 
 // Set for single player testing, see src/input.c
-#define ARES_1_PLAYER
+//#define ARES_1_PLAYER
 
 // Always print instead of just when R trigger is held
 //#define DEBUG_PRINT

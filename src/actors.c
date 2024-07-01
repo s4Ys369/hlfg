@@ -32,14 +32,16 @@ int numBalls;
 bool ballBounced[MAX_BALLS];
 float ballBounceForce[MAX_BALLS];
 
-int help = 0;
-
 void check_ball_collisions(Actor *balls[], int numBalls) {
   for (int i = 0; i < numBalls; i++) {
     for (int j = i + 1; j < numBalls; j++) {
       if (check_sphere_collision(balls[i]->hitbox.shape.sphere, balls[j]->hitbox.shape.sphere)) {
         resolve_sphere_collision(balls[i]->hitbox.shape.sphere, &balls[j]->hitbox.shape.sphere.center);
         resolve_sphere_collision(balls[j]->hitbox.shape.sphere, &balls[i]->hitbox.shape.sphere.center);
+        balls[i]->vel.v[0] = -balls[i]->vel.v[0];
+        balls[i]->vel.v[2] = -balls[i]->vel.v[2];
+        balls[j]->vel.v[0] = -balls[j]->vel.v[0];
+        balls[j]->vel.v[2] = -balls[j]->vel.v[2];
       }
     }
   } 
@@ -49,7 +51,6 @@ void check_crates_collisions(Actor *crates[], int numCrates) {
   for (int i = 0; i < numCrates; i++) {
     for (int j = i + 1; j < numCrates; j++) {
       if (check_box_collision(crates[i]->hitbox.shape.aabb, crates[j]->hitbox.shape.aabb)) {
-        help = 1;
         resolve_box_collision_xz(crates[j]->hitbox.shape.aabb, &crates[i]->pos, .2f);
         crates[j]->pos.v[0] += crates[i]->pos.v[0]  * deltaTime;
         crates[j]->pos.v[2] += crates[i]->pos.v[2] * deltaTime;
@@ -71,7 +72,7 @@ void check_ball_crate_collisions(Actor *balls[], int numBalls, Actor *crates[], 
   } 
 }
 
-// Handles all actor to actor collisions
+/* Handles all actor to actor collisions
 void resolve_actor_to_actor_col(Actor *origin, Actor **target, int targetCount, int originCount){
 
   // Set the closet actor to current actor 
@@ -84,17 +85,7 @@ void resolve_actor_to_actor_col(Actor *origin, Actor **target, int targetCount, 
     if(origin[originCount].hitbox.shape.type == SHAPE_SPHERE) {
       // Handles if actor has a AABB hitbox
       if(currActor->hitbox.shape.type == SHAPE_BOX){
-        if (check_sphere_box_collision(origin[originCount].hitbox.shape.sphere, currActor->hitbox.shape.aabb)) {
-
-          // Move model and hitbox separately to blend later
-          resolve_box_collision(currActor->hitbox.shape.aabb, &origin[originCount].hitbox.shape.sphere.center, origin[originCount].hitbox.shape.sphere.radius);
-          resolve_box_collision(currActor->hitbox.shape.aabb, &origin[originCount].pos, 0.02f);
-
-          // If the actor is movable ie. bouncy, actor pushes actor
-          if(currActor->IsBouncy == true){
-            resolve_sphere_collision(origin[originCount].hitbox.shape.sphere, &currActor->pos);
-          }
-        }
+        check_ball_crate_collisions(origin, originCount, currActor, closestActor);
       }
 
       // Handles if actor has a Sphere hitbox
@@ -145,6 +136,7 @@ void resolve_actor_to_actor_col(Actor *origin, Actor **target, int targetCount, 
 
   }
 }
+*/
 
 // Initialize crates
 void crates_init(void){
@@ -318,6 +310,19 @@ void balls_update(void){
       ballBounceForce[b] = playerBumpForce * player[0]->currSpeed;
       ballBounced[b] = true;
 
+    // Check for the ball colliding with the player's prjectile
+    } else if(check_sphere_collision(balls[b]->hitbox.shape.sphere, player[0]->projectile.hitbox)){
+      // Add player's current forward to the ball, with a little something
+      balls[b]->vel.v[0] += player[0]->forward.v[0] * playerBumpForce;
+      balls[b]->vel.v[2] += player[0]->forward.v[2] * playerBumpForce;
+
+      // then bounce it
+      if (balls[b]->vel.v[1] > 5.0f) {
+        sound_bounce();
+      }
+      ballBounceForce[b] = playerBumpForce;
+      ballBounced[b] = true;
+
     } else {
 
       // else add friction to X and Z if grounded
@@ -381,9 +386,6 @@ void crates_update(void){
     }
 
     check_crates_collisions(crates, numCrates);
-
-    // Checking this again causes a FPU error, to be fixed
-    //resolve_actor_to_actor_col(crates[c], balls, numBalls, c);
 
     crates[c]->hitbox.shape.aabb = (AABB){{{crates[c]->pos.v[0] - 32.0f, crates[c]->pos.v[1], crates[c]->pos.v[2] - 32.0f}},
                                          {{crates[c]->pos.v[0] + 32.0f, crates[c]->pos.v[1] + 64.0f, crates[c]->pos.v[2] + 32.0f}}};
