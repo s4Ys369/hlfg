@@ -189,6 +189,8 @@ void player_init(void){
     player[i]->isWalking = false;
 
     player[i]->velY = 0.0f;
+    player[i]->vel.v[0] = 0.0f;
+    player[i]->vel.v[2] = 0.0f;
     if(numPlayers > 2){
       player[i]->jumpForce = 14.0f * JUMP_MODIFIER;
     } else {
@@ -462,8 +464,8 @@ void player_update(void){
   if(player[i]->animBlend > 1.0f)player[i]->animBlend = 1.0f;
 
   // move player...
-  player[i]->pos.v[0] += player[i]->moveDir.v[0] * player[i]->currSpeed;
-  player[i]->pos.v[2] += player[i]->moveDir.v[2] * player[i]->currSpeed;
+  player[i]->pos.v[0] += player[i]->moveDir.v[0] * player[i]->currSpeed + player[i]->vel.v[0];
+  player[i]->pos.v[2] += player[i]->moveDir.v[2] * player[i]->currSpeed + player[i]->vel.v[2];
 
   // Update player bounding box
   player[i]->hitbox.center.v[0] = player[i]->pos.v[0];
@@ -740,6 +742,9 @@ void player_update(void){
     player[i]->projectile.hitbox.center =  player[i]->projectile.pos;
     player[i]->projectile.hitbox.radius = 8.0f;
   }
+
+  T3DVec3 mapNorm = find_closest_quad_from_verts(player[0]->pos, modelMap, 1);
+  player[i]->vel = reflect_velocity(player[i]->vel, mapNorm);
 
   }
 

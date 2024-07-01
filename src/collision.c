@@ -291,7 +291,7 @@ bool check_sphere_box_collision(Sphere sphere, AABB box) {
 
 // QUADS
 float point_plane_dist(T3DVec3 point, T3DVec3 planePoint, T3DVec3 planeNormal) {
-    T3DVec3 diff = {{0,0,0}};
+    T3DVec3 diff;
     t3d_vec3_diff(&diff, &point, &planePoint);
     return t3d_vec3_dot(&diff, &planeNormal);
 }
@@ -299,7 +299,7 @@ float point_plane_dist(T3DVec3 point, T3DVec3 planePoint, T3DVec3 planeNormal) {
 T3DVec3 project_point_on_plane(T3DVec3 point, T3DVec3 planePoint, T3DVec3 planeNormal) {
     float distance = point_plane_dist(point, planePoint, planeNormal);
     T3DVec3 scaledNormal = {{planeNormal.v[0] * distance, planeNormal.v[1] * distance, planeNormal.v[2] * distance}};
-    T3DVec3 diff = {{0,0,0}};
+    T3DVec3 diff;
     t3d_vec3_diff(&diff, &point, &scaledNormal);
     return diff;
 }
@@ -332,7 +332,7 @@ int point_in_quad(T3DVec3 point, T3DQuad quad) {
 
     float denominator = uv * uv - uu * vv;
     if (denominator == 0){
-        denominator = 0.001f;
+        denominator = 0.01f;
     }
 
     float s = (uv * wv - vv * wu) / denominator;
@@ -361,8 +361,9 @@ float calc_dist_to_quad(T3DVec3 point, T3DQuad quad) {
 
     t3d_vec3_cross(&planeNormal, &u, &v);
 
-    t3d_vec3_norm(&planeNormal);
-
+    if(planeNormal.v > 0){
+        t3d_vec3_norm(&planeNormal);
+    }
     T3DVec3 projectedPoint = project_point_on_plane(point, A, planeNormal);
 
     if (point_in_quad(projectedPoint, quad)) {
@@ -414,29 +415,26 @@ T3DVec3 reflect_velocity(T3DVec3 velocity, T3DVec3 normal) {
 
 T3DVec3 find_closest_quad_from_verts(T3DVec3 originPos, T3DModel* targetModel, int targetModelCount) {
     T3DVertPacked* verts = t3d_model_get_vertices(targetModel);
-
     T3DVec3 closestNormal = {{0, 0, 1}};
     float minDistance = FLT_MAX;
 
-    for (uint16_t i = 0; i < targetModel->totalVertCount; i += 2) {
+    for (uint16_t i = 0; i < targetModel->totalVertCount; i++) {
 
-        T3DQuad quad = {{verts[i], verts[i+1]}};
+        // Calculate the normal of the closest quad
+        T3DVec3 normalA, normalB, normalC;
+        t3d_vert_unpack_normal(verts[i].normA, &normalA);
+        t3d_vert_unpack_normal(verts[i].normB, &normalB);
+        t3d_vert_unpack_normal(verts[i + 1].normA, &normalC);
 
-        float distance = calc_dist_to_quad(originPos, quad);
+        T3DVec3 u, v, quadNormal;
+        t3d_vec3_diff(&u, &normalB, &normalA);
+        t3d_vec3_diff(&v, &normalC, &normalA);
+        t3d_vec3_cross(&quadNormal, &u, &v);
+        t3d_vec3_norm(&quadNormal);
+
+        float distance = t3d_vec3_distance(&originPos, &normalA);
         if (distance < minDistance) {
             minDistance = distance;
-
-            // Calculate the normal of the closest quad
-            T3DVec3 normalA, normalB, normalC;
-            t3d_vert_unpack_normal(verts[i].normA, &normalA);
-            t3d_vert_unpack_normal(verts[i].normB, &normalB);
-            t3d_vert_unpack_normal(verts[i + 1].normA, &normalC);
-
-            T3DVec3 u, v, quadNormal;
-            t3d_vec3_diff(&u, &normalB, &normalA);
-            t3d_vec3_diff(&v, &normalC, &normalA);
-            t3d_vec3_cross(&quadNormal, &u, &v);
-            t3d_vec3_norm(&quadNormal);
 
             closestNormal = quadNormal;
         }

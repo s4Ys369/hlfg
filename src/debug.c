@@ -79,14 +79,14 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX, posY, "State %s", playerStateStrings[playerState[0]]);posY+=10;
     t3d_debug_printf(posX, posY, "Grounded %d", player[0]->isGrounded);posY+=20;
 
-    /*
+    
     T3DVec3 NormA = find_closest_quad_from_verts(player[0]->pos, modelMap, 1);
     T3DVec3 NormB = find_closest_quad_from_verts(player[0]->pos, modelCrate, numCrates);
     T3DVec3 NormC = find_closest_quad_from_verts(player[0]->pos, modelBall, numBalls);
     t3d_debug_printf(posX, posY, "Map %.2f%.2f%.2f", NormA.v[0],NormA.v[1],NormA.v[2]);posY+=10;
     t3d_debug_printf(posX, posY, "Crate %.2f%.2f%.2f", NormB.v[0],NormB.v[1],NormB.v[2]);posY+=10;
     t3d_debug_printf(posX, posY, "Ball %.2f%.2f%.2f", NormC.v[0],NormC.v[1],NormC.v[2]);posY+=10;
-    */
+    
 
     /*
     t3d_debug_printf(posX, posY, "Mat Count %u", matCount);posY+=10;

@@ -24,7 +24,7 @@ void resolve_sphere_collision_offset_xz(Sphere sphere, T3DVec3 *pos, float offse
 bool check_sphere_box_collision(Sphere sphere, AABB box);
 
 // Quads
-T3DVec3 reflect(T3DVec3 velocity, T3DVec3 normal);
+T3DVec3 reflect_velocity(T3DVec3 velocity, T3DVec3 normal);
 T3DVec3 find_closest_quad_from_verts(T3DVec3 originPos, T3DModel* targetModel, int targetModelCount);
 
 bool check_collisions(CollisionShape a, CollisionShape b);

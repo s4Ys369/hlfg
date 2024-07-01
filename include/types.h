@@ -77,6 +77,7 @@ typedef struct {
     T3DVec3 pos;
     T3DVec3 shadowPos;
     T3DVec3 forward;
+    T3DVec3 vel;
     Sphere hitbox;
     ProjectileParams projectile;
     CameraParams cam;
