@@ -414,7 +414,8 @@ void player_to_wall(int playerCount){
 // wall collisions?
   Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, Wall, wallCount);
   if (check_sphere_surface_collision(player[playerCount]->hitbox, currWall)){
-    resolve_sphere_surface_collision(&player[playerCount]->hitbox, &currWall);
+    resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, &currWall);
+    
   }
 }
 
@@ -422,7 +423,7 @@ void player_to_slope(int playerCount){
 // slope collisions?
   Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, Slope, slopeCount);
   if (check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)){
-    resolve_sphere_surface_collision(&player[playerCount]->hitbox, &currSlope);
+    resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->moveDir, &currSlope);
   }
 }
 
@@ -750,6 +751,12 @@ void player_update(void){
     }
     
     if(player[i]->pos.v[1] > groundLevel){
+      Surface currSlope = find_closest_surface(player[i]->hitbox.center, Slope, slopeCount);
+      if (check_sphere_surface_collision(player[i]->hitbox, currSlope)){
+        player_to_slope(i);
+        playerState[i] = PLAYER_LAND;
+        player[i]->isGrounded = true;
+      } else {
       for (int c = 0; c < numCrates; ++c) {
         int closestCrate = find_closest(player[i]->pos, crates, numCrates);
         if(!check_sphere_box_collision(player[i]->hitbox, crates[closestCrate]->hitbox.shape.aabb)){
@@ -765,6 +772,7 @@ void player_update(void){
             playerState[i] = PLAYER_FALL;
           }
         }
+      }
       }
     }
   }

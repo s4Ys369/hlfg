@@ -587,7 +587,7 @@ Surface find_closest_surface(T3DVec3 position, Surface* surfaces, int numSurface
 }
 
 // Function to resolve collision between sphere and surface
-void resolve_sphere_surface_collision(Sphere *sphere, Surface *surf) {
+void resolve_sphere_surface_collision(Sphere *sphere, T3DVec3 *position, T3DVec3 *velocity, Surface *surf) {
     // Calculate normal vector of the triangle
     T3DVec3 AB, AC;
     t3d_vec3_diff(&AB, &surf->posB, &surf->posA);
@@ -612,8 +612,25 @@ void resolve_sphere_surface_collision(Sphere *sphere, Surface *surf) {
 
     // Resolve collision: move sphere center along the normal vector
     T3DVec3 move_direction;
-    t3d_vec3_scale(&move_direction, &N, penetration_depth);
-    t3d_vec3_add(&sphere->center, &sphere->center, &move_direction);
+    if(surf->type == SURFACE_SLOPE) {
+        t3d_vec3_scale(&move_direction, &N, .1f);
+        t3d_vec3_add(&sphere->center, &sphere->center, &move_direction);
+        //t3d_vec3_scale(&move_direction, &move_direction, 0.1f);
+        //t3d_vec3_add(velocity, &sphere->center, &move_direction);
+        position->v[0] = sphere->center.v[0];
+        position->v[1] = sphere->center.v[1];
+        position->v[2] = sphere->center.v[2];
+    }
+    if(surf->type == SURFACE_WALL) {
+        t3d_vec3_scale(&move_direction, &N, penetration_depth);
+        t3d_vec3_add(&sphere->center, &sphere->center, &move_direction);
+        t3d_vec3_scale(&move_direction, &move_direction, 0.1f);
+        t3d_vec3_diff(velocity, &sphere->center, &move_direction);
+        position->v[0] = sphere->center.v[0];
+        //position->v[1] = sphere->center.v[1];
+        position->v[2] = sphere->center.v[2];
+    }
+    //t3d_vec3_add(position, &sphere->center, &move_direction);
 }
 
 // Catch all
