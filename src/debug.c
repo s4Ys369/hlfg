@@ -27,7 +27,8 @@ const char* playerStateStrings[NUM_PLAYER_STATES] = {
     "Attack Start",
     "Attack",
     "Fall",
-    "Land"
+    "Land",
+    "Slide"
 };
 
 void debug_models_init(void){

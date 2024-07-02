@@ -44,6 +44,7 @@ typedef enum {
     PLAYER_ATTACK,
     PLAYER_FALL,
     PLAYER_LAND,
+    PLAYER_SLIDE,
     NUM_PLAYER_STATES 
 } PLAYER_STATE;
 

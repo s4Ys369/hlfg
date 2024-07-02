@@ -82,6 +82,7 @@
         "globals.h": "c",
         "config.h": "c",
         "enums.h": "c",
-        "utils.h": "c"
+        "utils.h": "c",
+        "t3dmodel.h": "c"
     }
 }

@@ -4,6 +4,9 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include <t3d/t3dmodel.h>
+#include "../include/config.h"
+#include "../include/enums.h"
+#include "../include/globals.h"
 #include "../include/types.h"
 #include "utils.h"
 

@@ -1,7 +1,9 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include <t3d/t3dmodel.h>
+#include "../include/config.h"
 #include "../include/enums.h"
+#include "../include/globals.h"
 #include "../include/types.h"
 #include "collision.h"
 #include "utils.h"
@@ -562,12 +564,22 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
     float dist = distance_to_surface(sphere.center, surf);
 
     // Check if the distance is less than or equal to the sphere radius
-    if (dist <= sphere.radius) {
-        // Collision detected
-        return true;
+    if(surf.type == SURFACE_SLOPE) {
+        if (dist <= (sphere.radius*0.5f)) {
+            // Collision detected
+            return true;
+        } else {
+            // No collision
+            return false;
+        }
     } else {
-        // No collision
-        return false;
+        if (dist <= sphere.radius) {
+            // Collision detected
+            return true;
+        } else {
+            // No collision
+            return false;
+        }
     }
 }
 
@@ -613,21 +625,20 @@ void resolve_sphere_surface_collision(Sphere *sphere, T3DVec3 *position, T3DVec3
     // Resolve collision: move sphere center along the normal vector
     T3DVec3 move_direction;
     if(surf->type == SURFACE_SLOPE) {
-        t3d_vec3_scale(&move_direction, &N, .1f);
-        t3d_vec3_add(&sphere->center, &sphere->center, &move_direction);
-        //t3d_vec3_scale(&move_direction, &move_direction, 0.1f);
-        //t3d_vec3_add(velocity, &sphere->center, &move_direction);
-        position->v[0] = sphere->center.v[0];
-        position->v[1] = sphere->center.v[1];
-        position->v[2] = sphere->center.v[2];
+        t3d_vec3_scale(&move_direction, &N, (penetration_depth*0.07f));
+        t3d_vec3_add(position, position, &move_direction);
+ 
     }
     if(surf->type == SURFACE_WALL) {
+
         t3d_vec3_scale(&move_direction, &N, penetration_depth);
-        t3d_vec3_add(&sphere->center, &sphere->center, &move_direction);
+        sphere->center.v[0] = sphere->center.v[0] + move_direction.v[0];
+        sphere->center.v[2] = sphere->center.v[2] + move_direction.v[2];
+
         t3d_vec3_scale(&move_direction, &move_direction, 0.1f);
-        t3d_vec3_diff(velocity, &sphere->center, &move_direction);
+        velocity->v[0] = sphere->center.v[0] - move_direction.v[0];
+        velocity->v[2] = sphere->center.v[2] - move_direction.v[2];
         position->v[0] = sphere->center.v[0];
-        //position->v[1] = sphere->center.v[1];
         position->v[2] = sphere->center.v[2];
     }
     //t3d_vec3_add(position, &sphere->center, &move_direction);

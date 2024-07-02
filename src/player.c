@@ -424,6 +424,7 @@ void player_to_slope(int playerCount){
   Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, Slope, slopeCount);
   if (check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)){
     resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->moveDir, &currSlope);
+    playerState[playerCount] = PLAYER_SLIDE;
   }
 }
 
@@ -447,7 +448,7 @@ void player_update(void){
 
   // Player Jump Input
   if(btn[i].a) {
-    if (playerState[i] == PLAYER_IDLE || playerState[i] == PLAYER_WALK)
+    if (playerState[i] == PLAYER_IDLE || playerState[i] == PLAYER_WALK || playerState[i] == PLAYER_SLIDE)
     {
       sound_jump();
       playerState[i] = PLAYER_JUMP_START;
@@ -543,11 +544,10 @@ void player_update(void){
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
     }
-    
-    check_midair_actor_collisions(crates, numCrates, i);
-    check_actor_collisions(balls, numBalls, i);
     player_to_slope(i);
     player_to_wall(i);
+    check_midair_actor_collisions(crates, numCrates, i);
+    check_actor_collisions(balls, numBalls, i);
 
   }
 
@@ -558,11 +558,10 @@ void player_update(void){
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
     }
-    
-    check_midair_actor_collisions(crates, numCrates, i);
-    check_actor_collisions(balls, numBalls, i);
     player_to_slope(i);
     player_to_wall(i);
+    check_midair_actor_collisions(crates, numCrates, i);
+    check_actor_collisions(balls, numBalls, i);
 
     if(!player[i]->isGrounded){
       if (player[i]->pos.v[1] > groundLevel) {
@@ -572,6 +571,7 @@ void player_update(void){
         if(playerScaleY[i] < 0.3f){
           playerScaleY[i] = 0.3f;
         }
+
       } else if (player[i]->pos.v[1] <= groundLevel) {
         playerState[i] = PLAYER_LAND;
         player[i]->vel.v[1] = 0.0f;
@@ -588,6 +588,13 @@ void player_update(void){
   // do land
   if(playerState[i] == PLAYER_LAND){
     playerState[i] = PLAYER_IDLE;
+  }
+  if(playerState[i] == PLAYER_SLIDE){
+    playerScaleY[i] = 1.0f;
+    Surface currSlope = find_closest_surface(player[i]->hitbox.center, Slope, slopeCount);
+    if (check_sphere_surface_collision(player[i]->hitbox, currSlope)){
+      resolve_sphere_surface_collision(&player[i]->hitbox, &player[i]->pos, &player[i]->moveDir, &currSlope);
+    }
   }
 
   //do attack
@@ -716,11 +723,10 @@ void player_update(void){
       check_player_collisions(player, numPlayers);
       playerState[i] = PLAYER_FALL;
     }
-    
-    check_midair_actor_collisions(crates, numCrates, i);
-    check_actor_collisions(balls, numBalls, i);
     player_to_slope(i);
     player_to_wall(i);
+    check_midair_actor_collisions(crates, numCrates, i);
+    check_actor_collisions(balls, numBalls, i);
   }
 
   // do grounded
@@ -743,6 +749,9 @@ void player_update(void){
     case PLAYER_LAND:
       player[i]->isGrounded = true;
       break;
+      case PLAYER_SLIDE:
+      player[i]->isGrounded = true;
+      break;
   }
 
   if(player[i]->isGrounded) {
@@ -752,27 +761,24 @@ void player_update(void){
     
     if(player[i]->pos.v[1] > groundLevel){
       Surface currSlope = find_closest_surface(player[i]->hitbox.center, Slope, slopeCount);
-      if (check_sphere_surface_collision(player[i]->hitbox, currSlope)){
-        player_to_slope(i);
-        playerState[i] = PLAYER_LAND;
-        player[i]->isGrounded = true;
-      } else {
-      for (int c = 0; c < numCrates; ++c) {
-        int closestCrate = find_closest(player[i]->pos, crates, numCrates);
-        if(!check_sphere_box_collision(player[i]->hitbox, crates[closestCrate]->hitbox.shape.aabb)){
-          // Check if the player is outside bounds in the x and z directions
-          if (player[i]->hitbox.center.v[0] > crates[closestCrate]->hitbox.shape.aabb.max.v[0] ||
-              player[i]->hitbox.center.v[0] < crates[closestCrate]->hitbox.shape.aabb.min.v[0] ||
-              player[i]->hitbox.center.v[2] > crates[closestCrate]->hitbox.shape.aabb.max.v[2] ||
-              player[i]->hitbox.center.v[2] < crates[closestCrate]->hitbox.shape.aabb.min.v[2]) {
-            playerState[i] = PLAYER_FALL;
-          }
-        } else {
-          if (player[i]->pos.v[1] < crates[closestCrate]->hitbox.shape.aabb.max.v[1]) {
-            playerState[i] = PLAYER_FALL;
+      if(playerState[i] != PLAYER_SLIDE){
+        for (int c = 0; c < numCrates; ++c) {
+          int closestCrate = find_closest(player[i]->pos, crates, numCrates);
+          if(!check_sphere_box_collision(player[i]->hitbox, crates[closestCrate]->hitbox.shape.aabb)){
+            // Check if the player is outside bounds in the x and z directions
+            if (player[i]->hitbox.center.v[0] > crates[closestCrate]->hitbox.shape.aabb.max.v[0] ||
+                player[i]->hitbox.center.v[0] < crates[closestCrate]->hitbox.shape.aabb.min.v[0] ||
+                player[i]->hitbox.center.v[2] > crates[closestCrate]->hitbox.shape.aabb.max.v[2] ||
+                player[i]->hitbox.center.v[2] < crates[closestCrate]->hitbox.shape.aabb.min.v[2]) {
+
+              playerState[i] = PLAYER_FALL;
+            }
+          } else {
+            if (player[i]->pos.v[1] < crates[closestCrate]->hitbox.shape.aabb.max.v[1]) {
+              playerState[i] = PLAYER_FALL;
+            }
           }
         }
-      }
       }
     }
   }
