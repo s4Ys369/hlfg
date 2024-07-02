@@ -188,8 +188,8 @@ void player_init(void){
     player[i]->isFalling = false;
     player[i]->isWalking = false;
 
-    player[i]->velY = 0.0f;
     player[i]->vel.v[0] = 0.0f;
+    player[i]->vel.v[1] = 0.0f;
     player[i]->vel.v[2] = 0.0f;
     if(numPlayers > 2){
       player[i]->jumpForce = 14.0f * JUMP_MODIFIER;
@@ -321,9 +321,9 @@ void player_bounced(PlayerParams *player[], int playerCount) {
 
   playerState[playerCount] = PLAYER_JUMP_START;
 
-  player[playerCount]->velY += (player[playerCount]->jumpForce * bounceMultiplier) + GRAVITY * deltaTime;
+  player[playerCount]->vel.v[1] += (player[playerCount]->jumpForce * bounceMultiplier) + GRAVITY * deltaTime;
 
-  player[playerCount]->pos.v[1] += player[playerCount]->velY * deltaTime;
+  player[playerCount]->pos.v[1] += player[playerCount]->vel.v[1] * deltaTime;
 
   player[playerCount]->hitbox.center.v[1] = player[playerCount]->pos.v[1];
 
@@ -397,6 +397,20 @@ void check_midair_actor_collisions(Actor **actor, int actorCount, int playerCoun
 }
 
 
+void player_to_mesh(int playerCount){
+// mesh collisions?
+  T3DQuad currQuad = get_closest_quad(player[playerCount]->pos, modelMesh, 1);
+  T3DVec3 currQuadNorm = get_quad_normal(currQuad);
+  T3DVec3 currQuadCenter = compute_quad_center(currQuad);
+  if (check_sphere_quad_collision(player[playerCount]->hitbox, currQuad)){
+    //player[i]->vel = reflect_velocity(player[i]->vel, currQuadNorm);
+    resolve_slope_collision(player[playerCount]->hitbox.center, player[playerCount]->vel, currQuad);
+    float planeD = calculate_plane_d(currQuadNorm, currQuadCenter);
+    resolve_sphere_quad_collision(&player[playerCount]->hitbox.center, player[playerCount]->hitbox.radius, currQuadNorm, planeD);
+    player[playerCount]->pos = player[playerCount]->hitbox.center;
+  }
+}
+
 void player_update(void){
   float speedMultiplayer;
   for (int i = 0; i < numPlayers; ++i) {
@@ -464,8 +478,8 @@ void player_update(void){
   if(player[i]->animBlend > 1.0f)player[i]->animBlend = 1.0f;
 
   // move player...
-  player[i]->pos.v[0] += player[i]->moveDir.v[0] * player[i]->currSpeed + player[i]->vel.v[0];
-  player[i]->pos.v[2] += player[i]->moveDir.v[2] * player[i]->currSpeed + player[i]->vel.v[2];
+  player[i]->pos.v[0] += player[i]->moveDir.v[0] * player[i]->currSpeed;
+  player[i]->pos.v[2] += player[i]->moveDir.v[2] * player[i]->currSpeed;
 
   // Update player bounding box
   player[i]->hitbox.center.v[0] = player[i]->pos.v[0];
@@ -512,7 +526,7 @@ void player_update(void){
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
     }
-
+    player_to_mesh(i);
     check_midair_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
 
@@ -525,21 +539,21 @@ void player_update(void){
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
     }
-
+    player_to_mesh(i);
     check_midair_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
 
     if(!player[i]->isGrounded){
       if (player[i]->pos.v[1] > groundLevel) {
-        player[i]->velY += GRAVITY * jumpTime;
-        player[i]->pos.v[1] += player[i]->velY * jumpTime;
+        player[i]->vel.v[1] += GRAVITY * jumpTime;
+        player[i]->pos.v[1] += player[i]->vel.v[1] * jumpTime;
         playerScaleY[i] -= 0.02f;
         if(playerScaleY[i] < 0.3f){
           playerScaleY[i] = 0.3f;
         }
       } else if (player[i]->pos.v[1] <= groundLevel) {
         playerState[i] = PLAYER_LAND;
-        player[i]->velY = 0.0f;
+        player[i]->vel.v[1] = 0.0f;
         playerScaleY[i] = 1.0f;
         if(numPlayers > 2){
           player[i]->jumpForce = 14.0f * JUMP_MODIFIER;
@@ -638,12 +652,12 @@ void player_update(void){
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
     }
-
+    player_to_mesh(i);
     check_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
 
     // Apply jump force modifier
-    player[i]->velY = player[i]->jumpForce;
+    player[i]->vel.v[1] = player[i]->jumpForce;
 
     playerState[i] = PLAYER_JUMP;
   }
@@ -662,10 +676,10 @@ void player_update(void){
     }
 
     // Apply gravity
-    player[i]->velY += GRAVITY * jumpTime;
+    player[i]->vel.v[1] += GRAVITY * jumpTime;
 
     // Update player position
-    player[i]->pos.v[1] += player[i]->velY * jumpTime;
+    player[i]->pos.v[1] += player[i]->vel.v[1] * jumpTime;
 
     // Update player bounding box
     player[i]->hitbox.center.v[0] = player[i]->pos.v[0];
@@ -677,7 +691,7 @@ void player_update(void){
       check_player_collisions(player, numPlayers);
       playerState[i] = PLAYER_FALL;
     }
-
+    player_to_mesh(i);
     check_midair_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
   }
@@ -742,9 +756,6 @@ void player_update(void){
     player[i]->projectile.hitbox.center =  player[i]->projectile.pos;
     player[i]->projectile.hitbox.radius = 8.0f;
   }
-
-  T3DVec3 mapNorm = find_closest_quad_from_verts(player[0]->pos, modelMap, 1);
-  player[i]->vel = reflect_velocity(player[i]->vel, mapNorm);
 
   }
 

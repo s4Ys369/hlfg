@@ -77,15 +77,13 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX, posY, "Y %.2f", player[0]->pos.v[1]);posY+=10;
     t3d_debug_printf(posX, posY, "Z %.2f", player[0]->pos.v[2]);posY+=10;
     t3d_debug_printf(posX, posY, "State %s", playerStateStrings[playerState[0]]);posY+=10;
-    t3d_debug_printf(posX, posY, "Grounded %d", player[0]->isGrounded);posY+=20;
-
-    
-    T3DVec3 NormA = find_closest_quad_from_verts(player[0]->pos, modelMap, 1);
-    T3DVec3 NormB = find_closest_quad_from_verts(player[0]->pos, modelCrate, numCrates);
-    T3DVec3 NormC = find_closest_quad_from_verts(player[0]->pos, modelBall, numBalls);
-    t3d_debug_printf(posX, posY, "Map %.2f%.2f%.2f", NormA.v[0],NormA.v[1],NormA.v[2]);posY+=10;
-    t3d_debug_printf(posX, posY, "Crate %.2f%.2f%.2f", NormB.v[0],NormB.v[1],NormB.v[2]);posY+=10;
-    t3d_debug_printf(posX, posY, "Ball %.2f%.2f%.2f", NormC.v[0],NormC.v[1],NormC.v[2]);posY+=10;
+    t3d_debug_printf(posX, posY, "Grounded %d", player[0]->isGrounded);posY+=10;
+    t3d_debug_printf(posX, posY, "VX %.2f", player[0]->vel.v[0]);posY+=10;
+    t3d_debug_printf(posX, posY, "VZ %.2f", player[0]->vel.v[2]);posY+=10;
+    T3DQuad quad = get_closest_quad(player[0]->pos, modelMesh, 1);
+    T3DVec3 norm = get_quad_normal(quad);
+    t3d_debug_printf(posX, posY, "N %.2f %.2f %.2f", norm.v[0],norm.v[1],norm.v[2]);posY+=10;
+    t3d_debug_printf(posX, posY, "D %.2f", calc_dist_to_quad(player[0]->pos,quad));posY+=10;
     
 
     /*

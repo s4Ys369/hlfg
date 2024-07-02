@@ -187,7 +187,8 @@ int main()
       t3d_light_set_directional(0, colorDir, &lightDirVec);
       
       // Run map block
-      rspq_block_run(dplMap);
+      //rspq_block_run(dplMap);
+      rspq_block_run(dplMesh);
       
       // then actors
       for (int i = 0; i < numCrates; ++i) {
@@ -258,6 +259,9 @@ int main()
   t3d_model_free(modelMap);
   free_uncached(mapMatFP);
   rspq_block_free(dplMap);
+  t3d_model_free(modelMesh);
+  free_uncached(meshMatFP);
+  rspq_block_free(dplMesh);
   
   t3d_model_free(modelDebugBox);
   t3d_model_free(modelDebugSphere);

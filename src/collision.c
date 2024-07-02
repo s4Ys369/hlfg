@@ -303,6 +303,15 @@ T3DVec3 project_point_on_plane(T3DVec3 point, T3DVec3 planePoint, T3DVec3 planeN
     t3d_vec3_diff(&diff, &point, &scaledNormal);
     return diff;
 }
+// Function to compute the center of quad as a vector3
+T3DVec3 compute_quad_center(T3DQuad quad) {
+    T3DVec3 center;
+    center.v[0] = (float)(quad.v[0].posA[0] + quad.v[0].posB[0] + quad.v[1].posA[0] + quad.v[1].posB[0]) / 4.0f;
+    center.v[1] = (float)(quad.v[0].posA[1] + quad.v[0].posB[1] + quad.v[1].posA[1] + quad.v[1].posB[1]) / 4.0f;
+    center.v[2] = (float)(quad.v[0].posA[2] + quad.v[0].posB[2] + quad.v[1].posA[2] + quad.v[1].posB[2]) / 4.0f;
+    
+    return center;
+}
 
 int point_in_quad(T3DVec3 point, T3DQuad quad) {
     // Check if the point is inside the quad using a point-in-polygon test in 3D
@@ -413,35 +422,95 @@ T3DVec3 reflect_velocity(T3DVec3 velocity, T3DVec3 normal) {
     return reflectionVel;
 }
 
-T3DVec3 find_closest_quad_from_verts(T3DVec3 originPos, T3DModel* targetModel, int targetModelCount) {
+
+// Function to resolve slope collision in 3D
+void resolve_slope_collision(T3DVec3 position, T3DVec3 velocity, T3DQuad quad) {
+    
+    // Check collision with the slope (assuming slope is a quad)
+    if (point_in_quad(position, quad)) {
+        // Move the object's position to the slope's surface
+        // For simplicity, assume we adjust the object's position to lie on the quad
+        position.v[1] = quad.v[0].posA[1]; // Adjust this based on slope geometry
+        
+        // Adjust the velocity to move along the slope's normal direction
+        // For now, we reset the velocity to zero to simulate a frictionless slope
+        velocity.v[0] = -velocity.v[0];
+        velocity.v[2] = -velocity.v[2];
+    }
+}
+
+T3DVec3 get_quad_normal(T3DQuad quad) {
+ 
+    T3DVec3 normalA, normalB, normalC;
+    t3d_vert_unpack_normal(quad.v[0].normA, &normalA);
+    t3d_vert_unpack_normal(quad.v[0].normB, &normalB);
+    t3d_vert_unpack_normal(quad.v[1].normA, &normalC);
+
+    T3DVec3 u, v, quadNormal;
+    t3d_vec3_diff(&u, &normalB, &normalA);
+    t3d_vec3_diff(&v, &normalC, &normalA);
+    t3d_vec3_cross(&quadNormal, &u, &v);
+    t3d_vec3_norm(&quadNormal);
+    
+    return quadNormal;
+}
+
+T3DQuad get_closest_quad(T3DVec3 originPos, T3DModel* targetModel, int targetModelCount){
     T3DVertPacked* verts = t3d_model_get_vertices(targetModel);
-    T3DVec3 closestNormal = {{0, 0, 1}};
+    T3DQuad closestQuad;
     float minDistance = FLT_MAX;
 
-    for (uint16_t i = 0; i < targetModel->totalVertCount; i++) {
+    for (uint16_t i = 0; i < targetModel->totalVertCount; i += 2) {
 
-        // Calculate the normal of the closest quad
-        T3DVec3 normalA, normalB, normalC;
-        t3d_vert_unpack_normal(verts[i].normA, &normalA);
-        t3d_vert_unpack_normal(verts[i].normB, &normalB);
-        t3d_vert_unpack_normal(verts[i + 1].normA, &normalC);
+        // Calculate the center of the closest quad
+        T3DQuad currQuad = {{verts[i],verts[i+1]}};
+        T3DVec3 quadCenter = compute_quad_center(currQuad);
 
-        T3DVec3 u, v, quadNormal;
-        t3d_vec3_diff(&u, &normalB, &normalA);
-        t3d_vec3_diff(&v, &normalC, &normalA);
-        t3d_vec3_cross(&quadNormal, &u, &v);
-        t3d_vec3_norm(&quadNormal);
-
-        float distance = t3d_vec3_distance(&originPos, &normalA);
+        float distance = t3d_vec3_distance(&originPos, &quadCenter);
         if (distance < minDistance) {
             minDistance = distance;
 
-            closestNormal = quadNormal;
+            closestQuad = currQuad;
         }
     }
-    return closestNormal;
+    return closestQuad;
 }
 
+bool check_sphere_quad_collision(Sphere a, T3DQuad quad) {
+    // Calculate the squared distance between centers
+    float distanceSquared = calc_dist_to_quad(a.center, quad);
+
+    // Check collision
+    float e = 1e-6f;
+    if (distanceSquared <= (a.radius + e)) {
+        return true; // Collision detected
+    } else {
+        return false; // No collision
+    }
+}
+
+// Function to calculate the D value for a plane given its normal and a point on the plane
+float calculate_plane_d(T3DVec3 planeNormal, T3DVec3 pointOnPlane) {
+    return t3d_vec3_dot(&planeNormal, &pointOnPlane);
+}
+
+// Function to resolve the intersection of a sphere with a quad
+void resolve_sphere_quad_collision(T3DVec3* sphereCenter, float sphereRadius, T3DVec3 planeNormal, float planeD) {
+    // Calculate the signed distance from the sphere center to the plane
+    float signedDistance = (planeNormal.v[0] * sphereCenter->v[0] + planeNormal.v[1] * sphereCenter->v[1] + planeNormal.v[2] * sphereCenter->v[2] + planeD) /
+                           sqrtf(planeNormal.v[0] * planeNormal.v[0] + planeNormal.v[1] * planeNormal.v[1] + planeNormal.v[2] * planeNormal.v[2]);
+    
+    // If the sphere intersects the plane, resolve the collision
+    if (fabsf(signedDistance) <= sphereRadius) {
+        // Calculate the penetration depth
+        float penetrationDepth = sphereRadius - fabsf(signedDistance);
+        
+        // Move the sphere center along the plane normal direction to resolve the intersection
+        sphereCenter->v[0] -= penetrationDepth * (signedDistance > 0 ? planeNormal.v[0] : -planeNormal.v[0]);
+        sphereCenter->v[1] -= penetrationDepth * (signedDistance > 0 ? planeNormal.v[1] : -planeNormal.v[1]);
+        sphereCenter->v[2] -= penetrationDepth * (signedDistance > 0 ? planeNormal.v[2] : -planeNormal.v[2]);
+    }
+}
 
 // Catch all
 bool check_collisions(CollisionShape a, CollisionShape b) {

@@ -91,7 +91,6 @@ typedef struct {
     bool isGrounded;
     bool isFalling;
     bool isWalking;
-    float velY;
     float jumpForce;
     int score;
 } PlayerParams;

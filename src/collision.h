@@ -24,8 +24,18 @@ void resolve_sphere_collision_offset_xz(Sphere sphere, T3DVec3 *pos, float offse
 bool check_sphere_box_collision(Sphere sphere, AABB box);
 
 // Quads
+float point_plane_dist(T3DVec3 point, T3DVec3 planePoint, T3DVec3 planeNormal);
+T3DVec3 project_point_on_plane(T3DVec3 point, T3DVec3 planePoint, T3DVec3 planeNormal);
+T3DVec3 compute_quad_center(T3DQuad quad);
+int point_in_quad(T3DVec3 point, T3DQuad quad);
+float calc_dist_to_quad(T3DVec3 point, T3DQuad quad);
 T3DVec3 reflect_velocity(T3DVec3 velocity, T3DVec3 normal);
-T3DVec3 find_closest_quad_from_verts(T3DVec3 originPos, T3DModel* targetModel, int targetModelCount);
+void resolve_slope_collision(T3DVec3 position, T3DVec3 velocity, T3DQuad quad);
+T3DVec3 get_quad_normal(T3DQuad quad);
+T3DQuad get_closest_quad(T3DVec3 originPos, T3DModel* targetModel, int targetModelCount);
+bool check_sphere_quad_collision(Sphere a, T3DQuad quad);
+float calculate_plane_d(T3DVec3 planeNormal, T3DVec3 pointOnPlane);
+void resolve_sphere_quad_collision(T3DVec3* sphereCenter, float sphereRadius, T3DVec3 planeNormal, float planeD);
 
 bool check_collisions(CollisionShape a, CollisionShape b);
 

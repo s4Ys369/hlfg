@@ -14,6 +14,10 @@ extern rspq_block_t *dplMap;
 extern AABB FloorBox;
 extern float groundLevel;
 
+extern T3DMat4FP* meshMatFP;
+extern T3DModel *modelMesh;
+extern rspq_block_t *dplMesh;
+
 void map_init(void);
 
 #endif // MAP_H
