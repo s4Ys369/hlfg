@@ -25,6 +25,15 @@ typedef struct {
 
 // COLLISIONS
 typedef struct {
+    SURFACE_TYPE type;
+    T3DVec3 posA;
+    T3DVec3 posB;
+    T3DVec3 posC;
+    T3DVec3 center;
+    T3DVec3 normal;
+} Surface;
+
+typedef struct {
     T3DVertPacked v[2];
 } T3DQuad;
 

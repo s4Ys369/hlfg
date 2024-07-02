@@ -37,6 +37,14 @@ bool check_sphere_quad_collision(Sphere a, T3DQuad quad);
 float calculate_plane_d(T3DVec3 planeNormal, T3DVec3 pointOnPlane);
 void resolve_sphere_quad_collision(T3DVec3* sphereCenter, float sphereRadius, T3DVec3 planeNormal, float planeD);
 
+//SURFACES
+T3DVec3 calc_surface_center(Surface surf);
+T3DVec3 calc_surface_norm(Surface surf);
+float distance_to_surface(T3DVec3 position, Surface surf);
+bool check_sphere_surface_collision(Sphere sphere, Surface surf);
+Surface find_closest_surface(T3DVec3 position, Surface* surfaces, int numSurfaces);
+void resolve_sphere_surface_collision(Sphere *sphere, Surface *surf);
+
 bool check_collisions(CollisionShape a, CollisionShape b);
 
 #endif // COLLISION_H

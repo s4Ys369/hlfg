@@ -18,6 +18,13 @@ extern T3DMat4FP* meshMatFP;
 extern T3DModel *modelMesh;
 extern rspq_block_t *dplMesh;
 
+extern int wallCount;
+extern Surface Wall[8];
+extern int slopeCount;
+extern Surface Slope[13];
+extern int floorCount;
+extern Surface Floor[11];
+
 void map_init(void);
 
 #endif // MAP_H

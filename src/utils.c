@@ -97,3 +97,9 @@ void t3d_vert_unpack_normal(uint16_t packed, T3DVec3 *normal) {
     // Normalize the vector
     t3d_vec3_norm(normal);
 }
+
+void t3d_vec3_scale(T3DVec3 *result, const T3DVec3 *vec, float scalar) {
+    result->v[0] = vec->v[0] * scalar;
+    result->v[1] = vec->v[1] * scalar;
+    result->v[2] = vec->v[2] * scalar;
+}

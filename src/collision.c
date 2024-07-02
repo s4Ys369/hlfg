@@ -512,6 +512,110 @@ void resolve_sphere_quad_collision(T3DVec3* sphereCenter, float sphereRadius, T3
     }
 }
 
+//SURFACES
+T3DVec3 calc_surface_center(Surface surf) {
+    T3DVec3 centroid;
+    centroid.v[0] = (surf.posA.v[0] + surf.posB.v[0] + surf.posC.v[0]) / 3.0f;
+    centroid.v[1] = (surf.posA.v[1] + surf.posB.v[1] + surf.posC.v[1]) / 3.0f;
+    centroid.v[2] = (surf.posA.v[2] + surf.posB.v[2] + surf.posC.v[2]) / 3.0f;
+    return centroid;
+}
+
+T3DVec3 calc_surface_norm(Surface surf) {
+    T3DVec3 edge1;  t3d_vec3_diff(&edge1, &surf.posB, &surf.posA);
+    T3DVec3 edge2;  t3d_vec3_diff(&edge2, &surf.posC, &surf.posA);
+    T3DVec3 normal; t3d_vec3_cross(&normal, &edge1, &edge2);
+    t3d_vec3_norm(&normal);
+    return normal;
+}
+
+// Function to calculate the distance to surface
+float distance_to_surface(T3DVec3 position, Surface surf) {
+    // Calculate vectors from triangle vertices
+    T3DVec3 AB;
+    T3DVec3 AC;
+    t3d_vec3_diff(&AB, &surf.posB, &surf.posA);
+    t3d_vec3_diff(&AC, &surf.posC, &surf.posA);
+    
+    // Calculate normal vector of the triangle
+    T3DVec3 N;
+    t3d_vec3_cross(&N, &AB, &AC);
+
+    // Calculate vector from any vertex of surface to the position
+    T3DVec3 PA;
+    t3d_vec3_diff(&PA, &position, &surf.posA); 
+
+    // Calculate distance from position to the plane of the surface
+    float dotProduct = t3d_vec3_dot(&N, &PA);
+    float N_mag = t3d_vec3_len(&N);
+    if(N_mag < 0.001f){
+        N_mag = 0.001f;
+    }
+    float dist = fabsf(dotProduct) / N_mag;
+
+    return dist;
+}
+
+// Function to check sphere collision with a surface
+bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
+    // Calculate distance from sphere center to the surface
+    float dist = distance_to_surface(sphere.center, surf);
+
+    // Check if the distance is less than or equal to the sphere radius
+    if (dist <= sphere.radius) {
+        // Collision detected
+        return true;
+    } else {
+        // No collision
+        return false;
+    }
+}
+
+Surface find_closest_surface(T3DVec3 position, Surface* surfaces, int numSurfaces) {
+    float minDistance = FLT_MAX;
+    Surface closestSurface;
+
+    for (int i = 0; i < numSurfaces; ++i) {
+        float dist = distance_to_surface(position, surfaces[i]);
+        if (dist < minDistance) {
+            minDistance = dist;
+            closestSurface = surfaces[i];
+        }
+    }
+
+    return closestSurface;
+}
+
+// Function to resolve collision between sphere and surface
+void resolve_sphere_surface_collision(Sphere *sphere, Surface *surf) {
+    // Calculate normal vector of the triangle
+    T3DVec3 AB, AC;
+    t3d_vec3_diff(&AB, &surf->posB, &surf->posA);
+    t3d_vec3_diff(&AC, &surf->posC, &surf->posA);
+    
+    T3DVec3 N;
+    t3d_vec3_cross(&N, &AB, &AC);
+    t3d_vec3_norm(&N);
+
+    // Calculate vector from surface to sphere center
+    T3DVec3 surf_to_sphere;
+    t3d_vec3_diff(&surf_to_sphere, &sphere->center, &surf->posA);
+
+    // Calculate penetration depth
+    float dist = t3d_vec3_dot(&N, &surf_to_sphere);
+    float penetration_depth = sphere->radius - dist;
+
+    // Calculate collision point on the surface
+    T3DVec3 collision_point;
+    t3d_vec3_scale(&collision_point, &N, penetration_depth);
+    t3d_vec3_add(&collision_point, &sphere->center, &collision_point);
+
+    // Resolve collision: move sphere center along the normal vector
+    T3DVec3 move_direction;
+    t3d_vec3_scale(&move_direction, &N, penetration_depth);
+    t3d_vec3_add(&sphere->center, &sphere->center, &move_direction);
+}
+
 // Catch all
 bool check_collisions(CollisionShape a, CollisionShape b) {
     if (a.type == SHAPE_BOX && b.type == SHAPE_BOX) {

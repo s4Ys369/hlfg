@@ -6,6 +6,14 @@
 
 // COLLISIONS
 typedef enum {
+    SURFACE_FLOOR,
+    SURFACE_CEILING,
+    SURFACE_WALL,
+    SURFACE_SLOPE,
+    NUM_SURFACE_TYPES
+} SURFACE_TYPE;
+
+typedef enum {
     SHAPE_BOX,
     SHAPE_SPHERE
 } SHAPE_TYPE;

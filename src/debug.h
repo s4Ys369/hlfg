@@ -5,9 +5,11 @@
 #include <t3d/t3d.h>
 #include <t3d/t3ddebug.h>
 #include "../include/config.h"
+#include "../include/enums.h"
 #include "../include/globals.h"
 #include "../include/types.h"
 #include "camera.h"
+#include "collision.h"
 #include "input.h"
 #include "player.h"
 

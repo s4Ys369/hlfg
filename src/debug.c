@@ -2,9 +2,11 @@
 #include <t3d/t3d.h>
 #include <t3d/t3ddebug.h>
 #include "../include/config.h"
+#include "../include/enums.h"
 #include "../include/globals.h"
 #include "../include/types.h"
 #include "camera.h"
+#include "collision.h"
 #include "debug.h"
 #include "input.h"
 #include "player.h"
@@ -80,11 +82,18 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX, posY, "Grounded %d", player[0]->isGrounded);posY+=10;
     t3d_debug_printf(posX, posY, "VX %.2f", player[0]->vel.v[0]);posY+=10;
     t3d_debug_printf(posX, posY, "VZ %.2f", player[0]->vel.v[2]);posY+=10;
-    T3DQuad quad = get_closest_quad(player[0]->pos, modelMesh, 1);
-    T3DVec3 norm = get_quad_normal(quad);
-    t3d_debug_printf(posX, posY, "N %.2f %.2f %.2f", norm.v[0],norm.v[1],norm.v[2]);posY+=10;
-    t3d_debug_printf(posX, posY, "D %.2f", calc_dist_to_quad(player[0]->pos,quad));posY+=10;
-    
+    Surface dWall = find_closest_surface(player[0]->hitbox.center, Wall, wallCount);
+    float dWf = distance_to_surface(player[0]->hitbox.center,dWall);
+    Surface dFloor = find_closest_surface(player[0]->hitbox.center, Floor, floorCount);
+    float dFf = distance_to_surface(player[0]->hitbox.center,dFloor);
+    Surface dSlope = find_closest_surface(player[0]->hitbox.center, Slope, slopeCount);
+    float dSf = distance_to_surface(player[0]->hitbox.center,dSlope);
+    t3d_debug_printf(posX, posY, "Wall %d", check_sphere_surface_collision(player[0]->hitbox, dWall));posY+=10;
+    t3d_debug_printf(posX, posY, "%.2f", dWf);posY+=10;
+    t3d_debug_printf(posX, posY, "Floor %d", check_sphere_surface_collision(player[0]->hitbox, dFloor));posY+=10;
+    t3d_debug_printf(posX, posY, "%.2f", dFf);posY+=10;
+    t3d_debug_printf(posX, posY, "Slope %d", check_sphere_surface_collision(player[0]->hitbox, dSlope));posY+=10;
+    t3d_debug_printf(posX, posY, "%.2f", dSf);posY+=10;
 
     /*
     t3d_debug_printf(posX, posY, "Mat Count %u", matCount);posY+=10;

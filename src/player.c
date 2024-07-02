@@ -407,7 +407,22 @@ void player_to_mesh(int playerCount){
     resolve_slope_collision(player[playerCount]->hitbox.center, player[playerCount]->vel, currQuad);
     float planeD = calculate_plane_d(currQuadNorm, currQuadCenter);
     resolve_sphere_quad_collision(&player[playerCount]->hitbox.center, player[playerCount]->hitbox.radius, currQuadNorm, planeD);
-    player[playerCount]->pos = player[playerCount]->hitbox.center;
+  }
+}
+
+void player_to_wall(int playerCount){
+// wall collisions?
+  Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, Wall, wallCount);
+  if (check_sphere_surface_collision(player[playerCount]->hitbox, currWall)){
+    resolve_sphere_surface_collision(&player[playerCount]->hitbox, &currWall);
+  }
+}
+
+void player_to_slope(int playerCount){
+// slope collisions?
+  Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, Slope, slopeCount);
+  if (check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)){
+    resolve_sphere_surface_collision(&player[playerCount]->hitbox, &currSlope);
   }
 }
 
@@ -518,7 +533,8 @@ void player_update(void){
     }
     check_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
-
+    player_to_slope(i);
+    player_to_wall(i);
   }
 
   // Check for collision with players then actors if grounded above ground level
@@ -526,9 +542,11 @@ void player_update(void){
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
     }
-    player_to_mesh(i);
+    
     check_midair_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
+    player_to_slope(i);
+    player_to_wall(i);
 
   }
 
@@ -539,9 +557,11 @@ void player_update(void){
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
     }
-    player_to_mesh(i);
+    
     check_midair_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
+    player_to_slope(i);
+    player_to_wall(i);
 
     if(!player[i]->isGrounded){
       if (player[i]->pos.v[1] > groundLevel) {
@@ -630,6 +650,8 @@ void player_update(void){
     }
     check_attack_collisions(crates, numCrates, i);
     check_attack_collisions(balls, numBalls, i);
+    player_to_slope(i);
+    player_to_wall(i);
 
     if(!animAttack[i].isPlaying){
       player[i]->projectile.hitbox.center = player[i]->hitbox.center;
@@ -652,9 +674,11 @@ void player_update(void){
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
     }
-    player_to_mesh(i);
+    
     check_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
+    player_to_slope(i);
+    player_to_wall(i);
 
     // Apply jump force modifier
     player[i]->vel.v[1] = player[i]->jumpForce;
@@ -691,9 +715,11 @@ void player_update(void){
       check_player_collisions(player, numPlayers);
       playerState[i] = PLAYER_FALL;
     }
-    player_to_mesh(i);
+    
     check_midair_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
+    player_to_slope(i);
+    player_to_wall(i);
   }
 
   // do grounded
