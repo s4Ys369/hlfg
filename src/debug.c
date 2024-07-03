@@ -12,6 +12,7 @@
 #include "input.h"
 #include "player.h"
 #include "utils.h"
+#include "wf_test.h"
 
 T3DModel *modelDebugBox;
 T3DModel *modelDebugSphere;
@@ -117,13 +118,13 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX, posY, "Grounded %d", player[0]->isGrounded);posY+=10;
 
     // Surfaces
-    Surface dWall = find_closest_surface(player[0]->hitbox.center, Wall, wallCount);
+    Surface dWall = find_closest_surface(player[0]->hitbox.center, wfWall, wfWallCount);
     float dWf = distance_to_surface(player[0]->hitbox.center,dWall);
     float dWc = t3d_vec3_distance(&player[0]->hitbox.center, &dWall.center);
-    Surface dFloor = find_closest_surface(player[0]->hitbox.center, Floor, floorCount);
+    Surface dFloor = find_closest_surface(player[0]->hitbox.center, wfFloor, wfFloorCount);
     float dFf = distance_to_surface(player[0]->hitbox.center,dFloor);
-    float dFc = t3d_vec3_distance(&player[0]->hitbox.center, &dFloor.normal);
-    Surface dSlope = find_closest_surface(player[0]->hitbox.center, Slope, slopeCount);
+    float dFc = t3d_vec3_distance(&player[0]->hitbox.center, &dFloor.center);
+    Surface dSlope = find_closest_surface(player[0]->hitbox.center, wfSlope, wfSlopeCount);
     float dSf = distance_to_surface(player[0]->hitbox.center,dSlope);
     float dSc = t3d_vec3_distance(&player[0]->hitbox.center, &dSlope.center);
     t3d_debug_printf(posX, posY, "Wall %d", check_sphere_surface_collision(player[0]->hitbox, dWall));posY+=10;
@@ -149,12 +150,4 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX, 200, "FPS %.1f", display_get_fps());
   }
 
-    
-  //.posA = {dWall.posA.v[0],dWall.posA.v[1],dWall.posA.v[2]}, .rgbaA = 0xFF0000'FF, .normA = norm,
-  //.posB = {dWall.posB.v[0],dWall.posB.v[1],dWall.posB.v[2]}, .rgbaB = 0x00FF00'FF, .normB = norm,
-
-  //.posA = {dWall.posC.v[0],dWall.posC.v[1],dWall.posC.v[2]}, .rgbaA = 0x0000FF'FF, .normA = norm,
-  //.posB = {dWall.posA.v[0],dWall.posA.v[1],dWall.posA.v[2]}, .rgbaB = 0xFF00FF'FF, .normB = norm,
-    
-  
 }

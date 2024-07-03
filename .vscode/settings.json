@@ -83,7 +83,8 @@
         "config.h": "c",
         "enums.h": "c",
         "utils.h": "c",
-        "t3dmodel.h": "c"
+        "t3dmodel.h": "c",
+        "wf_test.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

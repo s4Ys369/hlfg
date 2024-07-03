@@ -573,7 +573,7 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
     // Check distances per surface
     if(surf.type == SURFACE_SLOPE) {
         if (dist <= (sphere.radius)*2.0f) {
-            if (dist2 <= (sphere.radius)*5.0f) {
+            if (dist2 <= (sphere.radius)*6.0f) {
                 return true;
             } else {
                return false; 
@@ -593,10 +593,14 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
             return false;
         }
     } else if(surf.type == SURFACE_FLOOR) {
-        if (dist <= sphere.radius) {
-            return true;
+        if (dist2 <= (sphere.radius)*6.0f) {
+            if (dist <= sphere.radius) {
+                return true;
+            } else {
+               return false; 
+            }
         } else {
-            return false; 
+            return false;
         }
     } else {
         if (dist <= sphere.radius) {
@@ -617,11 +621,7 @@ Surface find_closest_surface(T3DVec3 position, Surface* surfaces, int numSurface
     Surface closestSurface;
 
     for (int i = 0; i < numSurfaces; ++i) {
-        if(surfaces[i].type == SURFACE_FLOOR) {
-            dist = distance_to_surface(position, surfaces[i]);
-        } else {
-            dist = t3d_vec3_distance(&position, &surfaces[i].center);
-        }
+        dist = t3d_vec3_distance(&position, &surfaces[i].center);
         if (dist < minDistance) {
             minDistance = dist;
             closestSurface = surfaces[i];
@@ -660,6 +660,7 @@ void resolve_sphere_surface_collision(Sphere *sphere, T3DVec3 *position, T3DVec3
     if(surf->type == SURFACE_SLOPE) {
         t3d_vec3_scale(&move_direction, &N, penetration_depth);
         t3d_vec3_add(&sphere->center, &sphere->center, &move_direction);
+        position->v[1] = collision_point.v[1] - sphere->radius;
  
     }
     if(surf->type == SURFACE_WALL) {
@@ -675,11 +676,18 @@ void resolve_sphere_surface_collision(Sphere *sphere, T3DVec3 *position, T3DVec3
         position->v[2] = sphere->center.v[2];
     }
     if(surf->type == SURFACE_FLOOR) {
+        AABB Floor = (AABB){{{surf->posA.v[0],surf->posA.v[1],surf->posA.v[2]}},
+                            {{surf->posC.v[0],surf->posC.v[1],surf->posC.v[2]}}};
         t3d_vec3_scale(&move_direction, &N, penetration_depth);
-        t3d_vec3_add(&sphere->center, &sphere->center, &move_direction);
+        sphere->center.v[0] = sphere->center.v[0] + move_direction.v[0];
+        sphere->center.v[2] = sphere->center.v[2] + move_direction.v[2];
+        position->v[0] = sphere->center.v[0];
+        position->v[2] = sphere->center.v[2];
+        //t3d_vec3_add(&sphere->center, &sphere->center, &move_direction);
+        resolve_box_collision_offset(Floor, &sphere->center, sphere->radius);
+        sphere->center.v[1] = collision_point.v[1];
  
     }
-    //t3d_vec3_add(position, &sphere->center, &move_direction);
 }
 
 // Catch all

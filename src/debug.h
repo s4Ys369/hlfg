@@ -14,6 +14,7 @@
 #include "input.h"
 #include "player.h"
 #include "utils.h"
+#include "wf_test.h"
 
 extern T3DModel *modelDebugBox;
 extern T3DModel *modelDebugSphere;

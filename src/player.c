@@ -15,6 +15,7 @@
 #include "player.h"
 #include "sound.h"
 #include "utils.h"
+#include "wf_test.h"
 
 
 T3DMat4FP* playerMatFP[MAX_PLAYERS];
@@ -40,6 +41,7 @@ rspq_block_t *dplShadow[MAX_PLAYERS];
 PlayerParams *player[MAX_PLAYERS];
 int playerState[MAX_PLAYERS];
 float playerScaleY[MAX_PLAYERS];
+T3DVec3 playerStartPos = {{725,250,1200}};
 
 
 // Check for PvP interaction, delcared first because used in init function
@@ -143,7 +145,7 @@ void player_init(void){
       t3d_matrix_push_pos(1);
       matCount++;
       t3d_matrix_set(projectilehitboxMatFP[i], true);
-      rdpq_set_prim_color(ORANGE);
+      rdpq_set_prim_color(BLUE);
       t3d_matrix_set(projectilehitboxMatFP[i], true);
       t3d_model_draw(modelDebugSphere);
       t3d_matrix_pop(1);
@@ -162,10 +164,10 @@ void player_init(void){
     // Init player params
     player[i] = malloc(sizeof(PlayerParams));
     player[i]->moveDir = (T3DVec3){{0,0,0}};
-    player[i]->pos = (T3DVec3){{0,groundLevel,0}};
+    player[i]->pos = playerStartPos;
     player[i]->shadowPos = player[i]->pos;
     player[i]->forward = (T3DVec3){{0,0,1}};
-    player[i]->hitbox = (Sphere){{{0.0f, 16.0f, 0.0f}}, 16.0f};
+    player[i]->hitbox = (Sphere){player[i]->pos, 16.0f};
 
     player[i]->projectile.pos = player[i]->hitbox.center;
     player[i]->projectile.dir = player[i]->forward;
@@ -210,7 +212,7 @@ void player_init(void){
       check_player_collisions(player, numPlayers);
 
       if (check_sphere_box_collision(player[p]->hitbox, FloorBox)) {
-        resolve_box_collision_offset(FloorBox, &player[p]->pos, 0.01f);
+        player[p]->pos = playerStartPos;
       }
     }
   }
@@ -397,8 +399,8 @@ void check_midair_actor_collisions(Actor **actor, int actorCount, int playerCoun
 }
 
 
-void player_to_mesh(int playerCount){
-// mesh collisions?
+void player_to_quad(int playerCount){
+// quad collisions?
   T3DQuad currQuad = get_closest_quad(player[playerCount]->pos, modelMesh, 1);
   T3DVec3 currQuadNorm = get_quad_normal(currQuad);
   T3DVec3 currQuadCenter = compute_quad_center(currQuad);
@@ -412,7 +414,7 @@ void player_to_mesh(int playerCount){
 
 // wall surface collisions
 void player_to_wall(int playerCount){
-  Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, Wall, wallCount);
+  Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, wfWall,wfWallCount);
   if (check_sphere_surface_collision(player[playerCount]->hitbox, currWall)){
     resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, &currWall);
     
@@ -421,19 +423,28 @@ void player_to_wall(int playerCount){
 
 // slope surface collisions
 void player_to_slope(int playerCount){
-  Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, Slope, slopeCount);
-  if (check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)){
-    resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->moveDir, &currSlope);
-    playerState[playerCount] = PLAYER_SLIDE;
+  Surface currFloor = find_closest_surface(player[playerCount]->hitbox.center, wfFloor, wfFloorCount);
+  Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, wfSlope, wfSlopeCount);
+  if (!check_sphere_surface_collision(player[playerCount]->hitbox, currFloor)){
+    if (check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)){
+      resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->moveDir, &currSlope);
+      playerState[playerCount] = PLAYER_SLIDE;
+    }
   }
 }
 
 // floor surface collisions
 void player_to_floor(int playerCount){
-  Surface currFloor = find_closest_surface(player[playerCount]->hitbox.center, Floor, floorCount);
-  if (check_sphere_surface_collision(player[playerCount]->hitbox, currFloor)){
-    resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->moveDir, &currFloor);
-    playerState[playerCount] = PLAYER_LAND;
+  Surface currFloor = find_closest_surface(player[playerCount]->hitbox.center, wfFloor, wfFloorCount);
+  Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, wfSlope, wfSlopeCount);
+  if (!check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)){
+    if (check_sphere_surface_collision(player[playerCount]->hitbox, currFloor)){
+      resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->moveDir, &currFloor);
+      if(player[playerCount]->pos.v[1] < currFloor.center.v[1]){
+        player[playerCount]->pos.v[1] = currFloor.center.v[1];
+      }
+      playerState[playerCount] = PLAYER_LAND;
+    }
   }
 }
 
@@ -538,17 +549,6 @@ void player_update(void){
     }
   }
 
-  // Check for collision with players then actors at ground level
-  if(player[i]->pos.v[1] == groundLevel){
-    if(numPlayers > 1){
-      check_player_collisions(player, numPlayers);
-    }
-    check_actor_collisions(crates, numCrates, i);
-    check_actor_collisions(balls, numBalls, i);
-    player_to_slope(i);
-    player_to_wall(i);
-    player_to_floor(i);
-  }
 
   // Check for collision with players then actors if grounded above ground level
   if(player[i]->pos.v[1] != groundLevel && (playerState[i] == PLAYER_IDLE || playerState[i] == PLAYER_WALK)){
@@ -587,7 +587,7 @@ void player_update(void){
         }
 
       } else if (player[i]->pos.v[1] <= groundLevel) {
-        playerState[i] = PLAYER_LAND;
+        player[i]->pos = playerStartPos;
         player[i]->vel.v[1] = 0.0f;
         playerScaleY[i] = 1.0f;
         if(numPlayers > 2){
@@ -601,20 +601,23 @@ void player_update(void){
 
   // do land
   if(playerState[i] == PLAYER_LAND){
+    playerScaleY[i] = 1.0f;
     playerState[i] = PLAYER_IDLE;
   }
 
   // do slide/slope interaction
   if(playerState[i] == PLAYER_SLIDE){
     playerScaleY[i] = 1.0f;
-    player[i]->cam.camTarget.v[1] = player[i]->hitbox.center.v[1];
+    player[i]->cam.camPos.v[1] = player[i]->hitbox.center.v[1];
     Surface currSlope = find_closest_surface(player[i]->hitbox.center, Slope, slopeCount);
     if (check_sphere_surface_collision(player[i]->hitbox, currSlope)){
       player_to_slope(i);
       player[i]->cam.camPos.v[1] = currSlope.center.v[1];
       player[i]->pos.v[1] = player[i]->hitbox.center.v[1] - player[i]->hitbox.radius;
     } else {
-      playerState[i] = PLAYER_IDLE;
+      player[i]->cam.camPos.v[1] = player[i]->hitbox.center.v[1];
+      player[i]->cam.camTarget.v[1] = player[i]->hitbox.center.v[1];
+      playerState[i] = PLAYER_WALK;
     }
   
   }
@@ -681,16 +684,13 @@ void player_update(void){
     }
     check_attack_collisions(crates, numCrates, i);
     check_attack_collisions(balls, numBalls, i);
-    player_to_slope(i);
-    player_to_wall(i);
-    player_to_floor(i);
 
     if(!animAttack[i].isPlaying){
       player[i]->projectile.hitbox.center = player[i]->hitbox.center;
       player[i]->projectile.speed = 0.0f;
       player[i]->projectile.isActive = false;
       if (player[i]->isGrounded == true) {
-        playerState[i] = PLAYER_IDLE;
+        playerState[i] = PLAYER_WALK;
       } else {
         playerState[i] = PLAYER_FALL;
       }
@@ -709,9 +709,16 @@ void player_update(void){
     
     check_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
-    player_to_slope(i);
     player_to_wall(i);
-    player_to_floor(i);
+
+    Surface currSlope = find_closest_surface(player[i]->hitbox.center, wfSlope, wfSlopeCount);
+    if (check_sphere_surface_collision(player[i]->hitbox, currSlope)){
+      player[i]->pos.v[1] += player[i]->hitbox.radius * 2.0f;
+    }
+    Surface currFloor = find_closest_surface(player[i]->hitbox.center, wfFloor, wfFloorCount);
+    if (check_sphere_surface_collision(player[i]->hitbox, currFloor)){
+      player[i]->pos.v[1] += player[i]->hitbox.radius;
+    }
 
     // Apply jump force modifier
     player[i]->vel.v[1] = player[i]->jumpForce;
@@ -781,25 +788,29 @@ void player_update(void){
 
   if(player[i]->isGrounded) {
     if (player[i]->pos.v[1] < groundLevel) {
-      player[i]->pos.v[1] = groundLevel;
+      player[i]->pos = playerStartPos;
     }
     
     if(player[i]->pos.v[1] > groundLevel){
-      if(playerState[i] != PLAYER_SLIDE){
-        for (int c = 0; c < numCrates; ++c) {
-          int closestCrate = find_closest(player[i]->pos, crates, numCrates);
-          if(!check_sphere_box_collision(player[i]->hitbox, crates[closestCrate]->hitbox.shape.aabb)){
-            // Check if the player is outside bounds in the x and z directions
-            if (player[i]->hitbox.center.v[0] > crates[closestCrate]->hitbox.shape.aabb.max.v[0] ||
-                player[i]->hitbox.center.v[0] < crates[closestCrate]->hitbox.shape.aabb.min.v[0] ||
-                player[i]->hitbox.center.v[2] > crates[closestCrate]->hitbox.shape.aabb.max.v[2] ||
-                player[i]->hitbox.center.v[2] < crates[closestCrate]->hitbox.shape.aabb.min.v[2]) {
+      Surface currSlope = find_closest_surface(player[i]->hitbox.center, wfSlope, wfSlopeCount);
+      if (!check_sphere_surface_collision(player[i]->hitbox, currSlope)){
+        Surface currFloor = find_closest_surface(player[i]->hitbox.center, wfFloor, wfFloorCount);
+        if (!check_sphere_surface_collision(player[i]->hitbox, currFloor)){
+          for (int c = 0; c < numCrates; ++c) {
+            int closestCrate = find_closest(player[i]->pos, crates, numCrates);
+            if(!check_sphere_box_collision(player[i]->hitbox, crates[closestCrate]->hitbox.shape.aabb)){
+              // Check if the player is outside bounds in the x and z directions
+              if (player[i]->hitbox.center.v[0] > crates[closestCrate]->hitbox.shape.aabb.max.v[0] ||
+                  player[i]->hitbox.center.v[0] < crates[closestCrate]->hitbox.shape.aabb.min.v[0] ||
+                  player[i]->hitbox.center.v[2] > crates[closestCrate]->hitbox.shape.aabb.max.v[2] ||
+                  player[i]->hitbox.center.v[2] < crates[closestCrate]->hitbox.shape.aabb.min.v[2]) {
 
-              playerState[i] = PLAYER_FALL;
-            }
-          } else {
-            if (player[i]->pos.v[1] < crates[closestCrate]->hitbox.shape.aabb.max.v[1]) {
-              playerState[i] = PLAYER_FALL;
+                playerState[i] = PLAYER_FALL;
+              }
+            } else {
+              if (player[i]->pos.v[1] < crates[closestCrate]->hitbox.shape.aabb.max.v[1]) {
+                playerState[i] = PLAYER_FALL;
+              }
             }
           }
         }
@@ -809,7 +820,7 @@ void player_update(void){
 
   // update shadow
   player[i]->shadowPos.v[0] = player[i]->pos.v[0];
-  player[i]->shadowPos.v[1] = groundLevel;
+  player[i]->shadowPos.v[1] = player[i]->pos.v[1];
   player[i]->shadowPos.v[2] = player[i]->pos.v[2];
 
   //reset projectile

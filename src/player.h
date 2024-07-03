@@ -18,6 +18,7 @@
 #include "map.h"
 #include "sound.h"
 #include "utils.h"
+#include "wf_test.h"
 
 extern T3DMat4FP* playerMatFP[MAX_PLAYERS];
 extern T3DMat4FP* shadowMatFP[MAX_PLAYERS];

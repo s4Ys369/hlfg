@@ -15,6 +15,7 @@
 #include "sound.h"
 #include "ui.h"
 #include "utils.h"
+#include "wf_test.h"
 
 // IBE : Itty Bitty Engine, a 3D Game Engine for Tiny3D
 
@@ -148,14 +149,14 @@ int main()
 
     color_t fogColor = WHITE;
     rdpq_set_prim_color(WHITE);
-    rdpq_mode_fog(RDPQ_FOG_STANDARD);
-    rdpq_set_fog_color(fogColor);
+    //rdpq_mode_fog(RDPQ_FOG_STANDARD);
+    //rdpq_set_fog_color(fogColor);
 
     t3d_screen_clear_color(fogColor);
     t3d_screen_clear_depth();
 
-    t3d_fog_set_range(20.0f, 150.0f);
-    t3d_fog_set_enabled(true);
+    //t3d_fog_set_range(20.0f, 150.0f);
+    //t3d_fog_set_enabled(true);
     
     t3d_light_set_ambient(colorAmbient);
     t3d_light_set_count(1);
@@ -187,9 +188,11 @@ int main()
       t3d_light_set_directional(0, colorDir, &lightDirVec);
       
       // Run map block
+      rspq_block_run(dplWF);
       //rspq_block_run(dplMap);
-      rspq_block_run(dplMesh);
-      rspq_block_run(dplTri);
+      //rspq_block_run(dplMesh);
+      //rspq_block_run(dplMesh2);
+      //rspq_block_run(dplTri);
       
       // then actors
       for (int i = 0; i < numCrates; ++i) {

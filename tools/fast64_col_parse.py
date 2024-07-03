@@ -24,7 +24,7 @@ def convert_collision_file(input_file, output_file):
     surfaces = surface_pattern.findall(collision_data)
 
     # Define arrays
-    verts_array = "T3DVec3 verts[{}] =\n{{\n".format(len(vertices))
+    verts_array = "T3DVec3 {0}Verts[{1}] =\n{{\n".format(name_str,len(vertices))
     for vertex in vertices:
         verts_array += "       {{" + ", ".join(vertex) + "}},\n"
     verts_array = verts_array.strip(",\n") + "\n};\n\n"
@@ -48,7 +48,8 @@ def convert_collision_file(input_file, output_file):
     # Format surface arrays
     surface_definitions = ""
     for surface_type, triangles in surface_arrays.items():
-        surface_name = surface_type.replace("SURFACE_", "").capitalize()
+        surface_type = surface_type.replace("SURFACE_", "").capitalize()
+        surface_name = "{0}{1}".format(name_str,surface_type)
         surface_definitions += "int {}Count = {};\n".format(surface_name, len(triangles))
         surface_definitions += "Surface {}[{}];\n".format(surface_name, len(triangles))
         
@@ -56,9 +57,9 @@ def convert_collision_file(input_file, output_file):
     surface_init = "\nvoid {}_init(void){{\n\n".format(name)
 
     for surface_type, triangles in surface_arrays.items():
-        surface_name = surface_type.replace("SURFACE_", "").capitalize()
+        surface_name = "{0}{1}".format(name_str,surface_type.replace("SURFACE_", "").capitalize())
         for i, triangle in enumerate(triangles):
-            surface_init += "    {0}[{1}].posA = verts[{2}]; {0}[{1}].posB = verts[{3}]; {0}[{1}].posC = verts[{4}];\n".format(surface_name, i, triangle[0], triangle[1], triangle[2])
+            surface_init += "    {0}[{1}].posA = {5}Verts[{2}]; {0}[{1}].posB = {5}Verts[{3}]; {0}[{1}].posC = {5}Verts[{4}];\n".format(surface_name, i, triangle[0], triangle[1], triangle[2], name_str)
         
         surface_init += "\n    for (int i = 0; i < {}Count; i++) {{\n".format(surface_name)
         surface_init += "        {}[i].type = {};\n".format(surface_name, surface_type)
