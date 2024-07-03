@@ -84,5 +84,6 @@
         "enums.h": "c",
         "utils.h": "c",
         "t3dmodel.h": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }

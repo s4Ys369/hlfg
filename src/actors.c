@@ -53,8 +53,8 @@ void check_crates_collisions(Actor *crates[], int numCrates) {
       if (check_box_collision(crates[i]->hitbox.shape.aabb, crates[j]->hitbox.shape.aabb)) {
         resolve_box_collision_offset_xz(crates[j]->hitbox.shape.aabb, &crates[i]->pos, .2f);
         if(crates[j]->IsBouncy == true) {
-          crates[j]->pos.v[0] += crates[i]->pos.v[0]  * deltaTime;
-          crates[j]->pos.v[2] += crates[i]->pos.v[2] * deltaTime;
+          crates[j]->pos.v[0] += crates[i]->pos.v[0]  * fixedTime;
+          crates[j]->pos.v[2] += crates[i]->pos.v[2] * fixedTime;
         }
       }
     }

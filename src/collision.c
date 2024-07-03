@@ -533,6 +533,7 @@ T3DVec3 calc_surface_norm(Surface surf) {
 
 // Function to calculate the distance to surface
 float distance_to_surface(T3DVec3 position, Surface surf) {
+
     // Calculate vectors from triangle vertices
     T3DVec3 AB;
     T3DVec3 AC;
@@ -555,6 +556,10 @@ float distance_to_surface(T3DVec3 position, Surface surf) {
     }
     float dist = fabsf(dotProduct) / N_mag;
 
+    if(surf.type == SURFACE_FLOOR) {
+        dist = fabsf(position.v[1] - surf.center.v[1]);
+    }
+
     return dist;
 }
 
@@ -562,22 +567,45 @@ float distance_to_surface(T3DVec3 position, Surface surf) {
 bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
     // Calculate distance from sphere center to the surface
     float dist = distance_to_surface(sphere.center, surf);
+    float dist2 = t3d_vec3_distance(&sphere.center, &surf.center);
+    //float dist3 = t3d_vec3_distance(&sphere.center, &surf.normal);
 
-    // Check if the distance is less than or equal to the sphere radius
+    // Check distances per surface
     if(surf.type == SURFACE_SLOPE) {
-        if (dist <= (sphere.radius*0.5f)) {
-            // Collision detected
-            return true;
+        if (dist <= (sphere.radius)*2.0f) {
+            if (dist2 <= (sphere.radius)*5.0f) {
+                return true;
+            } else {
+               return false; 
+            }
         } else {
             // No collision
             return false;
         }
-    } else {
+    } else if(surf.type == SURFACE_WALL) {
         if (dist <= sphere.radius) {
-            // Collision detected
+            if (dist2 <= (sphere.radius)*5.0f) {
+                return true;
+            } else {
+               return false; 
+            }
+        } else {
+            return false;
+        }
+    } else if(surf.type == SURFACE_FLOOR) {
+        if (dist <= sphere.radius) {
             return true;
         } else {
-            // No collision
+            return false; 
+        }
+    } else {
+        if (dist <= sphere.radius) {
+            if (dist2 <= sphere.radius) {
+                return true;
+            } else {
+               return false; 
+            }
+        } else {
             return false;
         }
     }
@@ -585,10 +613,15 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
 
 Surface find_closest_surface(T3DVec3 position, Surface* surfaces, int numSurfaces) {
     float minDistance = FLT_MAX;
+    float dist = FLT_MIN;
     Surface closestSurface;
 
     for (int i = 0; i < numSurfaces; ++i) {
-        float dist = distance_to_surface(position, surfaces[i]);
+        if(surfaces[i].type == SURFACE_FLOOR) {
+            dist = distance_to_surface(position, surfaces[i]);
+        } else {
+            dist = t3d_vec3_distance(&position, &surfaces[i].center);
+        }
         if (dist < minDistance) {
             minDistance = dist;
             closestSurface = surfaces[i];
@@ -625,8 +658,8 @@ void resolve_sphere_surface_collision(Sphere *sphere, T3DVec3 *position, T3DVec3
     // Resolve collision: move sphere center along the normal vector
     T3DVec3 move_direction;
     if(surf->type == SURFACE_SLOPE) {
-        t3d_vec3_scale(&move_direction, &N, (penetration_depth*0.07f));
-        t3d_vec3_add(position, position, &move_direction);
+        t3d_vec3_scale(&move_direction, &N, penetration_depth);
+        t3d_vec3_add(&sphere->center, &sphere->center, &move_direction);
  
     }
     if(surf->type == SURFACE_WALL) {
@@ -640,6 +673,11 @@ void resolve_sphere_surface_collision(Sphere *sphere, T3DVec3 *position, T3DVec3
         velocity->v[2] = sphere->center.v[2] - move_direction.v[2];
         position->v[0] = sphere->center.v[0];
         position->v[2] = sphere->center.v[2];
+    }
+    if(surf->type == SURFACE_FLOOR) {
+        t3d_vec3_scale(&move_direction, &N, penetration_depth);
+        t3d_vec3_add(&sphere->center, &sphere->center, &move_direction);
+ 
     }
     //t3d_vec3_add(position, &sphere->center, &move_direction);
 }

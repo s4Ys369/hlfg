@@ -321,9 +321,9 @@ void player_bounced(PlayerParams *player[], int playerCount) {
 
   playerState[playerCount] = PLAYER_JUMP_START;
 
-  player[playerCount]->vel.v[1] += (player[playerCount]->jumpForce * bounceMultiplier) + GRAVITY * deltaTime;
+  player[playerCount]->vel.v[1] += (player[playerCount]->jumpForce * bounceMultiplier) + GRAVITY * fixedTime;
 
-  player[playerCount]->pos.v[1] += player[playerCount]->vel.v[1] * deltaTime;
+  player[playerCount]->pos.v[1] += player[playerCount]->vel.v[1] * fixedTime;
 
   player[playerCount]->hitbox.center.v[1] = player[playerCount]->pos.v[1];
 
@@ -410,8 +410,8 @@ void player_to_mesh(int playerCount){
   }
 }
 
+// wall surface collisions
 void player_to_wall(int playerCount){
-// wall collisions?
   Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, Wall, wallCount);
   if (check_sphere_surface_collision(player[playerCount]->hitbox, currWall)){
     resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, &currWall);
@@ -419,12 +419,21 @@ void player_to_wall(int playerCount){
   }
 }
 
+// slope surface collisions
 void player_to_slope(int playerCount){
-// slope collisions?
   Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, Slope, slopeCount);
   if (check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)){
     resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->moveDir, &currSlope);
     playerState[playerCount] = PLAYER_SLIDE;
+  }
+}
+
+// floor surface collisions
+void player_to_floor(int playerCount){
+  Surface currFloor = find_closest_surface(player[playerCount]->hitbox.center, Floor, floorCount);
+  if (check_sphere_surface_collision(player[playerCount]->hitbox, currFloor)){
+    resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->moveDir, &currFloor);
+    playerState[playerCount] = PLAYER_LAND;
   }
 }
 
@@ -521,6 +530,7 @@ void player_update(void){
     if(playerState[i] != PLAYER_JUMP_START 
       && playerState[i] != PLAYER_JUMP 
       && playerState[i] != PLAYER_FALL 
+      && playerState[i] != PLAYER_SLIDE
       && playerState[i] != PLAYER_ATTACK_START 
       && playerState[i] != PLAYER_ATTACK) {
 
@@ -537,6 +547,7 @@ void player_update(void){
     check_actor_collisions(balls, numBalls, i);
     player_to_slope(i);
     player_to_wall(i);
+    player_to_floor(i);
   }
 
   // Check for collision with players then actors if grounded above ground level
@@ -546,6 +557,7 @@ void player_update(void){
     }
     player_to_slope(i);
     player_to_wall(i);
+    player_to_floor(i);
     check_midair_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
 
@@ -560,13 +572,15 @@ void player_update(void){
     }
     player_to_slope(i);
     player_to_wall(i);
+    player_to_floor(i);
     check_midair_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
 
     if(!player[i]->isGrounded){
       if (player[i]->pos.v[1] > groundLevel) {
-        player[i]->vel.v[1] += GRAVITY * jumpTime;
-        player[i]->pos.v[1] += player[i]->vel.v[1] * jumpTime;
+        player[i]->vel.v[1] += GRAVITY * jumpFixedTime;
+        player[i]->pos.v[1] += player[i]->vel.v[1] * jumpFixedTime;
+        player[i]->hitbox.center.v[1] += player[i]->pos.v[1] * jumpFixedTime;
         playerScaleY[i] -= 0.02f;
         if(playerScaleY[i] < 0.3f){
           playerScaleY[i] = 0.3f;
@@ -589,13 +603,22 @@ void player_update(void){
   if(playerState[i] == PLAYER_LAND){
     playerState[i] = PLAYER_IDLE;
   }
+
+  // do slide/slope interaction
   if(playerState[i] == PLAYER_SLIDE){
     playerScaleY[i] = 1.0f;
+    player[i]->cam.camTarget.v[1] = player[i]->hitbox.center.v[1];
     Surface currSlope = find_closest_surface(player[i]->hitbox.center, Slope, slopeCount);
     if (check_sphere_surface_collision(player[i]->hitbox, currSlope)){
-      resolve_sphere_surface_collision(&player[i]->hitbox, &player[i]->pos, &player[i]->moveDir, &currSlope);
+      player_to_slope(i);
+      player[i]->cam.camPos.v[1] = currSlope.center.v[1];
+      player[i]->pos.v[1] = player[i]->hitbox.center.v[1] - player[i]->hitbox.radius;
+    } else {
+      playerState[i] = PLAYER_IDLE;
     }
+  
   }
+
 
   //do attack
   if(playerState[i] == PLAYER_ATTACK_START){
@@ -612,9 +635,9 @@ void player_update(void){
   
     t3d_anim_update(&animAttack[i], deltaTime);
     player[i]->currSpeed = 0;
-    player[i]->projectile.pos.v[0] += player[i]->projectile.dir.v[0] * player[i]->projectile.speed * deltaTime;
-    player[i]->projectile.pos.v[1] += player[i]->projectile.dir.v[1] * player[i]->projectile.speed * deltaTime;
-    player[i]->projectile.pos.v[2] += player[i]->projectile.dir.v[2] * player[i]->projectile.speed * deltaTime;
+    player[i]->projectile.pos.v[0] += player[i]->projectile.dir.v[0] * player[i]->projectile.speed * fixedTime;
+    player[i]->projectile.pos.v[1] += player[i]->projectile.dir.v[1] * player[i]->projectile.speed * fixedTime;
+    player[i]->projectile.pos.v[2] += player[i]->projectile.dir.v[2] * player[i]->projectile.speed * fixedTime;
 
     // Calculate the distance traveled by the projectile from its origin
     float distanceTraveled = t3d_vec3_distance(&player[i]->projectile.pos, &player[i]->hitbox.center);
@@ -660,6 +683,7 @@ void player_update(void){
     check_attack_collisions(balls, numBalls, i);
     player_to_slope(i);
     player_to_wall(i);
+    player_to_floor(i);
 
     if(!animAttack[i].isPlaying){
       player[i]->projectile.hitbox.center = player[i]->hitbox.center;
@@ -687,6 +711,7 @@ void player_update(void){
     check_actor_collisions(balls, numBalls, i);
     player_to_slope(i);
     player_to_wall(i);
+    player_to_floor(i);
 
     // Apply jump force modifier
     player[i]->vel.v[1] = player[i]->jumpForce;
@@ -708,10 +733,10 @@ void player_update(void){
     }
 
     // Apply gravity
-    player[i]->vel.v[1] += GRAVITY * jumpTime;
+    player[i]->vel.v[1] += GRAVITY * jumpFixedTime;
 
     // Update player position
-    player[i]->pos.v[1] += player[i]->vel.v[1] * jumpTime;
+    player[i]->pos.v[1] += player[i]->vel.v[1] * jumpFixedTime;
 
     // Update player bounding box
     player[i]->hitbox.center.v[0] = player[i]->pos.v[0];
@@ -721,10 +746,10 @@ void player_update(void){
     // Check for collision with players then actors then floor
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
-      playerState[i] = PLAYER_FALL;
     }
     player_to_slope(i);
     player_to_wall(i);
+    player_to_floor(i);
     check_midair_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
   }
@@ -749,7 +774,7 @@ void player_update(void){
     case PLAYER_LAND:
       player[i]->isGrounded = true;
       break;
-      case PLAYER_SLIDE:
+    case PLAYER_SLIDE:
       player[i]->isGrounded = true;
       break;
   }
@@ -760,7 +785,6 @@ void player_update(void){
     }
     
     if(player[i]->pos.v[1] > groundLevel){
-      Surface currSlope = find_closest_surface(player[i]->hitbox.center, Slope, slopeCount);
       if(playerState[i] != PLAYER_SLIDE){
         for (int c = 0; c < numCrates; ++c) {
           int closestCrate = find_closest(player[i]->pos, crates, numCrates);

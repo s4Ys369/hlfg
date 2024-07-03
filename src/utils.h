@@ -6,9 +6,10 @@
 #include "../include/config.h"
 #include "../include/types.h"
 
-extern float lastTime;
 extern float deltaTime;
 extern float jumpTime;
+extern float fixedTime;
+extern float jumpFixedTime;
 
 extern color_t RED;
 extern color_t ORANGE;

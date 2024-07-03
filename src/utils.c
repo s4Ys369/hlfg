@@ -4,9 +4,10 @@
 #include "../include/types.h"
 #include "utils.h"
 
-float lastTime;
 float deltaTime;
 float jumpTime;
+float fixedTime = 0.017f;
+float jumpFixedTime = 0.058f;
 
 color_t RED = (color_t){209, 0, 0, 255};
 color_t ORANGE = (color_t){255, 102, 34, 255};

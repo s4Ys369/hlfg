@@ -4,6 +4,7 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include <t3d/t3ddebug.h>
+#include <t3d/t3dmath.h>
 #include "../include/config.h"
 #include "../include/enums.h"
 #include "../include/globals.h"
@@ -12,11 +13,15 @@
 #include "collision.h"
 #include "input.h"
 #include "player.h"
+#include "utils.h"
 
 extern T3DModel *modelDebugBox;
 extern T3DModel *modelDebugSphere;
 extern T3DMat4FP* boxLPMatFP[];
 extern T3DMat4FP* boxSMatFP[];
+extern T3DVertPacked* triVerts;
+extern T3DMat4FP* triangleMatFP;
+extern rspq_block_t *dplTri;
 extern int col_debug;
 extern int matCount;
 

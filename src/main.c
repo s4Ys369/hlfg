@@ -189,6 +189,7 @@ int main()
       // Run map block
       //rspq_block_run(dplMap);
       rspq_block_run(dplMesh);
+      rspq_block_run(dplTri);
       
       // then actors
       for (int i = 0; i < numCrates; ++i) {
