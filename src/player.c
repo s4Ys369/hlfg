@@ -934,7 +934,6 @@ void player_update(void){
 
 
   // Handle surface rotations
-  Surface nextSlope = find_closest_surface(player[i]->hitbox.center, testLevelSlope, testLevelSlopeCount);
   Surface nextFloor = find_closest_surface(player[i]->hitbox.center, testLevelFloor, testLevelFloorCount);
   float pitch = 0;
   float roll = 0;

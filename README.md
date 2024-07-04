@@ -5,33 +5,30 @@ Made with [Libdragon](https://github.com/DragonMinded/libdragon/tree/preview) an
 
 ## **Engine Features**
 
-### **Camera**
+**Camera**
 
-#### ***Player Follow with Gradual Rotation***
-```cam_follow_player_lag```
-#### ***Recenter***
-```cam_recenter```
-#### ***Rotate Fixed Camera***
-```rotate_cam_around_target```
-#### ***Top Down View***
-```top_down_view```
+***Player Follow with Gradual Rotation***
+***Recenter***
+***Rotate Fixed Camera***
+***Top Down View***
 
-### **Collisions**
+**Collisions**
 
-#### ***AABB***
-#### ***Sphere***
-#### *More to be Added*
+***Surfaces***
+***AABB***
+***Sphere***
+*More to be Added*
 
-### **Debug**
-#### ***Hitboxes***
-#### ***T3D Debug Printf***
+**Debug**
+***Hitboxes***
+***T3D Debug Printf***
 
-### **Input**
-#### ***Up to 4 Player Multiplayer***
+**Input**
+***Up to 4 Player Multiplayer***
 Number of players set on boot
 
-### **Player**
-#### ***3D Player Controller State Machine***
+**Player**
+***3D Player Controller and Collider***
 
-### **UI**
-#### ***34 Fonts Included***
+**UI**
+***34 Fonts Included***
