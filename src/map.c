@@ -7,6 +7,7 @@
 #include "debug.h"
 #include "map.h"
 #include "utils.h"
+#include "test_level.h"
 #include "wf_test.h"
 
 T3DMat4FP* mapMatFP;
@@ -22,9 +23,6 @@ rspq_block_t *dplMesh;
 T3DMat4FP* mesh2MatFP;
 T3DModel *modelMesh2;
 rspq_block_t *dplMesh2;
-
-T3DVec3 center = {{0,0,0}};
-T3DVec3 norm = {{0,0,1}};
 
 
 T3DVec3 verts[25] =
@@ -375,10 +373,11 @@ void map_init(void){
     dplMesh2 = rspq_block_end();
 
     // Set collisions
-    FloorBox = (AABB){{{-1500.0f, -1.0f, -1500.0f}},{{1500.0f, 0.15f, 1500.0f}}}; // Map's AABB
-    groundLevel = 0.15f;
+    FloorBox = (AABB){{{-600.0f, -256.0f, -600.0f}},{{600.0f, -255.0f, 600.0f}}}; // Death Plane and OOB
+    groundLevel = FloorBox.max.v[1];
 
     //mesh_init();
     //mesh2_init();
-    wf_init();
+    //wf_init();
+    test_level_init();
 }

@@ -15,6 +15,7 @@
 #include "player.h"
 #include "sound.h"
 #include "utils.h"
+#include "test_level.h"
 #include "wf_test.h"
 
 
@@ -41,7 +42,7 @@ rspq_block_t *dplShadow[MAX_PLAYERS];
 PlayerParams *player[MAX_PLAYERS];
 int playerState[MAX_PLAYERS];
 float playerScaleY[MAX_PLAYERS];
-T3DVec3 playerStartPos = {{725,250,1200}};
+T3DVec3 playerStartPos = {{0,128,0}};
 
 
 // Check for PvP interaction, delcared first because used in init function
@@ -413,39 +414,115 @@ void player_to_quad(int playerCount){
 }
 
 // wall surface collisions
-void player_to_wall(int playerCount){
-  Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, wfWall,wfWallCount);
-  if (check_sphere_surface_collision(player[playerCount]->hitbox, currWall)){
-    resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, &currWall);
-    
-  }
+void player_to_wall(Surface currWall, int playerCount){
+  resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, &currWall); 
 }
 
 // slope surface collisions
-void player_to_slope(int playerCount){
-  Surface currFloor = find_closest_surface(player[playerCount]->hitbox.center, wfFloor, wfFloorCount);
-  Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, wfSlope, wfSlopeCount);
-  if (!check_sphere_surface_collision(player[playerCount]->hitbox, currFloor)){
-    if (check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)){
-      resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->moveDir, &currSlope);
-      playerState[playerCount] = PLAYER_SLIDE;
-    }
-  }
+void player_to_slope(Surface currSlope, int playerCount){
+  resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->moveDir, &currSlope);
+  playerState[playerCount] = PLAYER_SLIDE;
 }
 
 // floor surface collisions
-void player_to_floor(int playerCount){
-  Surface currFloor = find_closest_surface(player[playerCount]->hitbox.center, wfFloor, wfFloorCount);
-  Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, wfSlope, wfSlopeCount);
-  if (!check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)){
-    if (check_sphere_surface_collision(player[playerCount]->hitbox, currFloor)){
-      resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->moveDir, &currFloor);
-      if(player[playerCount]->pos.v[1] < currFloor.center.v[1]){
-        player[playerCount]->pos.v[1] = currFloor.center.v[1];
+void player_to_floor(Surface currFloor, int playerCount){
+    resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->moveDir, &currFloor);
+    if(player[playerCount]->pos.v[1] < currFloor.center.v[1]){
+      player[playerCount]->pos.v[1] = currFloor.center.v[1];
+    }
+    playerState[playerCount] = PLAYER_LAND;
+}
+
+
+void player_surface_collider(int playerCount){
+
+  // Find all closest surface types
+  Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, testLevelWall,testLevelWallCount);
+  Surface currFloor = find_closest_surface(player[playerCount]->hitbox.center, testLevelFloor, testLevelFloorCount);
+  Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, testLevelSlope, testLevelSlopeCount);
+
+  // Check collisions for all
+  bool hitSlope = false;
+  bool hitFloor = false;
+  bool hitWall = false;
+  if (check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)){hitSlope = true;}
+  if (check_sphere_surface_collision(player[playerCount]->hitbox, currFloor)){hitFloor = true;}
+  if (check_sphere_surface_collision(player[playerCount]->hitbox, currWall)){hitWall = true;}
+
+  // Get distances
+  float dist_player_to_slope = distance_to_surface(player[playerCount]->hitbox.center, currSlope);
+  float dist_player_to_floor = distance_to_surface(player[playerCount]->hitbox.center, currFloor);
+  float dist_player_to_wall = distance_to_surface(player[playerCount]->hitbox.center, currWall);
+  float dist_slope_to_floor = t3d_vec3_distance(&currSlope.center, &currFloor.center);
+  float dist_slope_to_wall = t3d_vec3_distance(&currSlope.center, &currWall.center);
+  float dist_wall_to_floor = t3d_vec3_distance(&currWall.center, &currFloor.center);
+
+  // Determine the which collisions and in which order to handle
+  if(hitSlope){
+    if(hitFloor){
+      if(dist_slope_to_floor >= player[playerCount]->hitbox.radius){
+        if(dist_player_to_slope <= dist_player_to_floor){
+          player_to_slope(currSlope, playerCount);
+        } else {
+          player_to_floor(currFloor, playerCount);
+        }
+      } else {
+        if(dist_player_to_slope <= dist_player_to_floor){
+          player_to_floor(currFloor, playerCount);
+        } else {
+          player_to_slope(currSlope, playerCount);
+        }
       }
-      playerState[playerCount] = PLAYER_LAND;
+    } else if(hitWall){
+      if(dist_slope_to_wall >= player[playerCount]->hitbox.radius){
+        if(dist_player_to_slope <= dist_player_to_wall){
+          player_to_slope(currSlope, playerCount);
+        } else {
+          player_to_wall(currWall, playerCount);
+        }
+      } else {
+        if(dist_player_to_slope <= dist_player_to_wall){
+          player_to_wall(currWall, playerCount);
+        } else {
+          player_to_slope(currSlope, playerCount);
+        }
+      }
+    } else {
+      player_to_slope(currSlope, playerCount);
     }
   }
+
+
+  if(hitWall){
+    if(hitFloor){
+      if(dist_wall_to_floor < player[playerCount]->hitbox.radius){
+        if(dist_player_to_wall > dist_player_to_floor){
+          player_to_floor(currFloor, playerCount);
+        } else {
+          player_to_wall(currWall, playerCount);
+        }
+      } else {
+        if(dist_player_to_wall > dist_player_to_floor){
+          player_to_wall(currWall, playerCount);
+        } else {
+          player_to_floor(currFloor, playerCount);
+        }
+      }
+    } else {
+      player_to_wall(currWall, playerCount);
+    }
+  }
+
+  if(hitFloor){
+    if(hitSlope){
+      if(hitWall){
+        player_to_floor(currFloor, playerCount);
+      }
+    } else {
+      player_to_floor(currFloor, playerCount);
+    }
+  }
+
 }
 
 void player_update(void){
@@ -555,9 +632,9 @@ void player_update(void){
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
     }
-    player_to_slope(i);
-    player_to_wall(i);
-    player_to_floor(i);
+
+    player_surface_collider(i);
+    
     check_midair_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
 
@@ -570,9 +647,9 @@ void player_update(void){
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
     }
-    player_to_slope(i);
-    player_to_wall(i);
-    player_to_floor(i);
+    
+    player_surface_collider(i);
+
     check_midair_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
 
@@ -611,7 +688,7 @@ void player_update(void){
     player[i]->cam.camPos.v[1] = player[i]->hitbox.center.v[1];
     Surface currSlope = find_closest_surface(player[i]->hitbox.center, Slope, slopeCount);
     if (check_sphere_surface_collision(player[i]->hitbox, currSlope)){
-      player_to_slope(i);
+      player_to_slope(currSlope, i);
       player[i]->cam.camPos.v[1] = currSlope.center.v[1];
       player[i]->pos.v[1] = player[i]->hitbox.center.v[1] - player[i]->hitbox.radius;
     } else {
@@ -709,13 +786,13 @@ void player_update(void){
     
     check_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
-    player_to_wall(i);
+    player_surface_collider(i);
 
-    Surface currSlope = find_closest_surface(player[i]->hitbox.center, wfSlope, wfSlopeCount);
+    Surface currSlope = find_closest_surface(player[i]->hitbox.center, testLevelSlope, testLevelSlopeCount);
     if (check_sphere_surface_collision(player[i]->hitbox, currSlope)){
-      player[i]->pos.v[1] += player[i]->hitbox.radius * 2.0f;
+      player[i]->pos.v[1] += player[i]->hitbox.radius * 2.5f;
     }
-    Surface currFloor = find_closest_surface(player[i]->hitbox.center, wfFloor, wfFloorCount);
+    Surface currFloor = find_closest_surface(player[i]->hitbox.center, testLevelFloor, testLevelFloorCount);
     if (check_sphere_surface_collision(player[i]->hitbox, currFloor)){
       player[i]->pos.v[1] += player[i]->hitbox.radius;
     }
@@ -754,9 +831,9 @@ void player_update(void){
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
     }
-    player_to_slope(i);
-    player_to_wall(i);
-    player_to_floor(i);
+
+    player_surface_collider(i);
+
     check_midair_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
   }
@@ -792,9 +869,9 @@ void player_update(void){
     }
     
     if(player[i]->pos.v[1] > groundLevel){
-      Surface currSlope = find_closest_surface(player[i]->hitbox.center, wfSlope, wfSlopeCount);
+      Surface currSlope = find_closest_surface(player[i]->hitbox.center, testLevelSlope, testLevelSlopeCount);
       if (!check_sphere_surface_collision(player[i]->hitbox, currSlope)){
-        Surface currFloor = find_closest_surface(player[i]->hitbox.center, wfFloor, wfFloorCount);
+        Surface currFloor = find_closest_surface(player[i]->hitbox.center, testLevelFloor, testLevelFloorCount);
         if (!check_sphere_surface_collision(player[i]->hitbox, currFloor)){
           for (int c = 0; c < numCrates; ++c) {
             int closestCrate = find_closest(player[i]->pos, crates, numCrates);

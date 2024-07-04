@@ -38,6 +38,7 @@ src =   src/main.c \
 		src/sound.c \
 		src/ui.c \
 		src/utils.c \
+		src/test_level.c \
 		src/wf_test.c
 assets_png = $(wildcard assets/*.png)
 assets_gltf = $(wildcard assets/*.glb)

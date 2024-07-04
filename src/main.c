@@ -15,6 +15,7 @@
 #include "sound.h"
 #include "ui.h"
 #include "utils.h"
+#include "test_level.h"
 #include "wf_test.h"
 
 // IBE : Itty Bitty Engine, a 3D Game Engine for Tiny3D
@@ -172,15 +173,15 @@ int main()
 
       // FOV looks off at different window sizes, so adjust
       if (numPlayers == 2){
-        t3d_viewport_set_projection(vp, fov2p, 10.0f, 150.0f);
+        t3d_viewport_set_projection(vp, fov2p, 20.0f, 750.0f);
       }else if (numPlayers == 3){
-        t3d_viewport_set_projection(&player[0]->cam.viewport, fov2p, 10.0f, 150.0f);
-        t3d_viewport_set_projection(&player[1]->cam.viewport, fov4p, 10.0f, 150.0f);
-        t3d_viewport_set_projection(&player[2]->cam.viewport, fov4p, 10.0f, 150.0f);
+        t3d_viewport_set_projection(&player[0]->cam.viewport, fov2p, 20.0f, 750.0f);
+        t3d_viewport_set_projection(&player[1]->cam.viewport, fov4p, 20.0f, 500.0f);
+        t3d_viewport_set_projection(&player[2]->cam.viewport, fov4p, 20.0f, 500.0f);
       } else if (numPlayers == 4){
-        t3d_viewport_set_projection(vp, fov4p, 10.0f, 150.0f);
+        t3d_viewport_set_projection(vp, fov4p, 20.0f, 500.0f);
       } else {
-        t3d_viewport_set_projection(vp, fov, 10.0f, 150.0f);
+        t3d_viewport_set_projection(vp, fov, 20.0f, 1000.0f);
       }
 
       t3d_viewport_look_at(vp, &CP, &CT, &(T3DVec3){{0,1,0}});
@@ -188,7 +189,8 @@ int main()
       t3d_light_set_directional(0, colorDir, &lightDirVec);
       
       // Run map block
-      rspq_block_run(dplWF);
+      rspq_block_run(dplTestLevel);
+      //rspq_block_run(dplWF);
       //rspq_block_run(dplMap);
       //rspq_block_run(dplMesh);
       //rspq_block_run(dplMesh2);

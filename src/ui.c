@@ -130,12 +130,12 @@ void print_score(int fontIdx){
 }
 
 void print_controls(int fontIdx){
-    textX  = 80;
+    textX  = 100;
     textY = 40;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_1,}, fontIdx, textX, textY, "IBE: Itty Bitty Engine");textY+=10;
+    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_1,}, fontIdx, textX+4, textY, "IBE: Itty Bitty Engine");textY+=10;
     rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_1,}, fontIdx, textX, textY, "Game Engine for Tiny3D");textY+=10;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_1,}, fontIdx, textX+55, textY, "v%.1f.%u", VERSION, VERSION_SUFFIX);textY+=10;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_2,}, fontIdx, textX+50, textY, "by s4ys");textY+=10;
+    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_1,}, fontIdx, textX+45, textY, "v%.1f.%u", VERSION, VERSION_SUFFIX);textY+=10;
+    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_2,}, fontIdx, textX+40, textY, "by s4ys");textY+=10;
     
 
     rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "Control Stick : Move");textY+=10;
@@ -148,7 +148,7 @@ void print_controls(int fontIdx){
     rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "Z : Recenter Cam");textY+=10;
     rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "Hold R : Debug");textY+=10;
     rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "Hold L : HitBoxes");textY+=20;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX-20, textY, "Change font with D Pad Left and Right");textY+=10;
+    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX-40, textY, "Change font with D Pad Left and Right");textY+=10;
 }
 
 void ui_update(void){

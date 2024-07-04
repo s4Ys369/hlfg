@@ -8,6 +8,9 @@
 #include "collision.h"
 #include "utils.h"
 
+T3DVec3 center = {{0,0,0}};
+T3DVec3 norm = {{0,0,1}};
+
 // Check AABB to AABB
 bool check_box_collision(AABB a, AABB b) {
 // Check for overlap along the X axis
@@ -593,8 +596,8 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
             return false;
         }
     } else if(surf.type == SURFACE_FLOOR) {
-        if (dist2 <= (sphere.radius)*6.0f) {
-            if (dist <= sphere.radius) {
+        if (dist <= sphere.radius) {
+            if (dist2 <= (sphere.radius)*3.9f) {
                 return true;
             } else {
                return false; 

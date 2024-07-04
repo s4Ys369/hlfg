@@ -10,6 +10,9 @@
 #include "../include/types.h"
 #include "utils.h"
 
+extern T3DVec3 center;
+extern T3DVec3 norm;
+
 // AABB
 bool check_box_collision(AABB a, AABB b);
 void calculate_collision_point(AABB a, AABB b, T3DVec3 *collision_point);

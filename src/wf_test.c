@@ -3,9 +3,8 @@
 #include <t3d/t3dmodel.h>
 #include "../include/enums.h"
 #include "../include/types.h"
-#include "collision.h"
 #include "debug.h"
-#include "map.h"
+#include "collision.h"
 #include "utils.h"
 #include "wf_test.h"
 

@@ -118,13 +118,13 @@ void draw_debug_ui(void){
     t3d_debug_printf(posX, posY, "Grounded %d", player[0]->isGrounded);posY+=10;
 
     // Surfaces
-    Surface dWall = find_closest_surface(player[0]->hitbox.center, wfWall, wfWallCount);
+    Surface dWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);
     float dWf = distance_to_surface(player[0]->hitbox.center,dWall);
     float dWc = t3d_vec3_distance(&player[0]->hitbox.center, &dWall.center);
-    Surface dFloor = find_closest_surface(player[0]->hitbox.center, wfFloor, wfFloorCount);
+    Surface dFloor = find_closest_surface(player[0]->hitbox.center, testLevelFloor, testLevelFloorCount);
     float dFf = distance_to_surface(player[0]->hitbox.center,dFloor);
     float dFc = t3d_vec3_distance(&player[0]->hitbox.center, &dFloor.center);
-    Surface dSlope = find_closest_surface(player[0]->hitbox.center, wfSlope, wfSlopeCount);
+    Surface dSlope = find_closest_surface(player[0]->hitbox.center, testLevelSlope, testLevelSlopeCount);
     float dSf = distance_to_surface(player[0]->hitbox.center,dSlope);
     float dSc = t3d_vec3_distance(&player[0]->hitbox.center, &dSlope.center);
     t3d_debug_printf(posX, posY, "Wall %d", check_sphere_surface_collision(player[0]->hitbox, dWall));posY+=10;

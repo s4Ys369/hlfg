@@ -4,9 +4,12 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include <t3d/t3dmodel.h>
+#include "../include/enums.h"
 #include "../include/types.h"
+#include "collision.h"
 #include "debug.h"
 #include "utils.h"
+#include "test_level.h"
 #include "wf_test.h"
 
 extern T3DMat4FP* mapMatFP;
@@ -14,9 +17,6 @@ extern T3DModel *modelMap;
 extern rspq_block_t *dplMap;
 extern AABB FloorBox;
 extern float groundLevel;
-
-extern T3DVec3 center;
-extern T3DVec3 norm;
 
 extern T3DMat4FP* meshMatFP;
 extern T3DModel *modelMesh;
