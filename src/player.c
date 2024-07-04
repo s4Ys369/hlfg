@@ -243,7 +243,9 @@ void check_actor_collisions(Actor **actor, int actorCount, int playerCount) {
 
         // Move model and hitbox separately to blend later
         resolve_box_collision_offset_xz(currActor->hitbox.shape.aabb, &player[playerCount]->hitbox.center, player[playerCount]->hitbox.radius);
-        resolve_box_collision_offset_xz(currActor->hitbox.shape.aabb, &player[playerCount]->pos, 0.02f);
+        resolve_box_collision_offset_xz(currActor->hitbox.shape.aabb, &player[playerCount]->pos, 0.2f);
+        t3d_lerp(player[playerCount]->pos.v[0], player[playerCount]->hitbox.center.v[0], 0.2f);
+        t3d_lerp(player[playerCount]->pos.v[2], player[playerCount]->hitbox.center.v[2], 0.2f);
       }
     }
 
@@ -657,14 +659,14 @@ void player_update(void){
 
 
   // Check for collision with players then actors if grounded above ground level
-  if(player[i]->pos.v[1] != groundLevel && (playerState[i] == PLAYER_IDLE || playerState[i] == PLAYER_WALK)){
+  if(playerState[i] == PLAYER_IDLE || playerState[i] == PLAYER_WALK){
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
     }
 
     player_surface_collider(i);
     
-    check_midair_actor_collisions(crates, numCrates, i);
+    check_actor_collisions(crates, numCrates, i);
     check_actor_collisions(balls, numBalls, i);
 
   }
@@ -933,6 +935,7 @@ void player_update(void){
 
   // Handle surface rotations
   Surface nextSlope = find_closest_surface(player[i]->hitbox.center, testLevelSlope, testLevelSlopeCount);
+  Surface nextFloor = find_closest_surface(player[i]->hitbox.center, testLevelFloor, testLevelFloorCount);
   float pitch = 0;
   float roll = 0;
   if(lastSurface.type == SURFACE_FLOOR){
@@ -959,28 +962,16 @@ void player_update(void){
     
   // update shadow
   player[i]->shadowPos.v[0] = player[i]->pos.v[0];
-  if(lastSurface.type == SURFACE_FLOOR){
-    player[i]->shadowPos.v[1] = lastSurface.center.v[1];
-  } else {
-    if(!player[i]->isGrounded){
-      float dist_player_last_slope = distance_to_surface(player[i]->hitbox.center, lastSlope);
-      float dist_player_last_floor = distance_to_surface(player[i]->hitbox.center, lastFloor);
-      float dist_player_next_slope = distance_to_surface(player[i]->hitbox.center, nextSlope);
-
-      if(dist_player_last_floor < dist_player_last_slope && dist_player_last_floor < dist_player_next_slope){
-        player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], lastFloor.center.v[1], 0.2f);
-      } else {
-        if(dist_player_next_slope > dist_player_last_floor){
-          player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], lastFloor.center.v[1], 0.2f);
-        } else if(dist_player_next_slope < dist_player_last_slope){
-          player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], nextSlope.center.v[1], 0.2f);
-        } else {
-          player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], lastFloor.center.v[1], 0.2f);
-        }
-      }
+  if(!player[i]->isGrounded){
+    float dist_player_last_floor = distance_to_surface(player[i]->hitbox.center, lastFloor);
+    float dist_player_next_floor = distance_to_surface(player[i]->hitbox.center, nextFloor);
+    if(dist_player_next_floor <= dist_player_last_floor){
+      player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], nextFloor.center.v[1], 0.6f);
     } else {
-      player[i]->shadowPos.v[1] = player[i]->pos.v[1];
+      player[i]->shadowPos.v[1] = lastFloor.center.v[1];
     }
+  } else {
+    player[i]->shadowPos.v[1] = player[i]->pos.v[1];
   }
   player[i]->shadowPos.v[2] = player[i]->pos.v[2];
 

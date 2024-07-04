@@ -23,6 +23,7 @@ rspq_block_t *dplCrate[MAX_CRATES];
 T3DModel *modelCrate;
 Actor *crates[MAX_CRATES];
 int numCrates;
+T3DVec3 cratesStartingPos[MAX_CRATES];
 
 // Balls
 T3DMat4FP* ballMatFP[MAX_BALLS];
@@ -154,6 +155,7 @@ void crates_init(void){
     crates[i] = malloc(sizeof(Actor));
 
     crates[i]->pos = (T3DVec3){{X, 50.0f, Z}};
+    cratesStartingPos[i] = crates[i]->pos;
     crates[i]->moveDir = (T3DVec3){{0, 0, 0}};
     crates[i]->forward = (T3DVec3){{0, 0, 1}};
     crates[i]->vel = (T3DVec3){{0, 0, 0}};
@@ -163,13 +165,23 @@ void crates_init(void){
                                          {{crates[i]->pos.v[0] + 32.0f, crates[i]->pos.v[1] + 64.0f, crates[i]->pos.v[2] + 32.0f}}};
     crates[i]->isSafe = RANDN(2);
     crates[i]->IsBouncy = RANDN(2);
+    color_t crateColor[MAX_CRATES];
+    if(crates[i]->isSafe){
+      if(crates[i]->IsBouncy){
+        crateColor[i] = YELLOW;
+      } else {
+        crateColor[i] = WHITE;
+      }
+    } else {
+      crateColor[i] = RED;
+    }
 
     // Create gfx call to draw crate
     rspq_block_begin();
       t3d_matrix_push_pos(1);
       matCount++;
       t3d_matrix_set(crateMatFP[i], true);
-      rdpq_set_prim_color(YELLOW);
+      rdpq_set_prim_color(crateColor[i]);
       t3d_matrix_set(crateMatFP[i], true);
       t3d_model_draw(modelCrate);
       t3d_matrix_pop(1);
@@ -225,10 +237,6 @@ void balls_to_wall(Surface currWall, int ballCount){
   if (balls[ballCount]->vel.v[1] > 5.0f) {
     sound_bounce();
   }
-  balls[ballCount]->vel.v[0] -= balls[ballCount]->vel.v[0];
-  balls[ballCount]->vel.v[2] -= balls[ballCount]->vel.v[2];
-  balls[ballCount]->moveDir.v[0] -= balls[ballCount]->moveDir.v[0];
-  balls[ballCount]->moveDir.v[0] -= balls[ballCount]->moveDir.v[2];
   ballBounced[ballCount] = true;
 }
 
@@ -257,14 +265,11 @@ void ball_surface_collider(int ballCount){
 
   // Find all closest surface types
   Surface currWall = find_closest_surface(balls[ballCount]->hitbox.shape.sphere.center, testLevelWall,testLevelWallCount);
-  balls_to_wall(currWall, ballCount);
   Surface currFloor = find_closest_surface(balls[ballCount]->hitbox.shape.sphere.center, testLevelFloor, testLevelFloorCount);
-  balls_to_floor(currFloor, ballCount);
   Surface currSlope = find_closest_surface(balls[ballCount]->hitbox.shape.sphere.center, testLevelSlope, testLevelSlopeCount);
-  balls_to_slope(currSlope, ballCount);
   
   
-  /* Check collisions for all
+  // Check collisions for all
   bool hitSlope = false;
   bool hitFloor = false;
   bool hitWall = false;
@@ -272,28 +277,23 @@ void ball_surface_collider(int ballCount){
   if (check_sphere_surface_collision(balls[ballCount]->hitbox.shape.sphere, currFloor)){hitFloor = true;}
   if (check_sphere_surface_collision(balls[ballCount]->hitbox.shape.sphere, currWall)){hitWall = true;}
 
-  // Get distances
+  /* Get distances
   float dist_balls_to_slope = distance_to_surface(balls[ballCount]->hitbox.shape.sphere.center, currSlope);
   float dist_balls_to_floor = distance_to_surface(balls[ballCount]->hitbox.shape.sphere.center, currFloor);
   float dist_balls_to_wall = distance_to_surface(balls[ballCount]->hitbox.shape.sphere.center, currWall);
   float dist_slope_to_floor = t3d_vec3_distance(&currSlope.center, &currFloor.center);
   float dist_slope_to_wall = t3d_vec3_distance(&currSlope.center, &currWall.center);
   float dist_wall_to_floor = t3d_vec3_distance(&currWall.center, &currFloor.center);
+  */
 
   // Determine the which collisions and in which order to handle
   if(hitSlope){
     if(hitFloor){
-      if(dist_balls_to_slope < dist_balls_to_floor){
         balls_to_slope(currSlope, ballCount);
-      } else {
         balls_to_floor(currFloor, ballCount);
-      }
     } else if(hitWall){
-      if(dist_balls_to_slope < dist_balls_to_wall){
         balls_to_slope(currSlope, ballCount);
-      } else {
         balls_to_wall(currWall, ballCount);
-      }
     } else {
       balls_to_slope(currSlope, ballCount);
     }
@@ -301,36 +301,15 @@ void ball_surface_collider(int ballCount){
 
   if(hitWall){
     if(hitFloor){
-      if(dist_balls_to_floor < dist_balls_to_wall){
-        balls_to_floor(currFloor, ballCount);
-      } else {
         balls_to_wall(currWall, ballCount);
-      }
+        balls_to_floor(currFloor, ballCount);
+    } else if(hitSlope){
+        balls_to_slope(currSlope, ballCount);
+        balls_to_wall(currWall, ballCount);
     } else {
       balls_to_wall(currWall, ballCount);
     }
   }
-
-  if(hitFloor){
-    if(hitWall){
-      if(hitSlope){
-        if(dist_balls_to_slope < dist_balls_to_floor){
-          balls_to_slope(currSlope, ballCount);
-        } else {
-          balls_to_floor(currFloor, ballCount);
-        }
-      } else {
-        if(dist_balls_to_floor < dist_balls_to_wall){
-          balls_to_floor(currFloor, ballCount);
-        } else {
-          balls_to_wall(currWall, ballCount);
-        }
-      }
-    } else {
-      balls_to_floor(currFloor, ballCount);
-    }
-  }*/
-
 
 }
 
@@ -504,12 +483,25 @@ void crates_update(void){
     crates[c]->pos.v[1] += GRAVITY * jumpFixedTime;
     
     Surface findFloor = find_closest_surface(crates[c]->hitbox.shape.aabb.min, testLevelFloor, testLevelFloorCount);
+    Surface findWallMin = find_closest_surface(crates[c]->hitbox.shape.aabb.min, testLevelWall, testLevelWallCount);
+    Surface findWallMax = find_closest_surface(crates[c]->hitbox.shape.aabb.max, testLevelWall, testLevelWallCount);
     if (crates[c]->pos.v[1] < findFloor.center.v[1] + crates[c]->hitbox.shape.aabb.min.v[1]) {
       crates[c]->pos.v[1] = findFloor.center.v[1];
     }
 
     if(crates[c]->IsBouncy){
       check_crates_collisions(crates, numCrates);
+       float dist_crates_to_floor = distance_to_surface(crates[c]->pos, findFloor);
+      if(dist_crates_to_floor > 75.0f) {
+        crates[c]->pos.v[0] = cratesStartingPos[c].v[0];
+        crates[c]->pos.v[2] = cratesStartingPos[c].v[2];
+      }
+      if(check_box_surface_collision(crates[c]->hitbox.shape.aabb, findWallMin)) {
+        crates[c]->pos = cratesStartingPos[c];
+      }
+      if(check_box_surface_collision(crates[c]->hitbox.shape.aabb, findWallMax)) {
+        crates[c]->pos = cratesStartingPos[c];
+      }
     }
     // Limit position inside of bounds
     if(crates[c]->pos.v[0] < FloorBox.min.v[0]){

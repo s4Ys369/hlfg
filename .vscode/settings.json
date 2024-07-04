@@ -85,7 +85,8 @@
         "utils.h": "c",
         "t3dmodel.h": "c",
         "wf_test.h": "c",
-        "sound.h": "c"
+        "sound.h": "c",
+        "t3dskeleton.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

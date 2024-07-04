@@ -618,6 +618,19 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
     }
 }
 
+bool check_box_surface_collision(AABB a, Surface surf) {
+// Check for overlap along the X axis
+    bool overlapX = (a.min.v[0] <= surf.center.v[0] && a.max.v[0] >= surf.center.v[0]);
+    // Check for overlap along the Y axis
+    bool overlapY = (a.min.v[1] <= surf.center.v[1] && a.max.v[1] >= surf.center.v[1]);
+    // Check for overlap along the Z axis
+    bool overlapZ = (a.min.v[2] <= surf.center.v[2] && a.max.v[2] >= surf.center.v[2]);
+
+    // A collision occurs if there is overlap along all three axes
+    return overlapX && overlapY && overlapZ;
+
+}
+
 Surface find_closest_surface(T3DVec3 position, Surface* surfaces, int numSurfaces) {
     float minDistance = FLT_MAX;
     float dist = FLT_MIN;
