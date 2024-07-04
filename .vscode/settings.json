@@ -84,7 +84,8 @@
         "enums.h": "c",
         "utils.h": "c",
         "t3dmodel.h": "c",
-        "wf_test.h": "c"
+        "wf_test.h": "c",
+        "sound.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

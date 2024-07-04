@@ -13,6 +13,7 @@
 #include "debug.h"
 #include "map.h"
 #include "player.h"
+#include "test_level.h"
 #include "sound.h"
 #include "utils.h"
 
@@ -152,7 +153,7 @@ void crates_init(void){
 
     crates[i] = malloc(sizeof(Actor));
 
-    crates[i]->pos = (T3DVec3){{X, groundLevel, Z}};
+    crates[i]->pos = (T3DVec3){{X, 50.0f, Z}};
     crates[i]->moveDir = (T3DVec3){{0, 0, 0}};
     crates[i]->forward = (T3DVec3){{0, 0, 1}};
     crates[i]->vel = (T3DVec3){{0, 0, 0}};
@@ -178,7 +179,8 @@ void crates_init(void){
 
 }
 
-// Initialize crates
+// Initialize balls
+float ballStartingY = 50.0f;
 void balls_init(void){
   numBalls = (int)(random_float(1.0f,MAX_BALLS));
 
@@ -190,7 +192,7 @@ void balls_init(void){
 
     balls[i] = malloc(sizeof(Actor));
 
-    balls[i]->pos = (T3DVec3){{X, 32.0f, Z}};
+    balls[i]->pos = (T3DVec3){{X, ballStartingY, Z}};
     balls[i]->moveDir = (T3DVec3){{0, 0, 0}};
     balls[i]->forward = (T3DVec3){{0, 0, 1}};
     balls[i]->vel = (T3DVec3){{0, 0, 0}};
@@ -217,6 +219,121 @@ void balls_init(void){
   }
 }
 
+// wall surface collisions
+void balls_to_wall(Surface currWall, int ballCount){
+  resolve_sphere_surface_collision(&balls[ballCount]->hitbox.shape.sphere, &balls[ballCount]->pos, &balls[ballCount]->vel, &currWall);
+  if (balls[ballCount]->vel.v[1] > 5.0f) {
+    sound_bounce();
+  }
+  balls[ballCount]->vel.v[0] -= balls[ballCount]->vel.v[0];
+  balls[ballCount]->vel.v[2] -= balls[ballCount]->vel.v[2];
+  balls[ballCount]->moveDir.v[0] -= balls[ballCount]->moveDir.v[0];
+  balls[ballCount]->moveDir.v[0] -= balls[ballCount]->moveDir.v[2];
+  ballBounced[ballCount] = true;
+}
+
+// slope surface collisions
+void balls_to_slope(Surface currSlope, int ballCount){
+  resolve_sphere_surface_collision(&balls[ballCount]->hitbox.shape.sphere, &balls[ballCount]->pos, &balls[ballCount]->moveDir, &currSlope);
+  if (balls[ballCount]->vel.v[1] > 5.0f) {
+    sound_bounce();
+  }
+  balls[ballCount]->pos.v[1] = balls[ballCount]->hitbox.shape.sphere.center.v[1] - balls[ballCount]->hitbox.shape.sphere.radius;
+  ballBounced[ballCount] = false;
+}
+
+// floor surface collisions
+void balls_to_floor(Surface currFloor, int ballCount){
+  resolve_sphere_surface_collision(&balls[ballCount]->hitbox.shape.sphere, &balls[ballCount]->pos, &balls[ballCount]->moveDir, &currFloor);
+    if (balls[ballCount]->vel.v[1] > 5.0f) {
+      sound_bounce();
+    }
+    ballBounced[ballCount] = true;
+
+}
+
+
+void ball_surface_collider(int ballCount){
+
+  // Find all closest surface types
+  Surface currWall = find_closest_surface(balls[ballCount]->hitbox.shape.sphere.center, testLevelWall,testLevelWallCount);
+  balls_to_wall(currWall, ballCount);
+  Surface currFloor = find_closest_surface(balls[ballCount]->hitbox.shape.sphere.center, testLevelFloor, testLevelFloorCount);
+  balls_to_floor(currFloor, ballCount);
+  Surface currSlope = find_closest_surface(balls[ballCount]->hitbox.shape.sphere.center, testLevelSlope, testLevelSlopeCount);
+  balls_to_slope(currSlope, ballCount);
+  
+  
+  /* Check collisions for all
+  bool hitSlope = false;
+  bool hitFloor = false;
+  bool hitWall = false;
+  if (check_sphere_surface_collision(balls[ballCount]->hitbox.shape.sphere, currSlope)){hitSlope = true;}
+  if (check_sphere_surface_collision(balls[ballCount]->hitbox.shape.sphere, currFloor)){hitFloor = true;}
+  if (check_sphere_surface_collision(balls[ballCount]->hitbox.shape.sphere, currWall)){hitWall = true;}
+
+  // Get distances
+  float dist_balls_to_slope = distance_to_surface(balls[ballCount]->hitbox.shape.sphere.center, currSlope);
+  float dist_balls_to_floor = distance_to_surface(balls[ballCount]->hitbox.shape.sphere.center, currFloor);
+  float dist_balls_to_wall = distance_to_surface(balls[ballCount]->hitbox.shape.sphere.center, currWall);
+  float dist_slope_to_floor = t3d_vec3_distance(&currSlope.center, &currFloor.center);
+  float dist_slope_to_wall = t3d_vec3_distance(&currSlope.center, &currWall.center);
+  float dist_wall_to_floor = t3d_vec3_distance(&currWall.center, &currFloor.center);
+
+  // Determine the which collisions and in which order to handle
+  if(hitSlope){
+    if(hitFloor){
+      if(dist_balls_to_slope < dist_balls_to_floor){
+        balls_to_slope(currSlope, ballCount);
+      } else {
+        balls_to_floor(currFloor, ballCount);
+      }
+    } else if(hitWall){
+      if(dist_balls_to_slope < dist_balls_to_wall){
+        balls_to_slope(currSlope, ballCount);
+      } else {
+        balls_to_wall(currWall, ballCount);
+      }
+    } else {
+      balls_to_slope(currSlope, ballCount);
+    }
+  }
+
+  if(hitWall){
+    if(hitFloor){
+      if(dist_balls_to_floor < dist_balls_to_wall){
+        balls_to_floor(currFloor, ballCount);
+      } else {
+        balls_to_wall(currWall, ballCount);
+      }
+    } else {
+      balls_to_wall(currWall, ballCount);
+    }
+  }
+
+  if(hitFloor){
+    if(hitWall){
+      if(hitSlope){
+        if(dist_balls_to_slope < dist_balls_to_floor){
+          balls_to_slope(currSlope, ballCount);
+        } else {
+          balls_to_floor(currFloor, ballCount);
+        }
+      } else {
+        if(dist_balls_to_floor < dist_balls_to_wall){
+          balls_to_floor(currFloor, ballCount);
+        } else {
+          balls_to_wall(currWall, ballCount);
+        }
+      }
+    } else {
+      balls_to_floor(currFloor, ballCount);
+    }
+  }*/
+
+
+}
+
 void actors_init(void){
 
   modelCrate = t3d_model_load("rom:/models/box.t3dm");
@@ -239,6 +356,7 @@ void actors_init(void){
       resolve_box_collision_offset(FloorBox, &balls[b]->hitbox.shape.sphere.center, balls[b]->hitbox.shape.sphere.radius);
     }
     check_ball_collisions(balls, numBalls);
+    ball_surface_collider(numBalls);
     balls[b]->pos = balls[b]->hitbox.shape.sphere.center;
   }
 
@@ -263,18 +381,19 @@ void balls_update(void){
   for (int b = 0; b <= numBalls; ++b) {
 
     // Apply gravity every frame
-    balls[b]->vel.v[1] += GRAVITY * jumpTime;
+    balls[b]->vel.v[1] += GRAVITY * jumpFixedTime;
 
     
     // Check for the ball is on or below floor
-    if (balls[b]->hitbox.shape.sphere.center.v[1] <= FloorBox.max.v[1] + balls[b]->hitbox.shape.sphere.radius) {
+    Surface findFloor = find_closest_surface(balls[b]->hitbox.shape.sphere.center, testLevelFloor, testLevelFloorCount);
+    if (balls[b]->hitbox.shape.sphere.center.v[1] <= findFloor.center.v[1] + balls[b]->hitbox.shape.sphere.radius) {
 
       
       // If so set the ball to bouncing state
       ballBounced[b] = true;
 
       // Make sure the ball doesn't get stuck in the ground
-      balls[b]->hitbox.shape.sphere.center.v[1] = FloorBox.max.v[1] + balls[b]->hitbox.shape.sphere.radius;
+      balls[b]->hitbox.shape.sphere.center.v[1] = findFloor.center.v[1] + balls[b]->hitbox.shape.sphere.radius;
       
 
     } else {
@@ -288,16 +407,17 @@ void balls_update(void){
     } 
 
     // Update hitbox, then position
-    if (balls[b]->hitbox.shape.sphere.center.v[1] >= maxBounceHeight){
+    if (balls[b]->hitbox.shape.sphere.center.v[1] > maxBounceHeight){
       ballBounced[b] = false;
     }
     
-    if (balls[b]->pos.v[1] < FloorBox.max.v[1] + balls[b]->hitbox.shape.sphere.radius) {
-      balls[b]->pos.v[1] = FloorBox.max.v[1] + balls[b]->hitbox.shape.sphere.radius;
+    if (balls[b]->pos.v[1] < findFloor.center.v[1] + balls[b]->hitbox.shape.sphere.radius*5) {
+      balls[b]->pos.v[1] = findFloor.center.v[1] + balls[b]->hitbox.shape.sphere.radius;
     }
 
     // Resolve all other collisions
     check_ball_collisions(balls, numBalls);
+    ball_surface_collider(numBalls);
 
     // Check for the ball colliding with the player
     if(check_sphere_collision(balls[b]->hitbox.shape.sphere, player[0]->hitbox)){
@@ -328,7 +448,7 @@ void balls_update(void){
     } else {
 
       // else add friction to X and Z if grounded
-      if (balls[b]->hitbox.shape.sphere.center.v[1] <= FloorBox.max.v[1] + balls[b]->hitbox.shape.sphere.radius) {
+      if (balls[b]->hitbox.shape.sphere.center.v[1] <= findFloor.center.v[1] + balls[b]->hitbox.shape.sphere.radius) {
         if (balls[b]->vel.v[1] > 5.0f) {
           sound_bounce();
         }
@@ -338,9 +458,9 @@ void balls_update(void){
     }
 
     // Update position based on velocity
-    balls[b]->hitbox.shape.sphere.center.v[0] += balls[b]->vel.v[0] * jumpTime;
-    balls[b]->hitbox.shape.sphere.center.v[1] += balls[b]->vel.v[1] * jumpTime;
-    balls[b]->hitbox.shape.sphere.center.v[2] += balls[b]->vel.v[2] * jumpTime;
+    balls[b]->hitbox.shape.sphere.center.v[0] += balls[b]->vel.v[0] * jumpFixedTime;
+    balls[b]->hitbox.shape.sphere.center.v[1] += balls[b]->vel.v[1] * jumpFixedTime;
+    balls[b]->hitbox.shape.sphere.center.v[2] += balls[b]->vel.v[2] * jumpFixedTime;
     balls[b]->pos = balls[b]->hitbox.shape.sphere.center;
 
     // Limit position inside of bounds
@@ -381,10 +501,11 @@ void crates_update(void){
   
   for (int c = 0; c <= numCrates; ++c) {
 
-    crates[c]->pos.v[1] += GRAVITY * jumpTime;
+    crates[c]->pos.v[1] += GRAVITY * jumpFixedTime;
     
-    if (crates[c]->pos.v[1] < FloorBox.max.v[1] + crates[c]->hitbox.shape.aabb.min.v[1]) {
-      crates[c]->pos.v[1] = FloorBox.max.v[1];
+    Surface findFloor = find_closest_surface(crates[c]->hitbox.shape.aabb.min, testLevelFloor, testLevelFloorCount);
+    if (crates[c]->pos.v[1] < findFloor.center.v[1] + crates[c]->hitbox.shape.aabb.min.v[1]) {
+      crates[c]->pos.v[1] = findFloor.center.v[1];
     }
 
     if(crates[c]->IsBouncy){

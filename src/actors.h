@@ -12,6 +12,7 @@
 #include "map.h"
 #include "player.h"
 #include "sound.h"
+#include "test_level.h"
 #include "utils.h"
 
 // Crates

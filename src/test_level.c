@@ -357,6 +357,7 @@ void test_level_init(void){
         testLevelFloor[i].center = center;
         testLevelFloor[i].normal = norm;
         testLevelFloor[i].center = calc_surface_center(testLevelFloor[i]);
+        testLevelFloor[i].normal = calc_surface_norm(testLevelFloor[i]);
     }
 
     testLevelSlope[0].posA = testLevelVerts[131]; testLevelSlope[0].posB = testLevelVerts[132]; testLevelSlope[0].posC = testLevelVerts[133];

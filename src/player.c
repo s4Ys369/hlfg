@@ -459,28 +459,28 @@ void player_surface_collider(int playerCount){
   // Determine the which collisions and in which order to handle
   if(hitSlope){
     if(hitFloor){
-      if(dist_slope_to_floor >= player[playerCount]->hitbox.radius){
-        if(dist_player_to_slope <= dist_player_to_floor){
+      if(dist_slope_to_floor > player[playerCount]->hitbox.radius){
+        if(dist_player_to_slope < dist_player_to_floor){
           player_to_slope(currSlope, playerCount);
         } else {
           player_to_floor(currFloor, playerCount);
         }
       } else {
-        if(dist_player_to_slope <= dist_player_to_floor){
+        if(dist_player_to_slope < dist_player_to_floor){
           player_to_floor(currFloor, playerCount);
         } else {
           player_to_slope(currSlope, playerCount);
         }
       }
     } else if(hitWall){
-      if(dist_slope_to_wall >= player[playerCount]->hitbox.radius){
-        if(dist_player_to_slope <= dist_player_to_wall){
+      if(dist_slope_to_wall > player[playerCount]->hitbox.radius){
+        if(dist_player_to_slope < dist_player_to_wall){
           player_to_slope(currSlope, playerCount);
         } else {
           player_to_wall(currWall, playerCount);
         }
       } else {
-        if(dist_player_to_slope <= dist_player_to_wall){
+        if(dist_player_to_slope < dist_player_to_wall){
           player_to_wall(currWall, playerCount);
         } else {
           player_to_slope(currSlope, playerCount);
@@ -494,7 +494,7 @@ void player_surface_collider(int playerCount){
 
   if(hitWall){
     if(hitFloor){
-      if(dist_wall_to_floor < player[playerCount]->hitbox.radius){
+      if(dist_wall_to_floor > player[playerCount]->hitbox.radius){
         if(dist_player_to_wall > dist_player_to_floor){
           player_to_floor(currFloor, playerCount);
         } else {
@@ -502,9 +502,9 @@ void player_surface_collider(int playerCount){
         }
       } else {
         if(dist_player_to_wall > dist_player_to_floor){
-          player_to_wall(currWall, playerCount);
-        } else {
           player_to_floor(currFloor, playerCount);
+        } else {
+          player_to_wall(currWall, playerCount);
         }
       }
     } else {
@@ -515,6 +515,8 @@ void player_surface_collider(int playerCount){
   if(hitFloor){
     if(hitSlope){
       if(hitWall){
+        player_to_floor(currFloor, playerCount);
+      } else {
         player_to_floor(currFloor, playerCount);
       }
     } else {
