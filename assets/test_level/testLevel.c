@@ -1,201 +1,215 @@
+#include <libdragon.h>
+#include <t3d/t3d.h>
+#include <t3d/t3dmodel.h>
+#include "../include/enums.h"
+#include "../include/types.h"
+#include "debug.h"
+#include "collision.h"
+#include "testLevel.h"
+#include "utils.h"
+
+T3DMat4FP* testLevelMatFP;
+T3DModel *modelTestlevel;
+rspq_block_t *dplTestlevel;
+
 T3DVec3 testLevelVerts[196] =
 {
-       {{512, 0, -398}},
-       {{398, 0, -512}},
-       {{398, 0, -398}},
-       {{-171, 0, -398}},
-       {{-284, 0, -512}},
-       {{-284, 0, -398}},
-       {{171, 0, -398}},
-       {{57, 0, -512}},
-       {{57, 0, -398}},
-       {{171, 0, 284}},
-       {{57, 0, 171}},
-       {{57, 0, 284}},
-       {{-171, 0, 284}},
-       {{-284, 0, 171}},
-       {{-284, 0, 284}},
-       {{512, 0, 284}},
-       {{398, 0, 171}},
-       {{398, 0, 284}},
-       {{-171, 0, -57}},
-       {{-284, 0, -171}},
-       {{-284, 0, -57}},
-       {{512, 0, -57}},
-       {{398, 0, -171}},
-       {{398, 0, -57}},
-       {{-398, 0, -57}},
-       {{-512, 0, -171}},
-       {{-512, 0, -57}},
-       {{-398, 0, -398}},
-       {{-512, 0, -512}},
-       {{-512, 0, -398}},
-       {{-398, 0, -171}},
-       {{-398, 0, -512}},
-       {{-57, 0, -398}},
-       {{-171, 0, -512}},
-       {{57, 0, -57}},
-       {{-57, 0, -171}},
-       {{-57, 0, -57}},
-       {{-57, 0, -512}},
-       {{284, 0, -398}},
-       {{171, 0, -512}},
-       {{284, 0, 171}},
-       {{284, 0, 284}},
-       {{284, 0, -512}},
-       {{57, 0, -171}},
-       {{-57, 0, -284}},
-       {{-398, 0, -284}},
-       {{-171, 0, -171}},
-       {{-284, 0, -284}},
-       {{512, 0, -171}},
-       {{398, 0, -284}},
-       {{57, 0, -284}},
-       {{-171, 0, -284}},
-       {{512, 0, -284}},
-       {{284, 0, 57}},
-       {{-57, 0, 57}},
-       {{-57, 0, 171}},
-       {{-171, 0, 57}},
-       {{-171, 0, 171}},
-       {{-398, 0, 57}},
-       {{-398, 0, 171}},
-       {{512, 0, 171}},
-       {{398, 0, 57}},
-       {{284, 0, -57}},
-       {{171, 0, -57}},
-       {{171, 0, 57}},
-       {{57, 0, 57}},
-       {{-512, 0, 57}},
-       {{512, 0, 57}},
-       {{398, 0, 512}},
-       {{284, 0, 398}},
-       {{284, 0, 512}},
-       {{171, 0, 398}},
-       {{171, 0, 512}},
-       {{57, 0, 512}},
-       {{-57, 0, 398}},
-       {{-57, 0, 512}},
-       {{512, 0, 512}},
-       {{398, 0, 398}},
-       {{57, 0, 398}},
-       {{-171, 0, 398}},
-       {{512, 0, 398}},
-       {{512, 0, -512}},
-       {{398, 64, -57}},
-       {{284, 64, -171}},
-       {{284, 64, -57}},
-       {{398, 64, -171}},
-       {{284, 128, -57}},
-       {{171, 128, -171}},
-       {{171, 128, -57}},
-       {{284, 128, -171}},
-       {{171, 192, -57}},
-       {{57, 192, -171}},
-       {{57, 192, -57}},
-       {{171, 192, -171}},
-       {{171, 256, -171}},
-       {{57, 256, -284}},
-       {{57, 256, -171}},
-       {{171, 256, -284}},
-       {{171, 320, -284}},
-       {{57, 320, -398}},
-       {{57, 320, -284}},
-       {{171, 320, -398}},
-       {{284, 384, -284}},
-       {{171, 384, -398}},
-       {{171, 384, -284}},
-       {{284, 384, -398}},
-       {{398, 448, -284}},
-       {{284, 448, -398}},
-       {{284, 448, -284}},
-       {{398, 448, -398}},
-       {{284, 582, -171}},
-       {{171, 582, -284}},
-       {{171, 582, -171}},
-       {{284, 582, -284}},
-       {{-57, 64, -57}},
-       {{-171, 64, -171}},
-       {{-171, 64, -57}},
-       {{-57, 64, -171}},
-       {{-57, 128, -171}},
-       {{-171, 128, -284}},
-       {{-171, 128, -171}},
-       {{-57, 128, -284}},
-       {{-512, 0, -284}},
-       {{-284, 96, -284}},
-       {{-398, 96, -284}},
-       {{-398, 96, -398}},
-       {{-284, 96, -398}},
-       {{-284, 160, -284}},
-       {{-398, 160, -398}},
-       {{-398, 160, -284}},
-       {{-284, 160, -398}},
-       {{-398, 64, 284}},
-       {{-512, 64, 171}},
-       {{-512, 192, 284}},
-       {{-57, 64, 284}},
-       {{171, 128, 171}},
-       {{-284, 192, 57}},
-       {{-171, 64, 512}},
-       {{-284, 192, 512}},
-       {{-398, 192, 398}},
-       {{-398, 256, 512}},
-       {{-512, 256, 398}},
-       {{-512, 320, 512}},
-       {{-284, 64, 398}},
-       {{398, 512, -171}},
-       {{398, 512, -284}},
-       {{398, 64, -398}},
-       {{57, 64, -398}},
-       {{-57, 64, -284}},
-       {{171, 64, -398}},
-       {{57, 64, -284}},
-       {{57, 64, -57}},
-       {{57, 64, -171}},
-       {{171, 64, -57}},
-       {{398, 64, -284}},
-       {{284, 64, -398}},
-       {{57, 128, -57}},
-       {{284, 128, -398}},
-       {{57, 128, -398}},
-       {{57, 128, -284}},
-       {{398, 128, -398}},
-       {{398, 128, -284}},
-       {{398, 128, -171}},
-       {{57, 128, -171}},
-       {{171, 128, -398}},
-       {{284, 192, -398}},
-       {{284, 192, -171}},
-       {{57, 192, -398}},
-       {{57, 192, -284}},
-       {{398, 192, -398}},
-       {{398, 192, -284}},
-       {{398, 192, -171}},
-       {{171, 192, -398}},
-       {{398, 256, -398}},
-       {{398, 256, -284}},
-       {{398, 256, -171}},
-       {{171, 256, -398}},
-       {{284, 256, -171}},
-       {{284, 256, -398}},
-       {{57, 256, -398}},
-       {{171, 320, -171}},
-       {{398, 320, -284}},
-       {{398, 320, -171}},
-       {{284, 320, -171}},
-       {{284, 320, -398}},
-       {{398, 320, -398}},
-       {{171, 384, -171}},
-       {{398, 384, -284}},
-       {{398, 384, -171}},
-       {{284, 384, -171}},
-       {{398, 384, -398}},
-       {{284, 448, -171}},
-       {{171, 448, -171}},
-       {{171, 448, -284}},
-       {{398, 448, -171}},
-       {{-171, 64, -284}}
+    {{512, 0, -398}},
+    {{398, 0, -512}},
+    {{398, 0, -398}},
+    {{-171, 0, -398}},
+    {{-284, 0, -512}},
+    {{-284, 0, -398}},
+    {{171, 0, -398}},
+    {{57, 0, -512}},
+    {{57, 0, -398}},
+    {{171, 0, 284}},
+    {{57, 0, 171}},
+    {{57, 0, 284}},
+    {{-171, 0, 284}},
+    {{-284, 0, 171}},
+    {{-284, 0, 284}},
+    {{512, 0, 284}},
+    {{398, 0, 171}},
+    {{398, 0, 284}},
+    {{-171, 0, -57}},
+    {{-284, 0, -171}},
+    {{-284, 0, -57}},
+    {{512, 0, -57}},
+    {{398, 0, -171}},
+    {{398, 0, -57}},
+    {{-398, 0, -57}},
+    {{-512, 0, -171}},
+    {{-512, 0, -57}},
+    {{-398, 0, -398}},
+    {{-512, 0, -512}},
+    {{-512, 0, -398}},
+    {{-398, 0, -171}},
+    {{-398, 0, -512}},
+    {{-57, 0, -398}},
+    {{-171, 0, -512}},
+    {{57, 0, -57}},
+    {{-57, 0, -171}},
+    {{-57, 0, -57}},
+    {{-57, 0, -512}},
+    {{284, 0, -398}},
+    {{171, 0, -512}},
+    {{284, 0, 171}},
+    {{284, 0, 284}},
+    {{284, 0, -512}},
+    {{57, 0, -171}},
+    {{-57, 0, -284}},
+    {{-398, 0, -284}},
+    {{-171, 0, -171}},
+    {{-284, 0, -284}},
+    {{512, 0, -171}},
+    {{398, 0, -284}},
+    {{57, 0, -284}},
+    {{-171, 0, -284}},
+    {{512, 0, -284}},
+    {{284, 0, 57}},
+    {{-57, 0, 57}},
+    {{-57, 0, 171}},
+    {{-171, 0, 57}},
+    {{-171, 0, 171}},
+    {{-398, 0, 57}},
+    {{-398, 0, 171}},
+    {{512, 0, 171}},
+    {{398, 0, 57}},
+    {{284, 0, -57}},
+    {{171, 0, -57}},
+    {{171, 0, 57}},
+    {{57, 0, 57}},
+    {{-512, 0, 57}},
+    {{512, 0, 57}},
+    {{398, 0, 512}},
+    {{284, 0, 398}},
+    {{284, 0, 512}},
+    {{171, 0, 398}},
+    {{171, 0, 512}},
+    {{57, 0, 512}},
+    {{-57, 0, 398}},
+    {{-57, 0, 512}},
+    {{512, 0, 512}},
+    {{398, 0, 398}},
+    {{57, 0, 398}},
+    {{-171, 0, 398}},
+    {{512, 0, 398}},
+    {{512, 0, -512}},
+    {{398, 64, -57}},
+    {{284, 64, -171}},
+    {{284, 64, -57}},
+    {{398, 64, -171}},
+    {{284, 128, -57}},
+    {{171, 128, -171}},
+    {{171, 128, -57}},
+    {{284, 128, -171}},
+    {{171, 192, -57}},
+    {{57, 192, -171}},
+    {{57, 192, -57}},
+    {{171, 192, -171}},
+    {{171, 256, -171}},
+    {{57, 256, -284}},
+    {{57, 256, -171}},
+    {{171, 256, -284}},
+    {{171, 320, -284}},
+    {{57, 320, -398}},
+    {{57, 320, -284}},
+    {{171, 320, -398}},
+    {{284, 384, -284}},
+    {{171, 384, -398}},
+    {{171, 384, -284}},
+    {{284, 384, -398}},
+    {{398, 448, -284}},
+    {{284, 448, -398}},
+    {{284, 448, -284}},
+    {{398, 448, -398}},
+    {{284, 582, -171}},
+    {{171, 582, -284}},
+    {{171, 582, -171}},
+    {{284, 582, -284}},
+    {{-57, 64, -57}},
+    {{-171, 64, -171}},
+    {{-171, 64, -57}},
+    {{-57, 64, -171}},
+    {{-57, 128, -171}},
+    {{-171, 128, -284}},
+    {{-171, 128, -171}},
+    {{-57, 128, -284}},
+    {{-512, 0, -284}},
+    {{-284, 96, -284}},
+    {{-398, 96, -284}},
+    {{-398, 96, -398}},
+    {{-284, 96, -398}},
+    {{-284, 160, -284}},
+    {{-398, 160, -398}},
+    {{-398, 160, -284}},
+    {{-284, 160, -398}},
+    {{-398, 64, 284}},
+    {{-512, 64, 171}},
+    {{-512, 192, 284}},
+    {{-57, 64, 284}},
+    {{171, 128, 171}},
+    {{-284, 192, 57}},
+    {{-171, 64, 512}},
+    {{-284, 192, 512}},
+    {{-398, 192, 398}},
+    {{-398, 256, 512}},
+    {{-512, 256, 398}},
+    {{-512, 320, 512}},
+    {{-284, 64, 398}},
+    {{398, 512, -171}},
+    {{398, 512, -284}},
+    {{398, 64, -398}},
+    {{57, 64, -398}},
+    {{-57, 64, -284}},
+    {{171, 64, -398}},
+    {{57, 64, -284}},
+    {{57, 64, -57}},
+    {{57, 64, -171}},
+    {{171, 64, -57}},
+    {{398, 64, -284}},
+    {{284, 64, -398}},
+    {{57, 128, -57}},
+    {{284, 128, -398}},
+    {{57, 128, -398}},
+    {{57, 128, -284}},
+    {{398, 128, -398}},
+    {{398, 128, -284}},
+    {{398, 128, -171}},
+    {{57, 128, -171}},
+    {{171, 128, -398}},
+    {{284, 192, -398}},
+    {{284, 192, -171}},
+    {{57, 192, -398}},
+    {{57, 192, -284}},
+    {{398, 192, -398}},
+    {{398, 192, -284}},
+    {{398, 192, -171}},
+    {{171, 192, -398}},
+    {{398, 256, -398}},
+    {{398, 256, -284}},
+    {{398, 256, -171}},
+    {{171, 256, -398}},
+    {{284, 256, -171}},
+    {{284, 256, -398}},
+    {{57, 256, -398}},
+    {{171, 320, -171}},
+    {{398, 320, -284}},
+    {{398, 320, -171}},
+    {{284, 320, -171}},
+    {{284, 320, -398}},
+    {{398, 320, -398}},
+    {{171, 384, -171}},
+    {{398, 384, -284}},
+    {{398, 384, -171}},
+    {{284, 384, -171}},
+    {{398, 384, -398}},
+    {{284, 448, -171}},
+    {{171, 448, -171}},
+    {{171, 448, -284}},
+    {{398, 448, -171}},
+    {{-171, 64, -284}},
 };
 
 int testLevelFloorCount = 130;
@@ -205,8 +219,7 @@ Surface testLevelSlope[36];
 int testLevelWallCount = 184;
 Surface testLevelWall[184];
 
-void test_level_init(void){
-
+void testLevel_init(void){
     testLevelFloor[0].posA = testLevelVerts[0]; testLevelFloor[0].posB = testLevelVerts[1]; testLevelFloor[0].posC = testLevelVerts[2];
     testLevelFloor[1].posA = testLevelVerts[3]; testLevelFloor[1].posB = testLevelVerts[4]; testLevelFloor[1].posC = testLevelVerts[5];
     testLevelFloor[2].posA = testLevelVerts[6]; testLevelFloor[2].posB = testLevelVerts[7]; testLevelFloor[2].posC = testLevelVerts[8];
@@ -337,15 +350,6 @@ void test_level_init(void){
     testLevelFloor[127].posA = testLevelVerts[123]; testLevelFloor[127].posB = testLevelVerts[125]; testLevelFloor[127].posC = testLevelVerts[126];
     testLevelFloor[128].posA = testLevelVerts[127]; testLevelFloor[128].posB = testLevelVerts[128]; testLevelFloor[128].posC = testLevelVerts[129];
     testLevelFloor[129].posA = testLevelVerts[127]; testLevelFloor[129].posB = testLevelVerts[130]; testLevelFloor[129].posC = testLevelVerts[128];
-
-    for (int i = 0; i < testLevelFloorCount; i++) {
-        testLevelFloor[i].type = SURFACE_FLOOR;
-        testLevelFloor[i].center = center;
-        testLevelFloor[i].normal = norm;
-        testLevelFloor[i].center = calc_surface_center(testLevelFloor[i]);
-        testLevelFloor[i].normal = calc_surface_norm(testLevelFloor[i]);
-    }
-
     testLevelSlope[0].posA = testLevelVerts[131]; testLevelSlope[0].posB = testLevelVerts[132]; testLevelSlope[0].posC = testLevelVerts[133];
     testLevelSlope[1].posA = testLevelVerts[14]; testLevelSlope[1].posB = testLevelVerts[59]; testLevelSlope[1].posC = testLevelVerts[131];
     testLevelSlope[2].posA = testLevelVerts[134]; testLevelSlope[2].posB = testLevelVerts[57]; testLevelSlope[2].posC = testLevelVerts[12];
@@ -382,15 +386,6 @@ void test_level_init(void){
     testLevelSlope[33].posA = testLevelVerts[139]; testLevelSlope[33].posB = testLevelVerts[131]; testLevelSlope[33].posC = testLevelVerts[133];
     testLevelSlope[34].posA = testLevelVerts[144]; testLevelSlope[34].posB = testLevelVerts[113]; testLevelSlope[34].posC = testLevelVerts[110];
     testLevelSlope[35].posA = testLevelVerts[144]; testLevelSlope[35].posB = testLevelVerts[145]; testLevelSlope[35].posC = testLevelVerts[113];
-
-    for (int i = 0; i < testLevelSlopeCount; i++) {
-        testLevelSlope[i].type = SURFACE_SLOPE;
-        testLevelSlope[i].center = center;
-        testLevelSlope[i].normal = norm;
-        testLevelSlope[i].center = calc_surface_center(testLevelSlope[i]);
-        testLevelSlope[i].normal = calc_surface_norm(testLevelSlope[i]);
-    }
-
     testLevelWall[0].posA = testLevelVerts[18]; testLevelWall[0].posB = testLevelVerts[115]; testLevelWall[0].posC = testLevelVerts[46];
     testLevelWall[1].posA = testLevelVerts[44]; testLevelWall[1].posB = testLevelVerts[117]; testLevelWall[1].posC = testLevelVerts[35];
     testLevelWall[2].posA = testLevelVerts[23]; testLevelWall[2].posB = testLevelVerts[84]; testLevelWall[2].posC = testLevelVerts[62];
@@ -576,6 +571,22 @@ void test_level_init(void){
     testLevelWall[182].posA = testLevelVerts[125]; testLevelWall[182].posB = testLevelVerts[128]; testLevelWall[182].posC = testLevelVerts[130];
     testLevelWall[183].posA = testLevelVerts[124]; testLevelWall[183].posB = testLevelVerts[129]; testLevelWall[183].posC = testLevelVerts[128];
 
+    for (int i = 0; i < testLevelFloorCount; i++) {
+        testLevelFloor[i].type = SURFACE_FLOOR;
+        testLevelFloor[i].center = center;
+        testLevelFloor[i].normal = norm;
+        testLevelFloor[i].center = calc_surface_center(testLevelFloor[i]);
+        testLevelFloor[i].normal = calc_surface_norm(testLevelFloor[i]);
+    }
+
+    for (int i = 0; i < testLevelSlopeCount; i++) {
+        testLevelSlope[i].type = SURFACE_SLOPE;
+        testLevelSlope[i].center = center;
+        testLevelSlope[i].normal = norm;
+        testLevelSlope[i].center = calc_surface_center(testLevelSlope[i]);
+        testLevelSlope[i].normal = calc_surface_norm(testLevelSlope[i]);
+    }
+
     for (int i = 0; i < testLevelWallCount; i++) {
         testLevelWall[i].type = SURFACE_WALL;
         testLevelWall[i].center = center;
@@ -584,4 +595,19 @@ void test_level_init(void){
         testLevelWall[i].normal = calc_surface_norm(testLevelWall[i]);
     }
 
+    // Allocate map's matrix and construct
+    testLevelMatFP = malloc_uncached(sizeof(T3DMat4FP));
+    t3d_mat4fp_from_srt_euler(testLevelMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
+
+    // Load model
+    modelTestlevel = t3d_model_load("rom:/testLevel.t3dm");
+
+    // Create map's RSPQ block
+    rspq_block_begin();
+        t3d_matrix_push(testLevelMatFP);
+        matCount++;
+        rdpq_set_prim_color(WHITE);
+        t3d_model_draw(modelTestlevel);
+        t3d_matrix_pop(1);
+    dplTestlevel = rspq_block_end();
 }

@@ -1,86 +1,135 @@
 import re
 
-def convert_collision_file(input_file, output_file):
-    # Read the input file
+def parse_input_file(input_file):
     with open(input_file, 'r') as file:
-        collision_data = file.read()
+        data = file.read()
 
-    # Extract name
     name_pattern = re.compile(r'const Collision (\w+)_collision\[\] = {')
-    name_data = name_pattern.findall(collision_data)
-    for name_str in name_data:
-        name = f'{name_str}'
+    vertex_pattern = re.compile(r'COL_VERTEX\(([-\d, ]+)\)')
+    tri_init_pattern = re.compile(r'COL_TRI_INIT\((\w+), (\d+)\)')
+    tri_pattern = re.compile(r'COL_TRI\((\d+), (\d+), (\d+)\)')
 
-    # Extract vertices
-    vertex_pattern = re.compile(r'COL_VERTEX\((-?\d+), (-?\d+), (-?\d+)\)')
-    vertices = vertex_pattern.findall(collision_data)
+    name_match = name_pattern.search(data)
+    if not name_match:
+        raise ValueError("Name not found in the input file")
 
-    # Extract triangles
-    triangle_pattern = re.compile(r'COL_TRI\((\d+), (\d+), (\d+)\)')
-    triangles = triangle_pattern.findall(collision_data)
+    name = name_match.group(1)
+    vertices = vertex_pattern.findall(data)
+    tri_inits = tri_init_pattern.findall(data)
+    tris = tri_pattern.findall(data)
 
-    # Extract surface types and their counts
-    surface_pattern = re.compile(r'COL_TRI_INIT\(SURFACE_(\w+), (\d+)\)')
-    surfaces = surface_pattern.findall(collision_data)
+    vertices = [tuple(map(int, v.split(', '))) for v in vertices]
+    tris = [tuple(map(int, t)) for t in tris]
 
-    # Define arrays
-    verts_array = "T3DVec3 {0}Verts[{1}] =\n{{\n".format(name_str,len(vertices))
-    for vertex in vertices:
-        verts_array += "       {{" + ", ".join(vertex) + "}},\n"
-    verts_array = verts_array.strip(",\n") + "\n};\n\n"
+    surfaces = {}
+    current_surface = None
+    current_count = 0
+    tris_index = 0
 
-    surface_arrays = {}
-    surface_counts = {}
-    for surface_suffix, count in surfaces:
-        surface_type = f'SURFACE_{surface_suffix}'
-        surface_arrays[surface_type] = []
-        surface_counts[surface_type] = int(count)
-
-    # Assign triangles to surface arrays
-    surface_index = 0
-    for surface_suffix, count in surfaces:
-        surface_type = f'SURFACE_{surface_suffix}'
-        for i in range(int(count)):
-            triangle = triangles[surface_index]
-            surface_arrays[surface_type].append(triangle)
-            surface_index += 1
-
-    # Format surface arrays
-    surface_definitions = ""
-    for surface_type, triangles in surface_arrays.items():
-        surface_type = surface_type.replace("SURFACE_", "").capitalize()
-        surface_name = "{0}{1}".format(name_str,surface_type)
-        surface_definitions += "int {}Count = {};\n".format(surface_name, len(triangles))
-        surface_definitions += "Surface {}[{}];\n".format(surface_name, len(triangles))
+    for init in tri_inits:
+        surface_type, count = init
+        count = int(count)
+        surface_type = surface_type.replace('SURFACE_', '')
+        surfaces[surface_type] = []
         
+        for _ in range(count):
+            surfaces[surface_type].append(tris[tris_index])
+            tris_index += 1
 
-    surface_init = "\nvoid {}_init(void){{\n\n".format(name)
+    return name, vertices, surfaces
 
-    for surface_type, triangles in surface_arrays.items():
-        surface_name = "{0}{1}".format(name_str,surface_type.replace("SURFACE_", "").capitalize())
-        for i, triangle in enumerate(triangles):
-            surface_init += "    {0}[{1}].posA = {5}Verts[{2}]; {0}[{1}].posB = {5}Verts[{3}]; {0}[{1}].posC = {5}Verts[{4}];\n".format(surface_name, i, triangle[0], triangle[1], triangle[2], name_str)
-        
-        surface_init += "\n    for (int i = 0; i < {}Count; i++) {{\n".format(surface_name)
-        surface_init += "        {}[i].type = {};\n".format(surface_name, surface_type)
-        surface_init += "        {}[i].center = center;\n".format(surface_name)
-        surface_init += "        {}[i].normal = norm;\n".format(surface_name)
-        surface_init += "        {}[i].center = calc_surface_center({}[i]);\n".format(surface_name, surface_name)
-        surface_init += "        {}[i].normal = calc_surface_norm({}[i]);\n".format(surface_name, surface_name)
-        surface_init += "    }\n\n"
-
-    surface_init += "}"
-
-    # Combine everything
-    final_output = verts_array + surface_definitions + surface_init
-
-    # Write the output to the new file
+def generate_c_file(name, vertices, surfaces, output_file):
     with open(output_file, 'w') as file:
-        file.write(final_output)
+        file.write('#include <libdragon.h>\n')
+        file.write('#include <t3d/t3d.h>\n')
+        file.write('#include <t3d/t3dmodel.h>\n')
+        file.write('#include "../include/enums.h"\n')
+        file.write('#include "../include/types.h"\n')
+        file.write('#include "debug.h"\n')
+        file.write('#include "collision.h"\n')
+        file.write(f'#include "{name}.h"\n')
+        file.write('#include "utils.h"\n\n')
 
-# Specify the input and output files
-input_file = 'collision.inc.c'
-output_file = 'gen_col.c'
+        file.write(f'T3DMat4FP* {name}MatFP;\n')
+        file.write(f'T3DModel *model{name.capitalize()};\n')
+        file.write(f'rspq_block_t *dpl{name.capitalize()};\n\n')
 
-# Run the conversion
-convert_collision_file(input_file, output_file)
+        file.write(f'T3DVec3 {name}Verts[{len(vertices)}] =\n')
+        file.write('{\n')
+        for v in vertices:
+            file.write(f'    {{{{{v[0]}, {v[1]}, {v[2]}}}}},\n')
+        file.write('};\n\n')
+
+        for surface_type, tris in surfaces.items():
+            file.write(f'int {name}{surface_type.capitalize()}Count = {len(tris)};\n')
+            file.write(f'Surface {name}{surface_type.capitalize()}[{len(tris)}];\n')
+
+        file.write(f'\nvoid {name}_init(void){{\n')
+
+        for surface_type, tris in surfaces.items():
+            for i, tri in enumerate(tris):
+                file.write(f'    {name}{surface_type.capitalize()}[{i}].posA = {name}Verts[{tri[0]}]; {name}{surface_type.capitalize()}[{i}].posB = {name}Verts[{tri[1]}]; {name}{surface_type.capitalize()}[{i}].posC = {name}Verts[{tri[2]}];\n')
+
+        for surface_type, tris in surfaces.items():
+            file.write(f'\n    for (int i = 0; i < {name}{surface_type.capitalize()}Count; i++) {{\n')
+            file.write(f'        {name}{surface_type.capitalize()}[i].type = SURFACE_{surface_type};\n')
+            file.write(f'        {name}{surface_type.capitalize()}[i].center = center;\n')
+            file.write(f'        {name}{surface_type.capitalize()}[i].normal = norm;\n')
+            file.write(f'        {name}{surface_type.capitalize()}[i].center = calc_surface_center({name}{surface_type.capitalize()}[i]);\n')
+            file.write(f'        {name}{surface_type.capitalize()}[i].normal = calc_surface_norm({name}{surface_type.capitalize()}[i]);\n')
+            file.write('    }\n')
+
+        file.write('\n    // Allocate map\'s matrix and construct\n')
+        file.write(f'    {name}MatFP = malloc_uncached(sizeof(T3DMat4FP));\n')
+        file.write(f'    t3d_mat4fp_from_srt_euler({name}MatFP, (float[3]){{1.0f, 1.0f, 1.0f}}, (float[3]){{0, 0, 0}}, (float[3]){{0, 0, 0}});\n\n')
+
+        file.write('    // Load model\n')
+        file.write(f'    model{name.capitalize()} = t3d_model_load("rom:/{name}.t3dm");\n\n')
+
+        file.write('    // Create map\'s RSPQ block\n')
+        file.write('    rspq_block_begin();\n')
+        file.write(f'        t3d_matrix_push({name}MatFP);\n')
+        file.write('        matCount++;\n')
+        file.write('        rdpq_set_prim_color(WHITE);\n')
+        file.write(f'        t3d_model_draw(model{name.capitalize()});\n')
+        file.write('        t3d_matrix_pop(1);\n')
+        file.write(f'    dpl{name.capitalize()} = rspq_block_end();\n')
+        file.write('}\n')
+
+def generate_h_file(name, vertices, surfaces, output_file):
+    with open(output_file, 'w') as file:
+        file.write(f'#ifndef {name.upper()}_H\n')
+        file.write(f'#define {name.upper()}_H\n\n')
+
+        file.write('#include <libdragon.h>\n')
+        file.write('#include <t3d/t3d.h>\n')
+        file.write('#include <t3d/t3dmodel.h>\n')
+        file.write('#include "../include/enums.h"\n')
+        file.write('#include "../include/types.h"\n')
+        file.write('#include "debug.h"\n')
+        file.write('#include "collision.h"\n')
+        file.write('#include "utils.h"\n\n')
+
+        file.write(f'extern T3DVec3 {name}Verts[{len(vertices)}];\n')
+
+        for surface_type, tris in surfaces.items():
+            file.write(f'extern int {name}{surface_type.capitalize()}Count;\n')
+            file.write(f'extern Surface {name}{surface_type.capitalize()}[{len(tris)}];\n')
+
+        file.write(f'\nextern T3DMat4FP* {name}MatFP;\n')
+        file.write(f'extern T3DModel *model{name.capitalize()};\n')
+        file.write(f'extern rspq_block_t *dpl{name.capitalize()};\n\n')
+
+        file.write(f'void {name}_init(void);\n\n')
+
+        file.write(f'#endif // {name.upper()}_H\n')
+
+if __name__ == '__main__':
+    input_file = 'collision.inc.c'
+
+    name, vertices, surfaces = parse_input_file(input_file)
+    c_output_file = f'{name}.c'
+    h_output_file = f'{name}.h'
+
+    generate_c_file(name, vertices, surfaces, c_output_file)
+    generate_h_file(name, vertices, surfaces, h_output_file)

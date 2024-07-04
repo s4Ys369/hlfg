@@ -1,67 +1,81 @@
+#include <libdragon.h>
+#include <t3d/t3d.h>
+#include <t3d/t3dmodel.h>
+#include "../include/enums.h"
+#include "../include/types.h"
+#include "debug.h"
+#include "collision.h"
+#include "mesh2.h"
+#include "utils.h"
+
+T3DMat4FP* mesh2MatFP;
+T3DModel *modelMesh2;
+rspq_block_t *dplMesh2;
+
 T3DVec3 mesh2Verts[62] =
 {
-       {{256, 256, -85}},
-       {{85, 256, -256}},
-       {{85, 256, -85}},
-       {{256, 256, 256}},
-       {{85, 256, 85}},
-       {{85, 256, 256}},
-       {{256, 256, 85}},
-       {{256, 256, -256}},
-       {{768, 448, -85}},
-       {{896, 448, -85}},
-       {{896, 448, -256}},
-       {{768, 448, 256}},
-       {{896, 448, 256}},
-       {{896, 448, 85}},
-       {{768, 448, 85}},
-       {{768, 448, -256}},
-       {{-85, 128, -85}},
-       {{-256, 0, -256}},
-       {{-256, 0, -85}},
-       {{-85, 128, -256}},
-       {{-85, 128, 85}},
-       {{-85, 128, 256}},
-       {{-256, 0, 85}},
-       {{-256, 0, 256}},
-       {{597, 352, -256}},
-       {{597, 352, -85}},
-       {{427, 320, -85}},
-       {{427, 320, -256}},
-       {{597, 352, 256}},
-       {{427, 320, 85}},
-       {{427, 320, 256}},
-       {{597, 352, 85}},
-       {{768, 128, 256}},
-       {{768, 352, 256}},
-       {{512, 0, 256}},
-       {{341, 128, 256}},
-       {{341, 0, 256}},
-       {{512, 128, 256}},
-       {{171, 128, 256}},
-       {{171, 0, 256}},
-       {{768, 351, -256}},
-       {{768, 128, -256}},
-       {{512, 0, -256}},
-       {{341, 0, -256}},
-       {{341, 107, -256}},
-       {{512, 107, -256}},
-       {{171, 107, -256}},
-       {{171, 0, -256}},
-       {{768, 0, -256}},
-       {{896, 351, -256}},
-       {{768, 0, 256}},
-       {{896, 0, 256}},
-       {{896, 128, 256}},
-       {{896, 128, -256}},
-       {{896, 0, -256}},
-       {{896, 352, 256}},
-       {{896, 352, -85}},
-       {{896, 128, -85}},
-       {{896, 352, 85}},
-       {{896, 128, 85}},
-       {{896, 0, 85}},
-       {{896, 0, -85}}
+    {{256, 256, -85}},
+    {{85, 256, -256}},
+    {{85, 256, -85}},
+    {{256, 256, 256}},
+    {{85, 256, 85}},
+    {{85, 256, 256}},
+    {{256, 256, 85}},
+    {{256, 256, -256}},
+    {{768, 448, -85}},
+    {{896, 448, -85}},
+    {{896, 448, -256}},
+    {{768, 448, 256}},
+    {{896, 448, 256}},
+    {{896, 448, 85}},
+    {{768, 448, 85}},
+    {{768, 448, -256}},
+    {{-85, 128, -85}},
+    {{-256, 0, -256}},
+    {{-256, 0, -85}},
+    {{-85, 128, -256}},
+    {{-85, 128, 85}},
+    {{-85, 128, 256}},
+    {{-256, 0, 85}},
+    {{-256, 0, 256}},
+    {{597, 352, -256}},
+    {{597, 352, -85}},
+    {{427, 320, -85}},
+    {{427, 320, -256}},
+    {{597, 352, 256}},
+    {{427, 320, 85}},
+    {{427, 320, 256}},
+    {{597, 352, 85}},
+    {{768, 128, 256}},
+    {{768, 352, 256}},
+    {{512, 0, 256}},
+    {{341, 128, 256}},
+    {{341, 0, 256}},
+    {{512, 128, 256}},
+    {{171, 128, 256}},
+    {{171, 0, 256}},
+    {{768, 351, -256}},
+    {{768, 128, -256}},
+    {{512, 0, -256}},
+    {{341, 0, -256}},
+    {{341, 107, -256}},
+    {{512, 107, -256}},
+    {{171, 107, -256}},
+    {{171, 0, -256}},
+    {{768, 0, -256}},
+    {{896, 351, -256}},
+    {{768, 0, 256}},
+    {{896, 0, 256}},
+    {{896, 128, 256}},
+    {{896, 128, -256}},
+    {{896, 0, -256}},
+    {{896, 352, 256}},
+    {{896, 352, -85}},
+    {{896, 128, -85}},
+    {{896, 352, 85}},
+    {{896, 128, 85}},
+    {{896, 0, 85}},
+    {{896, 0, -85}},
 };
 
 int mesh2FloorCount = 12;
@@ -72,7 +86,6 @@ int mesh2WallCount = 64;
 Surface mesh2Wall[64];
 
 void mesh2_init(void){
-
     mesh2Floor[0].posA = mesh2Verts[0]; mesh2Floor[0].posB = mesh2Verts[1]; mesh2Floor[0].posC = mesh2Verts[2];
     mesh2Floor[1].posA = mesh2Verts[3]; mesh2Floor[1].posB = mesh2Verts[4]; mesh2Floor[1].posC = mesh2Verts[5];
     mesh2Floor[2].posA = mesh2Verts[6]; mesh2Floor[2].posB = mesh2Verts[2]; mesh2Floor[2].posC = mesh2Verts[4];
@@ -85,15 +98,6 @@ void mesh2_init(void){
     mesh2Floor[9].posA = mesh2Verts[8]; mesh2Floor[9].posB = mesh2Verts[10]; mesh2Floor[9].posC = mesh2Verts[15];
     mesh2Floor[10].posA = mesh2Verts[14]; mesh2Floor[10].posB = mesh2Verts[9]; mesh2Floor[10].posC = mesh2Verts[8];
     mesh2Floor[11].posA = mesh2Verts[14]; mesh2Floor[11].posB = mesh2Verts[13]; mesh2Floor[11].posC = mesh2Verts[9];
-
-    for (int i = 0; i < mesh2FloorCount; i++) {
-        mesh2Floor[i].type = SURFACE_FLOOR;
-        mesh2Floor[i].center = center;
-        mesh2Floor[i].normal = norm;
-        mesh2Floor[i].center = calc_surface_center(mesh2Floor[i]);
-        mesh2Floor[i].normal = calc_surface_norm(mesh2Floor[i]);
-    }
-
     mesh2Slope[0].posA = mesh2Verts[16]; mesh2Slope[0].posB = mesh2Verts[17]; mesh2Slope[0].posC = mesh2Verts[18];
     mesh2Slope[1].posA = mesh2Verts[2]; mesh2Slope[1].posB = mesh2Verts[19]; mesh2Slope[1].posC = mesh2Verts[16];
     mesh2Slope[2].posA = mesh2Verts[5]; mesh2Slope[2].posB = mesh2Verts[20]; mesh2Slope[2].posC = mesh2Verts[21];
@@ -124,15 +128,6 @@ void mesh2_init(void){
     mesh2Slope[27].posA = mesh2Verts[31]; mesh2Slope[27].posB = mesh2Verts[25]; mesh2Slope[27].posC = mesh2Verts[26];
     mesh2Slope[28].posA = mesh2Verts[29]; mesh2Slope[28].posB = mesh2Verts[26]; mesh2Slope[28].posC = mesh2Verts[0];
     mesh2Slope[29].posA = mesh2Verts[14]; mesh2Slope[29].posB = mesh2Verts[8]; mesh2Slope[29].posC = mesh2Verts[25];
-
-    for (int i = 0; i < mesh2SlopeCount; i++) {
-        mesh2Slope[i].type = SURFACE_SLOPE;
-        mesh2Slope[i].center = center;
-        mesh2Slope[i].normal = norm;
-        mesh2Slope[i].center = calc_surface_center(mesh2Slope[i]);
-        mesh2Slope[i].normal = calc_surface_norm(mesh2Slope[i]);
-    }
-
     mesh2Wall[0].posA = mesh2Verts[28]; mesh2Wall[0].posB = mesh2Verts[32]; mesh2Wall[0].posC = mesh2Verts[33];
     mesh2Wall[1].posA = mesh2Verts[34]; mesh2Wall[1].posB = mesh2Verts[35]; mesh2Wall[1].posC = mesh2Verts[36];
     mesh2Wall[2].posA = mesh2Verts[37]; mesh2Wall[2].posB = mesh2Verts[30]; mesh2Wall[2].posC = mesh2Verts[35];
@@ -198,6 +193,22 @@ void mesh2_init(void){
     mesh2Wall[62].posA = mesh2Verts[40]; mesh2Wall[62].posB = mesh2Verts[49]; mesh2Wall[62].posC = mesh2Verts[53];
     mesh2Wall[63].posA = mesh2Verts[33]; mesh2Wall[63].posB = mesh2Verts[55]; mesh2Wall[63].posC = mesh2Verts[12];
 
+    for (int i = 0; i < mesh2FloorCount; i++) {
+        mesh2Floor[i].type = SURFACE_FLOOR;
+        mesh2Floor[i].center = center;
+        mesh2Floor[i].normal = norm;
+        mesh2Floor[i].center = calc_surface_center(mesh2Floor[i]);
+        mesh2Floor[i].normal = calc_surface_norm(mesh2Floor[i]);
+    }
+
+    for (int i = 0; i < mesh2SlopeCount; i++) {
+        mesh2Slope[i].type = SURFACE_SLOPE;
+        mesh2Slope[i].center = center;
+        mesh2Slope[i].normal = norm;
+        mesh2Slope[i].center = calc_surface_center(mesh2Slope[i]);
+        mesh2Slope[i].normal = calc_surface_norm(mesh2Slope[i]);
+    }
+
     for (int i = 0; i < mesh2WallCount; i++) {
         mesh2Wall[i].type = SURFACE_WALL;
         mesh2Wall[i].center = center;
@@ -206,4 +217,19 @@ void mesh2_init(void){
         mesh2Wall[i].normal = calc_surface_norm(mesh2Wall[i]);
     }
 
+    // Allocate map's matrix and construct
+    mesh2MatFP = malloc_uncached(sizeof(T3DMat4FP));
+    t3d_mat4fp_from_srt_euler(mesh2MatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
+
+    // Load model
+    modelMesh2 = t3d_model_load("rom:/mesh2.t3dm");
+
+    // Create map's RSPQ block
+    rspq_block_begin();
+        t3d_matrix_push(mesh2MatFP);
+        matCount++;
+        rdpq_set_prim_color(WHITE);
+        t3d_model_draw(modelMesh2);
+        t3d_matrix_pop(1);
+    dplMesh2 = rspq_block_end();
 }
