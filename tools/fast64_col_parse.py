@@ -84,7 +84,7 @@ def generate_c_file(name, vertices, surfaces, output_file):
         file.write(f'    t3d_mat4fp_from_srt_euler({name}MatFP, (float[3]){{1.0f, 1.0f, 1.0f}}, (float[3]){{0, 0, 0}}, (float[3]){{0, 0, 0}});\n\n')
 
         file.write('    // Load model\n')
-        file.write(f'    model{name.capitalize()} = t3d_model_load("rom:/{name}.t3dm");\n\n')
+        file.write(f'    model{name.capitalize()} = t3d_model_load("rom:/models/{name}.t3dm");\n\n')
 
         file.write('    // Create map\'s RSPQ block\n')
         file.write('    rspq_block_begin();\n')

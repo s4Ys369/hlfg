@@ -16,7 +16,6 @@
 #include "sound.h"
 #include "utils.h"
 #include "test_level.h"
-#include "wf_test.h"
 
 
 T3DMat4FP* playerMatFP[MAX_PLAYERS];
@@ -72,9 +71,9 @@ void check_player_collisions(PlayerParams *players[], int numPlayers) {
 void player_init(void){
 
   // Load T3D Models
-  modelPlayer = t3d_model_load("rom:/player.t3dm");
-  modelProjectile = t3d_model_load("rom:/projectile.t3dm");
-  modelShadow = t3d_model_load("rom:/shadow.t3dm");
+  modelPlayer = t3d_model_load("rom:/models/player.t3dm");
+  modelProjectile = t3d_model_load("rom:/models/projectile.t3dm");
+  modelShadow = t3d_model_load("rom:/models/shadow.t3dm");
 
   for (int i = 0; i < numPlayers; ++i) {
 
@@ -554,7 +553,7 @@ void player_update(void){
 
   // Player Attack Input
   if(btn[i].b) {
-    sound_jump();
+    sound_attack();
     playerState[i] = PLAYER_ATTACK_START;
 
   }

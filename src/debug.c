@@ -12,7 +12,7 @@
 #include "input.h"
 #include "player.h"
 #include "utils.h"
-#include "wf_test.h"
+#include "test_level.h"
 
 T3DModel *modelDebugBox;
 T3DModel *modelDebugSphere;
@@ -39,8 +39,8 @@ const char* playerStateStrings[NUM_PLAYER_STATES] = {
 
 void debug_models_init(void){
   col_debug = 0;
-  modelDebugBox = t3d_model_load("rom:/box.t3dm");
-  modelDebugSphere = t3d_model_load("rom:/sphere.t3dm");
+  modelDebugBox = t3d_model_load("rom:/models/box.t3dm");
+  modelDebugSphere = t3d_model_load("rom:/models/sphere.t3dm");
 
   triVerts = malloc_uncached(sizeof(T3DVertPacked) * 2);
 

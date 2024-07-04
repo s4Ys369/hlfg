@@ -219,9 +219,9 @@ void balls_init(void){
 
 void actors_init(void){
 
-  modelCrate = t3d_model_load("rom:/box.t3dm");
+  modelCrate = t3d_model_load("rom:/models/box.t3dm");
   crates_init();
-  modelBall = t3d_model_load("rom:/sphere.t3dm");
+  modelBall = t3d_model_load("rom:/models/sphere.t3dm");
   balls_init();
 
   // Check and resolve collisions for each actor

@@ -604,7 +604,7 @@ void test_level_init(void){
     t3d_mat4fp_from_srt_euler(testLevelMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
     // Load model
-    modelTestLevel = t3d_model_load("rom:/test_level.t3dm");
+    modelTestLevel = t3d_model_load("rom:/models/test_level.t3dm");
 
     // Create map's RSPQ block
     rspq_block_begin();

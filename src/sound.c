@@ -24,12 +24,12 @@ int MUSIC_CHANNEL[] = {
 #define MAX_CHANNELS 10
 
 void sound_load(void) {
-	xm64player_open(&xm, "rom:/TOYS.xm64");
+	xm64player_open(&xm, "rom:/sound/TOYS.xm64");
 
-	wav64_open(&sfx_jump, "rom:/jump.wav64");
-	wav64_open(&sfx_attack, "rom:/attack.wav64");
-	wav64_open(&sfx_bounce, "rom:/bounce.wav64");
-	wav64_open(&sfx_boing, "rom:/boing.wav64");
+	wav64_open(&sfx_jump, "rom:/sound/jump.wav64");
+	wav64_open(&sfx_attack, "rom:/sound/attack.wav64");
+	wav64_open(&sfx_bounce, "rom:/sound/bounce.wav64");
+	wav64_open(&sfx_boing, "rom:/sound/boing.wav64");
 }
 
 void sound_init(void) {

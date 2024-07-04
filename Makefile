@@ -36,21 +36,22 @@ src =   src/main.c \
 		src/map.c \
 		src/player.c \
 		src/sound.c \
-		src/ui.c \
-		src/utils.c \
 		src/test_level.c \
-		src/wf_test.c
-assets_png = $(wildcard assets/*.png)
-assets_gltf = $(wildcard assets/*.glb)
-assets_ttf = $(wildcard assets/*.ttf)
-assets_xm = $(wildcard assets/*.xm)
-assets_wav = $(wildcard assets/*.wav)
+		src/ui.c \
+		src/utils.c
+assets_debug_font = $(wildcard assets/*.png)
+assets_png = $(wildcard assets/models/*.png)
+assets_gltf = $(wildcard assets/models/*.glb)
+assets_ttf = $(wildcard assets/fonts/*.ttf)
+assets_xm = $(wildcard assets/sound/*.xm)
+assets_wav = $(wildcard assets/sound/*.wav)
 
-assets_conv = $(addprefix filesystem/,$(notdir $(assets_png:%.png=%.sprite))) \
-			  $(addprefix filesystem/,$(notdir $(assets_ttf:%.ttf=%.font64))) \
-			  $(addprefix filesystem/,$(notdir $(assets_gltf:%.glb=%.t3dm)))  \
-			  $(addprefix filesystem/,$(notdir $(assets_xm:%.xm=%.xm64)))     \
-			  $(addprefix filesystem/,$(notdir $(assets_wav:%.wav=%.wav64)))
+assets_conv = $(addprefix filesystem/,$(notdir $(assets_debug_font:%.png=%.sprite))) \
+			  $(addprefix filesystem/models/,$(notdir $(assets_png:%.png=%.sprite))) \
+			  $(addprefix filesystem/fonts/,$(notdir $(assets_ttf:%.ttf=%.font64))) \
+			  $(addprefix filesystem/models/,$(notdir $(assets_gltf:%.glb=%.t3dm)))  \
+			  $(addprefix filesystem/sound/,$(notdir $(assets_xm:%.xm=%.xm64)))     \
+			  $(addprefix filesystem/sound/,$(notdir $(assets_wav:%.wav=%.wav64)))
 
 all: $(PROJECT_NAME).z64
 
@@ -59,26 +60,31 @@ filesystem/%.sprite: assets/%.png
 	@echo "    [SPRITE] $@"
 	$(N64_MKSPRITE) $(MKSPRITE_FLAGS) -o filesystem "$<"
 
-filesystem/%.font64: assets/%.ttf
-	@mkdir -p $(dir $@)
-	@echo "    [FONT] $@"
-	$(N64_MKFONT) $(MKFONT_FLAGS) -s 9 -o filesystem "$<"
-
-filesystem/%.t3dm: assets/%.glb
+filesystem/models/%.t3dm: assets/models/%.glb
 	@mkdir -p $(dir $@)
 	@echo "    [T3D-MODEL] $@"
 	$(T3D_GLTF_TO_3D) "$<" $@
 	$(N64_BINDIR)/mkasset -c 2 -w 256 -o filesystem $@
 
-filesystem/%.xm64: assets/%.xm
+filesystem/models/%.sprite: assets/models/%.png
 	@mkdir -p $(dir $@)
-	@echo "    [AUDIO] $@"
-	@$(N64_AUDIOCONV) $(AUDIOCONV_FLAGS) -o filesystem "$<"
+	@echo "    [SPRITE] $@"
+	$(N64_MKSPRITE) $(MKSPRITE_FLAGS) -o $(dir $@) "$<"
 
-filesystem/%.wav64: assets/%.wav
+filesystem/fonts/%.font64: assets/fonts/%.ttf
+	@mkdir -p $(dir $@)
+	@echo "    [FONT] $@"
+	$(N64_MKFONT) $(MKFONT_FLAGS) -s 9 -o $(dir $@) "$<"
+
+filesystem/sound/%.xm64: assets/sound/%.xm
 	@mkdir -p $(dir $@)
 	@echo "    [AUDIO] $@"
-	@$(N64_AUDIOCONV) $(AUDIOCONV_FLAGS) -o filesystem "$<"
+	@$(N64_AUDIOCONV) $(AUDIOCONV_FLAGS) -o $(dir $@) "$<"
+
+filesystem/sound/%.wav64: assets/sound/%.wav
+	@mkdir -p $(dir $@)
+	@echo "    [AUDIO] $@"
+	@$(N64_AUDIOCONV) $(AUDIOCONV_FLAGS) -o $(dir $@) "$<"
 
 $(BUILD_DIR)/$(PROJECT_NAME).dfs: $(assets_conv)
 $(BUILD_DIR)/$(PROJECT_NAME).elf: $(src:%.c=$(BUILD_DIR)/%.o)

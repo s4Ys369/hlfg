@@ -16,7 +16,6 @@
 #include "ui.h"
 #include "utils.h"
 #include "test_level.h"
-#include "wf_test.h"
 
 // IBE : Itty Bitty Engine, a 3D Game Engine for Tiny3D
 
@@ -190,7 +189,6 @@ int main()
       
       // Run map block
       rspq_block_run(dplTestLevel);
-      //rspq_block_run(dplWF);
       //rspq_block_run(dplMap);
       //rspq_block_run(dplMesh);
       //rspq_block_run(dplMesh2);

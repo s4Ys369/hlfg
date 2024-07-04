@@ -8,7 +8,6 @@
 #include "map.h"
 #include "utils.h"
 #include "test_level.h"
-#include "wf_test.h"
 
 T3DMat4FP* mapMatFP;
 T3DModel *modelMap;
@@ -343,9 +342,9 @@ void map_init(void){
     t3d_mat4fp_from_srt_euler(mesh2MatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
     // Load model
-    modelMap = t3d_model_load("rom:/map.t3dm");
-    modelMesh = t3d_model_load("rom:/mesh.t3dm");
-    modelMesh2 = t3d_model_load("rom:/mesh2.t3dm");
+    modelMap = t3d_model_load("rom:/models/map.t3dm");
+    modelMesh = t3d_model_load("rom:/models/mesh.t3dm");
+    modelMesh2 = t3d_model_load("rom:/models/mesh2.t3dm");
 
     // Create map's RSPQ block
     rspq_block_begin();
@@ -378,6 +377,5 @@ void map_init(void){
 
     //mesh_init();
     //mesh2_init();
-    //wf_init();
     test_level_init();
 }

@@ -10,7 +10,6 @@
 #include "debug.h"
 #include "utils.h"
 #include "test_level.h"
-#include "wf_test.h"
 
 extern T3DMat4FP* mapMatFP;
 extern T3DModel *modelMap;
