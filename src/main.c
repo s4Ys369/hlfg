@@ -93,18 +93,18 @@ int main()
 
       t3d_mat4fp_from_srt_euler(projectileMatFP[p],
         (float[3]){0.5f, 0.5f, 0.5f},
-        (float[3]){0.0f, -player[p]->yaw, 0},
+        (float[3]){player[p]->rot.v[0], -player[p]->rot.v[1], player[p]->rot.v[2]},
         player[p]->projectile.pos.v
       );
 
       t3d_mat4fp_from_srt_euler(shadowMatFP[p],
         (float[3]){0.25f, 0.25f, 0.25f},
-        (float[3]){0.0f, 0.0f, 0.0f},
+        (float[3]){player[p]->rot.v[0], -player[p]->rot.v[1], player[p]->rot.v[2]},
         player[p]->shadowPos.v
       );
 
       t3d_mat4fp_from_srt_euler(playerhitboxMatFP[p],
-        (float[3]){1.0f, playerScaleY[p], 1.0f},
+        player[p]->scale.v,
         (float[3]){0.0f, 0.0f, 0.0f},
         player[p]->hitbox.center.v
       );
@@ -123,8 +123,8 @@ int main()
     for (int np = 0; np < numPlayers; ++np) {
       // Update players matrices
       t3d_mat4fp_from_srt_euler(playerMatFP[np],
-          (float[3]){1.0f, playerScaleY[np], 1.0f},
-          (float[3]){0.0f, -player[np]->yaw, 0},
+          player[np]->scale.v,
+          (float[3]){player[np]->rot.v[0], -player[np]->rot.v[1], -player[np]->rot.v[2]},
           player[np]->pos.v
         );
     }

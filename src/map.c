@@ -372,7 +372,7 @@ void map_init(void){
     dplMesh2 = rspq_block_end();
 
     // Set collisions
-    FloorBox = (AABB){{{-600.0f, -256.0f, -600.0f}},{{600.0f, -255.0f, 600.0f}}}; // Death Plane and OOB
+    FloorBox = (AABB){{{-525.0f, -256.0f, -525.0f}},{{525.0f, -255.0f, 525.0f}}}; // Death Plane and OOB
     groundLevel = FloorBox.max.v[1];
 
     //mesh_init();

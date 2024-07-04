@@ -128,14 +128,14 @@ void draw_debug_ui(void){
     float dSf = distance_to_surface(player[0]->hitbox.center,dSlope);
     float dSc = t3d_vec3_distance(&player[0]->hitbox.center, &dSlope.center);
     t3d_debug_printf(posX, posY, "Wall %d", check_sphere_surface_collision(player[0]->hitbox, dWall));posY+=10;
-    t3d_debug_printf(posX, posY, "%.2f", dWf);posY+=10;
-    t3d_debug_printf(posX, posY, "%.2f", dWc);posY+=10;
+    t3d_debug_printf(posX, posY, "D %.2f", dWf);posY+=10;
+    t3d_debug_printf(posX, posY, "DC %.2f", dWc);posY+=10;
     t3d_debug_printf(posX, posY, "Floor %d", check_sphere_surface_collision(player[0]->hitbox, dFloor));posY+=10;
-    t3d_debug_printf(posX, posY, "%.2f", dFf);posY+=10;
-    t3d_debug_printf(posX, posY, "%.2f", dFc);posY+=10;
+    t3d_debug_printf(posX, posY, "D %.2f", dFf);posY+=10;
+    t3d_debug_printf(posX, posY, "DC %.2f", dFc);posY+=10;
     t3d_debug_printf(posX, posY, "Slope %d", check_sphere_surface_collision(player[0]->hitbox, dSlope));posY+=10;
-    t3d_debug_printf(posX, posY, "%.2f", dSf);posY+=10;
-    t3d_debug_printf(posX, posY, "%.2f", dSc);posY+=10;
+    t3d_debug_printf(posX, posY, "D %.2f", dSf);posY+=10;
+    t3d_debug_printf(posX, posY, "DC %.2f", dSc);posY+=10;
 
     /*
     t3d_debug_printf(posX, posY, "Mat Count %u", matCount);posY+=10;

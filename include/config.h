@@ -8,11 +8,11 @@
 #define SEED 420
 
 // See src/input.c
-//#define ARES_1_PLAYER
+#define ARES_1_PLAYER
 //#define FORCE_4_PORTS
 
 // Always print instead of just when R trigger is held
-//#define DEBUG_PRINT
+#define DEBUG_PRINT
 
 // Used for struct memory allocation
 #define MAX_PLAYERS 4
@@ -20,7 +20,7 @@
 #define MAX_BALLS 5
 
 // Player controller tweaks
-#define JUMP_MODIFIER 12
+#define JUMP_MODIFIER 13
 #define SPEED_MODIFIER 1.1
 
 #endif // CONFIG_H

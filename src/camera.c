@@ -222,7 +222,7 @@ void cam_update(void){
     // Update camera mode
     switch (player[i]->cam.cam_mode) {
       case CAM_RECENTER:
-        update_player_forward(&player[i]->forward, player[i]->yaw);
+        update_player_forward(&player[i]->forward, player[i]->rot.v[1]);
         cam_recenter(&player[i]->cam.camTarget,
                      &player[i]->cam.camPos, 
                      &player[i]->cam.camForward, 
@@ -231,18 +231,18 @@ void cam_update(void){
                      &player[i]->cam.camYaw);
         player[i]->cam.cam_mode = CAM_FOLLOW;
       case CAM_FOLLOW:
-        update_player_forward(&player[i]->forward, player[i]->yaw);
+        update_player_forward(&player[i]->forward, player[i]->rot.v[1]);
         cam_follow_player_lag(&player[i]->cam.camTarget,
                               &player[i]->cam.camPos, 
                               &player[i]->cam.camForward, 
                               &player[i]->cam.camYaw, 
-                              &player[i]->pos, player[i]->yaw, 0.02f);
+                              &player[i]->pos, player[i]->rot.v[1], 0.02f);
         break;
       case CAM_ROTATE:
-        update_player_forward(&player[i]->forward, player[i]->yaw);
+        update_player_forward(&player[i]->forward, player[i]->rot.v[1]);
         break;
       case CAM_TOP_DOWN:
-        update_player_forward(&player[i]->forward, player[i]->yaw);
+        update_player_forward(&player[i]->forward, player[i]->rot.v[1]);
         top_down_view(&player[i]->cam.camTarget, &player[i]->cam.camPos, player[i]->cam.camForward, &player[i]->pos);
         break;
     }
