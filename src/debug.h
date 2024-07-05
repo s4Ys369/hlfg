@@ -3,7 +3,6 @@
 
 #include <libdragon.h>
 #include <t3d/t3d.h>
-#include <t3d/t3ddebug.h>
 #include <t3d/t3dmath.h>
 #include "../include/config.h"
 #include "../include/enums.h"
@@ -13,6 +12,7 @@
 #include "collision.h"
 #include "input.h"
 #include "player.h"
+#include "ui.h"
 #include "utils.h"
 #include "test_level.h"
 

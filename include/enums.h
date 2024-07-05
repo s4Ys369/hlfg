@@ -110,6 +110,7 @@ typedef enum {
     STYLE_1,
     STYLE_2,
     STYLE_3,
+    STYLE_DEBUG,
     MAX_NUM_STYLES
 } FONT_STYLE_ID;
 

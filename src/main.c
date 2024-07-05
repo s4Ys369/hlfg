@@ -1,6 +1,5 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
-#include <t3d/t3ddebug.h>
 #include "../include/config.h"
 #include "../include/enums.h"
 #include "../include/globals.h"
@@ -37,7 +36,6 @@ int main()
   //t3d_init((T3DInitParams){.matrixStackSize = 8});
   t3d_init((T3DInitParams){});
 
-  t3d_debug_print_init();
   debug_models_init();
 
   map_init();

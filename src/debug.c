@@ -1,6 +1,5 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
-#include <t3d/t3ddebug.h>
 #include <t3d/t3dmath.h>
 #include "../include/config.h"
 #include "../include/enums.h"
@@ -11,6 +10,7 @@
 #include "debug.h"
 #include "input.h"
 #include "player.h"
+#include "ui.h"
 #include "utils.h"
 #include "test_level.h"
 
@@ -24,6 +24,7 @@ float posX = 12;
 float posY = 12;
 int matCount = 0;
 uint64_t timeMS = 0;
+
 
 const char* playerStateStrings[NUM_PLAYER_STATES] = {
     "Idle",
@@ -76,19 +77,23 @@ void print_stack_memory_uint32(void *start, size_t size) {
     uint32_t *p = (uint32_t *)start;
     size_t num_elements = size / sizeof(uint32_t);
     for (size_t i = 0; i < num_elements; i++) {
-        t3d_debug_printf(posX, posY, "0x%08x ", p[i]);posY+=10;
+        rdpq_text_printf(NULL, nextFont, posX, posY, "%lu", p[i]);posY+=10;
         if ((i + 1) % 4 == 0) {
-            t3d_debug_printf(posX, posY, "\n");posY+=10;
+            rdpq_text_printf(NULL, nextFont, posX, posY, "\n");posY+=10;
         }
     }
-    t3d_debug_printf(posX, posY, "\n");posY+=10;
+    rdpq_text_printf(NULL, nextFont, posX, posY, "\n");posY+=10;
 }
 
 void draw_debug_ui(void){
-  
-  t3d_debug_print_start();
 
   int text_debug = 0;
+
+  rdpq_textparms_t textParams = {
+    .width = 100,
+    .height = 100,
+    .style_id = STYLE_DEBUG,
+  };
 
 #ifndef DEBUG_PRINT
   if(btnheld[0].r){
@@ -106,16 +111,17 @@ void draw_debug_ui(void){
     col_debug = 0;
   }
 
-
-  rdpq_set_prim_color(RGBA32(0xFF, 0xFF, 0xFF, 0xFF));
+  rdpq_text_printf(&textParams, nextFont, 12, 200, "FPS %.1f", display_get_fps());
+  
   if (text_debug){
+
     posY = 12;
     // Player
-    t3d_debug_printf(posX, posY, "X %.2f", player[0]->pos.v[0]);posY+=10;
-    t3d_debug_printf(posX, posY, "Y %.2f", player[0]->pos.v[1]);posY+=10;
-    t3d_debug_printf(posX, posY, "Z %.2f", player[0]->pos.v[2]);posY+=10;
-    t3d_debug_printf(posX, posY, "State %s", playerStateStrings[playerState[0]]);posY+=10;
-    t3d_debug_printf(posX, posY, "Grounded %d", player[0]->isGrounded);posY+=20;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "X %.2f", player[0]->pos.v[0]);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "Y %.2f", player[0]->pos.v[1]);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "Z %.2f", player[0]->pos.v[2]);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "State %s", playerStateStrings[playerState[0]]);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "Grounded %d", player[0]->isGrounded);posY+=20;
 
     // Surfaces
     Surface dWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);
@@ -127,27 +133,25 @@ void draw_debug_ui(void){
     Surface dSlope = find_closest_surface(player[0]->hitbox.center, testLevelSlope, testLevelSlopeCount);
     float dSf = distance_to_surface(player[0]->hitbox.center,dSlope);
     float dSc = t3d_vec3_distance(&player[0]->hitbox.center, &dSlope.center);
-    t3d_debug_printf(posX, posY, "Wall %d", check_sphere_surface_collision(player[0]->hitbox, dWall));posY+=10;
-    t3d_debug_printf(posX, posY, "D %.2f", dWf);posY+=10;
-    t3d_debug_printf(posX, posY, "DC %.2f", dWc);posY+=10;
-    t3d_debug_printf(posX, posY, "Floor %d", check_sphere_surface_collision(player[0]->hitbox, dFloor));posY+=10;
-    t3d_debug_printf(posX, posY, "D %.2f", dFf);posY+=10;
-    t3d_debug_printf(posX, posY, "DC %.2f", dFc);posY+=10;
-    t3d_debug_printf(posX, posY, "Slope %d", check_sphere_surface_collision(player[0]->hitbox, dSlope));posY+=10;
-    t3d_debug_printf(posX, posY, "D %.2f", dSf);posY+=10;
-    t3d_debug_printf(posX, posY, "DC %.2f", dSc);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "Wall %d", check_sphere_surface_collision(player[0]->hitbox, dWall));posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "D %.2f", dWf);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "DC %.2f", dWc);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "Floor %d", check_sphere_surface_collision(player[0]->hitbox, dFloor));posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "D %.2f", dFf);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "DC %.2f", dFc);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "Slope %d", check_sphere_surface_collision(player[0]->hitbox, dSlope));posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "D %.2f", dSf);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "DC %.2f", dSc);posY+=10;
 
     /*
-    t3d_debug_printf(posX, posY, "Mat Count %u", matCount);posY+=10;
+    rdpq_text_printf(NULL, nextFont, posX, posY, "Mat Count %u", matCount);posY+=10;
     if(matCount >= 8 && timeMS == 0){
       uint64_t nowMS = get_ticks_ms();
       timeMS = nowMS;
     }
-    t3d_debug_printf(posX, posY, "Stack FULL at %llu", timeMS);posY+=10;
+    rdpq_text_printf(NULL, nextFont, posX, posY, "Stack FULL at %llu", timeMS);posY+=10;
     print_stack_memory_uint32(???, 8 * sizeof(T3DMat4FP));
     */
-
-    t3d_debug_printf(posX, 200, "FPS %.1f", display_get_fps());
   }
 
 }

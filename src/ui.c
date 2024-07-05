@@ -65,6 +65,10 @@ void ui_init (void){
         rdpq_font_style(font[i], STYLE_3, &(rdpq_fontstyle_t){
             .color = BLACK,
         });
+        rdpq_font_style(font[i], STYLE_DEBUG, &(rdpq_fontstyle_t){
+            .color = BLACK,
+            .outline_color = WHITE,
+        });
     }
     rdpq_text_register_font(FONT_abaddon,       font[1]);
     rdpq_text_register_font(FONT_8BIT_0,        font[2]);

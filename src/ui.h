@@ -12,6 +12,7 @@
 #include "utils.h"
 
 extern bool isPaused;
+extern int nextFont;
 
 void ui_init(void);
 void print_controls(int fontIdx);
