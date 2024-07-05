@@ -111,25 +111,26 @@ void ui_init (void){
 void print_score(int fontIdx){
     textX = 12;
     textY = 220;
+    rdpq_textparms_t scoreTextParams = {.disable_aa_fix = true, .style_id = STYLE_3,};
 
     if(numPlayers > 1) {
         if(numPlayers == 2) {
-          rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_3,}, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
-          rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_3,}, fontIdx, textX, textY, "SCORE %d", player[1]->score);
+          rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
+          rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[1]->score);
         }
         if(numPlayers == 3) {
-          rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_3,}, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
-          rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_3,}, fontIdx, textX, textY, "SCORE %d", player[1]->score);
-          rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_3,}, fontIdx, (textX*14)+4,  textY, "SCORE %d", player[2]->score);
+          rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
+          rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[1]->score);
+          rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4,  textY, "SCORE %d", player[2]->score);
         }
         if(numPlayers == 4) {
-          rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_3,}, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
-          rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_3,}, fontIdx, (textX*14)+4,  textY/2, "SCORE %d", player[1]->score);
-          rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_3,}, fontIdx, textX, textY, "SCORE %d", player[2]->score);
-          rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_3,}, fontIdx, (textX*14)+4, textY, "SCORE %d", player[3]->score);
+          rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
+          rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4,  textY/2, "SCORE %d", player[1]->score);
+          rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[2]->score);
+          rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4, textY, "SCORE %d", player[3]->score);
         }
     } else {
-        rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_3,}, fontIdx, textX, textY, "SCORE %d", player[0]->score);
+        rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[0]->score);
     }   
 }
 

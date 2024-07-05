@@ -92,6 +92,7 @@ void draw_debug_ui(void){
   rdpq_textparms_t textParams = {
     .width = 100,
     .height = 100,
+    .disable_aa_fix = true,
     .style_id = STYLE_DEBUG,
   };
 
