@@ -43,32 +43,32 @@ void debug_models_init(void){
   modelDebugBox = t3d_model_load("rom:/models/box.t3dm");
   modelDebugSphere = t3d_model_load("rom:/models/sphere.t3dm");
 
-  triVerts = malloc_uncached(sizeof(T3DVertPacked) * 2);
-
-  uint16_t norm = t3d_vert_pack_normal(&(T3DVec3){{ 0, 0, 1}});
-  triVerts[0] = (T3DVertPacked){
-    .posA = {0,0,0}, .rgbaA = 0xFF0000'FF, .normA = norm,
-    .posB = {32,0,32}, .rgbaB = 0x00FF00'FF, .normB = norm,
-  };
-  triVerts[1] = (T3DVertPacked){
-    .posA = {64,0,64}, .rgbaA = 0x0000FF'FF, .normA = norm,
-    .posB = {0,0,0}, .rgbaB = 0xFF00FF'FF, .normB = norm,
-  };
- 
-  triangleMatFP = malloc_uncached(sizeof(T3DMat4FP));
-  t3d_mat4fp_from_srt_euler(triangleMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
-  
-  rspq_block_begin();
-    t3d_matrix_push_pos(1);
-    t3d_matrix_set(triangleMatFP, true);
-    t3d_vert_load(triVerts, 62, 4);
-    t3d_tri_draw(0, 1, 2);
-    t3d_tri_sync();
-    t3d_matrix_pop(1);
-
-  dplTri = rspq_block_end();
-
-  rspq_block_run(dplTri);
+  //triVerts = malloc_uncached(sizeof(T3DVertPacked) * 2);
+  //
+  //uint16_t norm = t3d_vert_pack_normal(&(T3DVec3){{ 0, 0, 1}});
+  //triVerts[0] = (T3DVertPacked){
+  //  .posA = {0,0,0}, .rgbaA = 0xFF0000'FF, .normA = norm,
+  //  .posB = {32,0,32}, .rgbaB = 0x00FF00'FF, .normB = norm,
+  //};
+  //triVerts[1] = (T3DVertPacked){
+  //  .posA = {64,0,64}, .rgbaA = 0x0000FF'FF, .normA = norm,
+  //  .posB = {0,0,0}, .rgbaB = 0xFF00FF'FF, .normB = norm,
+  //};
+  //
+  //triangleMatFP = malloc_uncached(sizeof(T3DMat4FP));
+  //t3d_mat4fp_from_srt_euler(triangleMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
+  //
+  //rspq_block_begin();
+  //  t3d_matrix_push_pos(1);
+  //  t3d_matrix_set(triangleMatFP, true);
+  //  t3d_vert_load(triVerts, 62, 4);
+  //  t3d_tri_draw(0, 1, 2);
+  //  t3d_tri_sync();
+  //  t3d_matrix_pop(1);
+  //
+  //dplTri = rspq_block_end();
+  //
+  //rspq_block_run(dplTri);
 
 }
 
@@ -96,7 +96,7 @@ void draw_debug_ui(void){
     .style_id = STYLE_DEBUG,
   };
 
-#ifndef DEBUG_PRINT
+#ifndef FORCE_DEBUG_PRINT
   if(btnheld[0].r){
     text_debug = 1;
   } else {
@@ -159,22 +159,22 @@ void draw_debug_ui(void){
     int dBall = find_closest(player[0]->hitbox.center, balls, numBalls);
     float dDistBall = t3d_vec3_distance(&player[0]->hitbox.center, &balls[dBall]->hitbox.shape.sphere.center);
     bool dHitBall = check_sphere_collision(player[0]->hitbox, balls[dBall]->hitbox.shape.sphere);
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "Ball %d", dHitBall);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX+5, posY, "Dist %.2f", dDistBall);posY+=10;
+  
     int dCrate = find_closest(player[0]->hitbox.center, crates, numCrates);
     float dDistCrate = t3d_vec3_distance(&player[0]->hitbox.center, &crates[dCrate]->hitbox.shape.aabb.min);
     bool dHitCrate = check_sphere_box_collision(player[0]->hitbox, crates[dCrate]->hitbox.shape.aabb);
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "Ball %d", dHitBall);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX+5, posY, "Dist %.2f", dDistBall);posY+=20;
-
     rdpq_text_printf(&textParams, nextFont, posX, posY, "Box %d", dHitCrate);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX+5, posY, "Dist %.2f", dDistCrate);posY+=20;
+    rdpq_text_printf(&textParams, nextFont, posX+5, posY, "Dist %.2f", dDistCrate);posY+=15;
 
-    /*
-    rdpq_text_printf(NULL, nextFont, posX, posY, "Mat Count %u", matCount);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX+5, posY, "Mats %u", matCount);posY+=10;
     if(matCount >= 8 && timeMS == 0){
       uint64_t nowMS = get_ticks_ms();
       timeMS = nowMS;
     }
-    rdpq_text_printf(NULL, nextFont, posX, posY, "Stack FULL at %llu", timeMS);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "%llu ms", timeMS);posY+=10;
+    /*
     print_stack_memory_uint32(???, 8 * sizeof(T3DMat4FP));
     */
   }

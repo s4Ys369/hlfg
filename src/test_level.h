@@ -5,6 +5,7 @@
 #include <t3d/t3d.h>
 #include <t3d/t3dmodel.h>
 #include "../include/enums.h"
+#include "../include/globals.h"
 #include "../include/types.h"
 #include "debug.h"
 #include "collision.h"

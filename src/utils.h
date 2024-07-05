@@ -4,6 +4,8 @@
 #include <float.h>
 #include <libdragon.h>
 #include "../include/config.h"
+#include "../include/enums.h"
+#include "../include/globals.h"
 #include "../include/types.h"
 
 extern float deltaTime;

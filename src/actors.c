@@ -6,7 +6,8 @@
 #include <t3d/t3danim.h>
 #include <t3d/t3dmodel.h>
 #include <t3d/t3dskeleton.h>
-#include "../include/config.h"
+#include "../include/globals.h"
+#include "../include/enums.h"
 #include "../include/types.h"
 #include "actors.h"
 #include "collision.h"

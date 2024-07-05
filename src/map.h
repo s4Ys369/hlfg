@@ -5,11 +5,15 @@
 #include <t3d/t3d.h>
 #include <t3d/t3dmodel.h>
 #include "../include/enums.h"
+#include "../include/globals.h"
 #include "../include/types.h"
 #include "collision.h"
 #include "debug.h"
 #include "utils.h"
 #include "test_level.h"
+
+extern T3DMat4FP* levelsMatFP;
+extern int numLevels;
 
 extern T3DMat4FP* mapMatFP;
 extern T3DModel *modelMap;

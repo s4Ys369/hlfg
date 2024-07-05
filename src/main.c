@@ -132,6 +132,7 @@ int main()
       t3d_skeleton_blend(&playerSkel[i], &playerSkel[i], &playerSkelBlend[i], player[i]->animBlend);
     }
       
+    t3d_mat4fp_from_srt_euler(testLevelMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
     if(syncPoint)rspq_syncpoint_wait(syncPoint); // wait for the RSP to process the previous frame
 
@@ -185,40 +186,43 @@ int main()
       t3d_viewport_attach(vp);
       t3d_light_set_directional(0, colorDir, &lightDirVec);
       
-      // Run map block
-      rspq_block_run(dplTestLevel);
-      //rspq_block_run(dplMap);
-      //rspq_block_run(dplMesh);
-      //rspq_block_run(dplMesh2);
-      //rspq_block_run(dplTri);
+      // Run levels block
+      for (int l = 0; l < numLevels; ++l) {
+        //t3d_segment_set(SEGMENT_LEVELS, &testLevelMatFP);
+        rspq_block_run(dplTestLevel);
+      }
       
       // then actors
-      for (int i = 0; i < numCrates; ++i) {
-        rspq_block_run(dplCrate[i]);
+      for (int c = 0; c < numCrates; ++c) {
+        rspq_block_run(dplCrate[c]);
       }
 
-      for (int i = 0; i < numBalls; ++i) {
-        rspq_block_run(dplBall[i]);
+      for (int b = 0; b < numBalls; ++b) {
+        rspq_block_run(dplBall[b]);
       }
 
       // then the player blocks
-      for (int i = 0; i < numPlayers; ++i) {
-        rspq_block_run(dplPlayer[i]);
+      for (int p = 0; p < numPlayers; ++p) {
+        rspq_block_run(dplPlayer[p]);
 
         // Lose shadows after 2 players for performance
         if(numPlayers <= 2){
-          rspq_block_run(dplShadow[i]);
+          rspq_block_run(dplShadow[p]);
         }
       }
 
       // then the player's extra blocks
-      for (int i = 0; i < numPlayers; ++i) {
-        if(player[i]->projectile.isActive == true) {
-          rspq_block_run(dplProjectile[i]);
+      for (int d = 0; d < numPlayers; ++d) {
+        if(player[d]->projectile.isActive == true) {
+          rspq_block_run(dplProjectile[d]);
         }
         if(col_debug){
-          rspq_block_run(dplPlayerHitBox[i]);
-          rspq_block_run(dplProjectileHitBox[i]);
+          rspq_block_run(dplMap);
+          rspq_block_run(dplPlayerHitBox[d]);
+          rspq_block_run(dplProjectileHitBox[d]);
+          //rspq_block_run(dplMesh);
+          //rspq_block_run(dplMesh2);
+          //rspq_block_run(dplTri);
         }
       }
 

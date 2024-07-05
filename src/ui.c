@@ -206,7 +206,7 @@ void ui_update(void){
 
     if(isPaused){
         rdpq_load_tile(TILE5,0,0,32,32);
-        rdpq_set_prim_color(T_WHITE);
+        rdpq_set_prim_color(T_BLACK);
         rdp_draw_textured_rectangle_scaled(TILE5, 85, 20, 235, 200, 1,1, MIRROR_DISABLED);
 
         if(btn[0].d_left){

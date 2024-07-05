@@ -2,12 +2,16 @@
 #include <t3d/t3d.h>
 #include <t3d/t3dmodel.h>
 #include "../include/enums.h"
+#include "../include/globals.h"
 #include "../include/types.h"
 #include "collision.h"
 #include "debug.h"
 #include "map.h"
 #include "utils.h"
 #include "test_level.h"
+
+T3DMat4FP* levelsMatFP;
+int numLevels = 1;
 
 T3DMat4FP* mapMatFP;
 T3DModel *modelMap;
@@ -334,17 +338,20 @@ void mesh2_init(void){
 void map_init(void){
 
     // Allocate map's matrix and construct
+    //for (int l = 0; l < numLevels; ++l) {
+    //    levelsMatFP = malloc_uncached(sizeof(T3DMat4FP));
+    //}
     mapMatFP = malloc_uncached(sizeof(T3DMat4FP));
-    meshMatFP = malloc_uncached(sizeof(T3DMat4FP));
-    mesh2MatFP = malloc_uncached(sizeof(T3DMat4FP));
+    //meshMatFP = malloc_uncached(sizeof(T3DMat4FP));
+    //mesh2MatFP = malloc_uncached(sizeof(T3DMat4FP));
     t3d_mat4fp_from_srt_euler(mapMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
-    t3d_mat4fp_from_srt_euler(meshMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
-    t3d_mat4fp_from_srt_euler(mesh2MatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
+    //t3d_mat4fp_from_srt_euler(meshMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
+    //t3d_mat4fp_from_srt_euler(mesh2MatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
     // Load model
     modelMap = t3d_model_load("rom:/models/map.t3dm");
-    modelMesh = t3d_model_load("rom:/models/mesh.t3dm");
-    modelMesh2 = t3d_model_load("rom:/models/mesh2.t3dm");
+    //modelMesh = t3d_model_load("rom:/models/mesh.t3dm");
+    //modelMesh2 = t3d_model_load("rom:/models/mesh2.t3dm");
 
     // Create map's RSPQ block
     rspq_block_begin();
@@ -355,21 +362,21 @@ void map_init(void){
         t3d_matrix_pop(1);
     dplMap = rspq_block_end();
 
-    rspq_block_begin();
-        t3d_matrix_push(meshMatFP);
-        matCount++;
-        rdpq_set_prim_color(WHITE);
-        t3d_model_draw(modelMesh);
-        t3d_matrix_pop(1);
-    dplMesh = rspq_block_end();
-
-    rspq_block_begin();
-        t3d_matrix_push(mesh2MatFP);
-        matCount++;
-        rdpq_set_prim_color(WHITE);
-        t3d_model_draw(modelMesh2);
-        t3d_matrix_pop(1);
-    dplMesh2 = rspq_block_end();
+    //rspq_block_begin();
+    //    t3d_matrix_push(meshMatFP);
+    //    matCount++;
+    //    rdpq_set_prim_color(WHITE);
+    //    t3d_model_draw(modelMesh);
+    //    t3d_matrix_pop(1);
+    //dplMesh = rspq_block_end();
+    //
+    //rspq_block_begin();
+    //    t3d_matrix_push(mesh2MatFP);
+    //    matCount++;
+    //    rdpq_set_prim_color(WHITE);
+    //    t3d_model_draw(modelMesh2);
+    //    t3d_matrix_pop(1);
+    //dplMesh2 = rspq_block_end();
 
     // Set collisions
     FloorBox = (AABB){{{-525.0f, -256.0f, -525.0f}},{{525.0f, -99.0f, 525.0f}}}; // Death Plane and OOB
