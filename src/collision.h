@@ -12,6 +12,13 @@
 
 extern T3DVec3 center;
 extern T3DVec3 norm;
+extern T3DVec3 up;
+extern T3DVec3 down;
+extern T3DVec3 left;
+extern T3DVec3 right;
+extern T3DVec3 farther;
+extern T3DVec3 nearer;
+
 extern float intersectionY;
 
 // AABB

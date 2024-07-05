@@ -112,11 +112,34 @@ void draw_debug_ui(void){
     col_debug = 0;
   }
 
-  rdpq_text_printf(&textParams, nextFont, 12, 200, "FPS %.1f", display_get_fps());
+  float fps = display_get_fps();
+  uint8_t fpsCheck = STYLE_DEBUG;
+  if (fps >= 40){
+    fpsCheck = STYLE_DB_PASS;
+  } else if (fps >= 25) {
+    fpsCheck = STYLE_DEBUG;
+  } else {
+    fpsCheck = STYLE_DB_FAIL;
+  }
+
+  rdpq_load_tile(TILE5,0,0,32,32);
+  rdpq_set_prim_color(T_BLACK);
+  rdp_draw_textured_rectangle_scaled(TILE5, 10, 191, 56, 205, 1,1, MIRROR_XY);
+  // not sure why RDP & RDPQ don't like the tiles
+  //rdpq_texture_rectangle_raw(TILE5, 12, 203, 55, 211, 0,0,1,1); // pos[n] * 13.33333 for columns and rows
+  rdpq_text_printf(&textParams, nextFont, 12, 191, "FPS");
+  rdpq_text_printf(&(rdpq_textparms_t){
+    .width = 22,
+    .height = 20,
+    .align = ALIGN_RIGHT,
+    .disable_aa_fix = true,
+    .style_id = fpsCheck,
+  }, nextFont, 32, 191, "%.1f", display_get_fps());
   
   if (text_debug){
-
     posY = 12;
+    rdpq_set_prim_color(T_BLACK);
+    rdp_draw_textured_rectangle_scaled(TILE5, 10, 10, 80, 180, 1,1, MIRROR_XY);
     // Player
     rdpq_text_printf(&textParams, nextFont, posX, posY, "X %.2f", player[0]->pos.v[0]);posY+=10;
     rdpq_text_printf(&textParams, nextFont, posX, posY, "Y %.2f", player[0]->pos.v[1]);posY+=10;
@@ -126,23 +149,24 @@ void draw_debug_ui(void){
 
     // Surfaces
     Surface dWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);
-    float dWf = distance_to_surface(player[0]->hitbox.center,dWall);
-    float dWc = t3d_vec3_distance(&player[0]->hitbox.center, &dWall.center);
     Surface dFloor = find_closest_surface(player[0]->hitbox.center, testLevelFloor, testLevelFloorCount);
-    float dFf = distance_to_surface(player[0]->hitbox.center,dFloor);
-    float dFc = t3d_vec3_distance(&player[0]->hitbox.center, &dFloor.center);
     Surface dSlope = find_closest_surface(player[0]->hitbox.center, testLevelSlope, testLevelSlopeCount);
-    float dSf = distance_to_surface(player[0]->hitbox.center,dSlope);
-    float dSc = t3d_vec3_distance(&player[0]->hitbox.center, &dSlope.center);
     rdpq_text_printf(&textParams, nextFont, posX, posY, "Wall %d", check_sphere_surface_collision(player[0]->hitbox, dWall));posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "D %.2f", dWf);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "DC %.2f", dWc);posY+=10;
     rdpq_text_printf(&textParams, nextFont, posX, posY, "Floor %d", check_sphere_surface_collision(player[0]->hitbox, dFloor));posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "D %.2f", dFf);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "DC %.2f", dFc);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "Slope %d", check_sphere_surface_collision(player[0]->hitbox, dSlope));posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "D %.2f", dSf);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "DC %.2f", dSc);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "Slope %d", check_sphere_surface_collision(player[0]->hitbox, dSlope));posY+=20;
+
+    // Actors
+    int dBall = find_closest(player[0]->hitbox.center, balls, numBalls);
+    float dDistBall = t3d_vec3_distance(&player[0]->hitbox.center, &balls[dBall]->hitbox.shape.sphere.center);
+    bool dHitBall = check_sphere_collision(player[0]->hitbox, balls[dBall]->hitbox.shape.sphere);
+    int dCrate = find_closest(player[0]->hitbox.center, crates, numCrates);
+    float dDistCrate = t3d_vec3_distance(&player[0]->hitbox.center, &crates[dCrate]->hitbox.shape.aabb.min);
+    bool dHitCrate = check_sphere_box_collision(player[0]->hitbox, crates[dCrate]->hitbox.shape.aabb);
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "Ball %d", dHitBall);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX+5, posY, "Dist %.2f", dDistBall);posY+=20;
+
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "Box %d", dHitCrate);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX+5, posY, "Dist %.2f", dDistCrate);posY+=20;
 
     /*
     rdpq_text_printf(NULL, nextFont, posX, posY, "Mat Count %u", matCount);posY+=10;

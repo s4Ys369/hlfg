@@ -19,8 +19,4 @@
 #define MAX_CRATES 5
 #define MAX_BALLS 10
 
-// Player controller tweaks
-#define JUMP_MODIFIER 13
-#define SPEED_MODIFIER 1.2
-
 #endif // CONFIG_H

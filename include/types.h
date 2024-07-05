@@ -93,16 +93,9 @@ typedef struct {
     Sphere hitbox;
     ProjectileParams projectile;
     CameraParams cam;
-    float yaw;
     float currSpeed;
     float animBlend;
-    bool isIdle;
-    bool isAttack;
-    bool isJumpStart;
-    bool isJumping;
     bool isGrounded;
-    bool isFalling;
-    bool isWalking;
     float jumpForce;
     int score;
 } PlayerParams;

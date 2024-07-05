@@ -13,6 +13,8 @@
 
 extern bool isPaused;
 extern int nextFont;
+extern sprite_t *BG0;
+extern sprite_t *BG1;
 
 void ui_init(void);
 void print_controls(int fontIdx);

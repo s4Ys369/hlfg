@@ -9,7 +9,13 @@
 #include "utils.h"
 
 T3DVec3 center = {{0,0,0}};
-T3DVec3 norm = {{0,0,1}};
+T3DVec3 norm = {{0,1,0}};
+T3DVec3 up = {{0,1,0}};
+T3DVec3 down = {{0,-1,0}};
+T3DVec3 left = {{-1,0,0}};
+T3DVec3 right = {{1,0,0}};
+T3DVec3 farther = {{0,0,-1}};
+T3DVec3 nearer = {{0,0,1}};
 
 // Check AABB to AABB
 bool check_box_collision(AABB a, AABB b) {
@@ -692,15 +698,12 @@ void resolve_sphere_surface_collision(Sphere *sphere, T3DVec3 *position, T3DVec3
         position->v[2] = sphere->center.v[2];
     }
     if(surf->type == SURFACE_FLOOR) {
-        AABB Floor = (AABB){{{surf->posA.v[0],surf->posA.v[1],surf->posA.v[2]}},
-                            {{surf->posC.v[0],surf->posC.v[1],surf->posC.v[2]}}};
         t3d_vec3_scale(&move_direction, &N, penetration_depth);
         sphere->center.v[0] = sphere->center.v[0] + move_direction.v[0];
         sphere->center.v[2] = sphere->center.v[2] + move_direction.v[2];
         position->v[0] = sphere->center.v[0];
         position->v[2] = sphere->center.v[2];
         //t3d_vec3_add(&sphere->center, &sphere->center, &move_direction);
-        resolve_box_collision_offset(Floor, &sphere->center, sphere->radius);
         sphere->center.v[1] = collision_point.v[1];
  
     }
@@ -712,6 +715,7 @@ bool ray_intersects_surface(T3DVec3 rayOrigin, T3DVec3 rayDir, Surface surface, 
     T3DVec3 vertex0 = surface.posA;
     T3DVec3 vertex1 = surface.posB;
     T3DVec3 vertex2 = surface.posC;
+
     T3DVec3 edge1;
     t3d_vec3_diff(&edge1, &vertex1, &vertex0);
     T3DVec3 edge2;
@@ -751,7 +755,6 @@ bool ray_intersects_surface(T3DVec3 rayOrigin, T3DVec3 rayDir, Surface surface, 
 // Function to cast a ray and find the closest intersection point with the surfaces downwards
 Surface closest_surface_below_raycast(T3DVec3 startPos, Surface* surfaces, int surfaceCount) {
   Surface closestSurface;
-  T3DVec3 down = {{0,-1,0}};
   float closestDist = FLT_MAX;
 
   for (int i = 0; i < surfaceCount; i++) {

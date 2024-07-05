@@ -10,6 +10,7 @@ extern float deltaTime;
 extern float jumpTime;
 extern float fixedTime;
 extern float jumpFixedTime;
+extern float fallFixedTime;
 
 extern color_t RED;
 extern color_t ORANGE;
@@ -22,6 +23,18 @@ extern color_t BLACK;
 extern color_t WHITE;
 extern color_t GREY;
 extern color_t TRANSPARENT;
+extern color_t T_RED;
+extern color_t T_ORANGE;
+extern color_t T_YELLOW;
+extern color_t T_GREEN;
+extern color_t T_BLUE;
+extern color_t T_INDIGO ;
+extern color_t T_VIOLET;
+extern color_t T_BLACK;
+extern color_t T_WHITE;
+extern color_t T_GREY;
+extern color_t DARK_RED;
+extern color_t DARK_GREEN;
 
 extern uint32_t myrand(void);
 #define RANDN(n) ({ \

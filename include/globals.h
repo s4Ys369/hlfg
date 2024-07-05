@@ -10,6 +10,6 @@
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 
-#define GRAVITY -80
+#define GRAVITY -100
 
 #endif // GLOBALS_H

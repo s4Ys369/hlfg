@@ -6,8 +6,9 @@
 
 float deltaTime;
 float jumpTime;
-float fixedTime = 0.017f;
-float jumpFixedTime = 0.058f;
+float fixedTime = 0.02f;
+float jumpFixedTime = 0.08f;
+float fallFixedTime = 0.12f;
 
 color_t RED = (color_t){209, 0, 0, 255};
 color_t ORANGE = (color_t){255, 102, 34, 255};
@@ -19,7 +20,21 @@ color_t VIOLET = (color_t){51, 0, 68, 255};
 color_t BLACK = (color_t){0,0,0,255};
 color_t WHITE = (color_t){255, 255, 255, 255};
 color_t GREY = (color_t){192, 192, 192, 255};
+
 color_t TRANSPARENT = (color_t){0, 0, 0, 127};
+color_t T_RED = (color_t){209, 0, 0, 200};
+color_t T_ORANGE = (color_t){255, 102, 34, 200};
+color_t T_YELLOW = (color_t){255, 218, 33, 200};
+color_t T_GREEN = (color_t){51, 221, 0, 200};
+color_t T_BLUE = (color_t){17, 51, 204, 200};
+color_t T_INDIGO = (color_t){34, 0, 102, 200};
+color_t T_VIOLET = (color_t){51, 0, 68, 200};
+color_t T_BLACK = (color_t){0,0,0,200};
+color_t T_WHITE = (color_t){255, 255, 255, 200};
+color_t T_GREY = (color_t){192, 192, 192, 200};
+
+color_t DARK_RED = (color_t){130, 0, 0, 25};
+color_t DARK_GREEN = (color_t){0, 100, 0, 255};
 
 // Fair and fast random generation (using xorshift32, with explicit seed)
 static uint32_t rand_state = SEED;

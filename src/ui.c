@@ -12,10 +12,24 @@
 float textX;
 float textY;
 rdpq_font_t *font[MAX_NUM_FONTS];
+sprite_t *BG0;
+sprite_t *BG1;
 bool isPaused;
 int nextFont = FONT_8BIT_3;
 
 void ui_init (void){
+    rdpq_sync_load();
+    BG0 = sprite_load("rom:/BG0.rgba32.sprite");
+    rdpq_sync_tile();
+    rdpq_set_mode_standard();
+    rdpq_sprite_upload(TILE5, BG0, &(rdpq_texparms_t)
+        {   .s.mirror = MIRROR_REPEAT,
+            .s.repeats = REPEAT_INFINITE,
+            .t.mirror = MIRROR_REPEAT,
+            .t.repeats = REPEAT_INFINITE,
+        }
+    );
+    
 
     font[1] =  rdpq_font_load("rom:/fonts/abaddon.font64");
     font[2] =  rdpq_font_load("rom:/fonts/8bit0.font64");
@@ -55,19 +69,31 @@ void ui_init (void){
     for (int i = 1; i < MAX_NUM_FONTS; i++) {
         rdpq_font_style(font[i], STYLE_0, &(rdpq_fontstyle_t){
             .color = WHITE,
+            .outline_color = T_WHITE,
         });
         rdpq_font_style(font[i], STYLE_1, &(rdpq_fontstyle_t){
             .color = GREEN,
+            .outline_color = T_GREEN,
         });
         rdpq_font_style(font[i], STYLE_2, &(rdpq_fontstyle_t){
             .color = RED,
+            .outline_color = T_RED,
         });
         rdpq_font_style(font[i], STYLE_3, &(rdpq_fontstyle_t){
             .color = BLACK,
+            .outline_color = T_GREY,
         });
         rdpq_font_style(font[i], STYLE_DEBUG, &(rdpq_fontstyle_t){
-            .color = BLACK,
-            .outline_color = WHITE,
+            .color = WHITE,
+            .outline_color = GREY,
+        });
+        rdpq_font_style(font[i], STYLE_DB_PASS, &(rdpq_fontstyle_t){
+            .color = GREEN,
+            .outline_color = DARK_GREEN,
+        });
+        rdpq_font_style(font[i], STYLE_DB_FAIL, &(rdpq_fontstyle_t){
+            .color = RED,
+            .outline_color = DARK_RED,
         });
     }
     rdpq_text_register_font(FONT_abaddon,       font[1]);
@@ -111,32 +137,42 @@ void ui_init (void){
 void print_score(int fontIdx){
     textX = 12;
     textY = 220;
-    rdpq_textparms_t scoreTextParams = {.disable_aa_fix = true, .style_id = STYLE_3,};
+
+    rdpq_textparms_t scoreTextParams = {
+        .disable_aa_fix = true, 
+        .style_id = STYLE_DEBUG,
+    };
+
+    rdpq_load_tile(TILE5,0,0,32,32);
+    rdpq_set_prim_color(T_GREY);
 
     if(numPlayers > 1) {
         if(numPlayers == 2) {
-          rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
-          rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[1]->score);
+            rdp_draw_textured_rectangle_scaled(TILE5, textX, (textY-10)/2, textX+50, (textY)/2, 1,1, MIRROR_XY);
+            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
+            rdp_draw_textured_rectangle_scaled(TILE5, textX, textY-10, textX+50, textY, 1,1, MIRROR_XY);
+            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[1]->score);
         }
         if(numPlayers == 3) {
-          rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
-          rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[1]->score);
-          rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4,  textY, "SCORE %d", player[2]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[1]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4,  textY, "SCORE %d", player[2]->score);
         }
         if(numPlayers == 4) {
-          rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
-          rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4,  textY/2, "SCORE %d", player[1]->score);
-          rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[2]->score);
-          rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4, textY, "SCORE %d", player[3]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4,  textY/2, "SCORE %d", player[1]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[2]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4, textY, "SCORE %d", player[3]->score);
         }
     } else {
+        rdp_draw_textured_rectangle_scaled(TILE5, textX-2, textY-10, textX+50, textY, 1,1, MIRROR_XY);
         rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[0]->score);
     }   
 }
 
 void print_controls(int fontIdx){
     textX  = 100;
-    textY = 40;
+    textY = 35;
     rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_1,}, fontIdx, textX+4, textY, "IBE: Itty Bitty Engine");textY+=10;
     rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_1,}, fontIdx, textX, textY, "Game Engine for Tiny3D");textY+=10;
     rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_1,}, fontIdx, textX+45, textY, "v%.1f.%u", VERSION, VERSION_SUFFIX);textY+=10;
@@ -153,7 +189,7 @@ void print_controls(int fontIdx){
     rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "Z : Recenter Cam");textY+=10;
     rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "Hold R : Debug");textY+=10;
     rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "Hold L : HitBoxes");textY+=20;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX-40, textY, "Change font with D Pad Left and Right");textY+=10;
+    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "Change font with D Pad");textY+=10;
 }
 
 void ui_update(void){
@@ -169,8 +205,10 @@ void ui_update(void){
     
 
     if(isPaused){
-        rdpq_set_mode_fill(BLACK);
-        rdpq_fill_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        rdpq_load_tile(TILE5,0,0,32,32);
+        rdpq_set_prim_color(T_WHITE);
+        rdp_draw_textured_rectangle_scaled(TILE5, 85, 20, 235, 200, 1,1, MIRROR_DISABLED);
+
         if(btn[0].d_left){
             if(nextFont > FONT_RESERVED + 1){
                 nextFont--;

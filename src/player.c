@@ -186,21 +186,14 @@ void player_init(void){
 
     player[i]->animBlend = 0.0f;
 
-    player[i]->isIdle = false;
-    player[i]->isAttack = false;
-    player[i]->isJumpStart = false;
-    player[i]->isJumping = false;
     player[i]->isGrounded = false;
-    player[i]->isFalling = false;
-    player[i]->isWalking = false;
 
-    player[i]->vel.v[0] = 0.0f;
-    player[i]->vel.v[1] = 0.0f;
-    player[i]->vel.v[2] = 0.0f;
+    player[i]->vel = (T3DVec3){{0,0,0}};
+
     if(numPlayers > 2){
-      player[i]->jumpForce = 12.0f * JUMP_MODIFIER;
+      player[i]->jumpForce = player[i]->pos.v[1] + 450.0f;
     } else {
-      player[i]->jumpForce = 10.0f * JUMP_MODIFIER;
+      player[i]->jumpForce = player[i]->pos.v[1] + 400.0f;
     }
 
     player[i]->score = 0;
@@ -324,13 +317,13 @@ void check_attack_collisions(Actor **actor, int actorCount, int playerCount) {
 
 // Example interaction: bounce player, not working in multiplayer??
 void player_bounced(PlayerParams *player[], int playerCount) {
-  float bounceMultiplier = 1.5f;
+  float bounceMultiplier = 1.8f;
 
   playerState[playerCount] = PLAYER_JUMP_START;
 
-  player[playerCount]->vel.v[1] += (player[playerCount]->jumpForce * bounceMultiplier) + GRAVITY * fixedTime;
+  player[playerCount]->vel.v[1] += (player[playerCount]->jumpForce * bounceMultiplier) + GRAVITY * jumpFixedTime;
 
-  player[playerCount]->pos.v[1] += player[playerCount]->vel.v[1] * fixedTime;
+  player[playerCount]->pos.v[1] += player[playerCount]->vel.v[1] * jumpFixedTime;
 
   player[playerCount]->hitbox.center.v[1] = player[playerCount]->pos.v[1];
 
@@ -437,7 +430,7 @@ void player_to_floor(Surface currFloor, int playerCount){
     if(player[playerCount]->isGrounded == true && player[playerCount]->pos.v[1] <= currFloor.center.v[1]){
       player[playerCount]->pos.v[1] = currFloor.center.v[1];
     }
-    playerState[playerCount] = PLAYER_SLIDE;
+    playerState[playerCount] = PLAYER_LAND;
     lastFloor = currFloor;
     lastSurface = lastFloor;
     airAttackCount = 0;
@@ -447,8 +440,9 @@ void player_to_floor(Surface currFloor, int playerCount){
 void player_surface_collider(int playerCount){
 
   // Find all closest surface types
-  Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, testLevelWall,testLevelWallCount);
+  Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, testLevelWall, testLevelWallCount);
   Surface currFloor = find_closest_surface(player[playerCount]->hitbox.center, testLevelFloor, testLevelFloorCount);
+  Surface nextFloor = closest_surface_below_raycast(player[playerCount]->hitbox.center, testLevelFloor, testLevelFloorCount);
   Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, testLevelSlope, testLevelSlopeCount);
 
   // Check collisions for all
@@ -456,102 +450,173 @@ void player_surface_collider(int playerCount){
   bool hitFloor = false;
   bool hitWall = false;
   if (check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)){hitSlope = true;}
-  if (check_sphere_surface_collision(player[playerCount]->hitbox, currFloor)){hitFloor = true;}
+  if(player[playerCount]->isGrounded){
+    if (check_sphere_surface_collision(player[playerCount]->hitbox, currFloor)){hitFloor = true;}
+  } else {
+    if (ray_intersects_surface(player[playerCount]->hitbox.center, down, currFloor, &intersectionY)){hitFloor = true;}
+  }
   if (check_sphere_surface_collision(player[playerCount]->hitbox, currWall)){hitWall = true;}
 
   // Get distances
   float dist_player_to_slope = distance_to_surface(player[playerCount]->hitbox.center, currSlope);
   float dist_player_to_floor = distance_to_surface(player[playerCount]->hitbox.center, currFloor);
+  float dist_player_to_lowest = fabsf(player[playerCount]->pos.v[1] - intersectionY);
   float dist_player_to_wall = distance_to_surface(player[playerCount]->hitbox.center, currWall);
   float dist_slope_to_floor = t3d_vec3_distance(&currSlope.center, &currFloor.center);
   float dist_slope_to_wall = t3d_vec3_distance(&currSlope.center, &currWall.center);
   float dist_wall_to_floor = t3d_vec3_distance(&currWall.center, &currFloor.center);
 
   // Determine the which collisions and in which order to handle
-  if(hitSlope){
-    if(hitFloor){
-      if(dist_slope_to_floor >= player[playerCount]->hitbox.radius){
-        if(dist_player_to_slope <= dist_player_to_floor){
-          player_to_slope(currSlope, playerCount);
-        } else {
-          player_to_floor(currFloor, playerCount);
-        }
-      } else {
-        if(dist_player_to_slope <= dist_player_to_floor){
-          player_to_floor(currFloor, playerCount);
-        } else {
-          player_to_slope(currSlope, playerCount);
-        }
-      }
-    } else if(hitWall){
-      if(dist_slope_to_wall >= player[playerCount]->hitbox.radius){
-        if(dist_player_to_slope <= dist_player_to_wall){
-          player_to_slope(currSlope, playerCount);
-        } else {
-          player_to_wall(currWall, playerCount);
-        }
-      } else {
-        if(dist_player_to_slope <= dist_player_to_wall){
-          player_to_wall(currWall, playerCount);
-        } else {
-          player_to_slope(currSlope, playerCount);
-        }
-      }
-    } else {
-      player_to_slope(currSlope, playerCount);
-    }
-  }
-
-
-  if (hitWall) {
-    if (hitFloor) {
-        // Handle grounded case
-        if (player[playerCount]->isGrounded) {
-            if (dist_wall_to_floor <= player[playerCount]->hitbox.radius) {
-                // Check which distance is greater to decide the collision handling
-                if (dist_player_to_wall > dist_player_to_floor) {
-                    player_to_floor(currFloor, playerCount);
-                } else {
-                    player_to_wall(currWall, playerCount);
-                }
-                // Adjust vertical position
-                player[playerCount]->pos.v[1] = currFloor.center.v[1] + player[playerCount]->hitbox.radius * 1.5;
-            } else {
-                player_to_wall(currWall, playerCount);
-            }
-        } else { // Handle non-grounded case
-            if (player[playerCount]->pos.v[1] > currFloor.center.v[1]) {
-                if(dist_player_to_floor < player[playerCount]->hitbox.radius){
-                  player_to_floor(currFloor, playerCount);
-                  player[playerCount]->pos.v[1] = currFloor.center.v[1] + player[playerCount]->hitbox.radius * 1.5;
-                }
-            } else {
-              if(dist_player_to_wall < player[playerCount]->hitbox.radius){
-                player_to_wall(currWall, playerCount);
-              }
-            }
-        }
-    } else {
-        if (dist_player_to_wall <= player[playerCount]->hitbox.radius) {
-            player_to_wall(currWall, playerCount);
-        }
-    }
-  }
-
-  if(hitFloor){
+  if(player[playerCount]->isGrounded){
     if(hitSlope){
-      if(hitWall){
-        player_to_wall(currWall, playerCount);
-        player_to_floor(currFloor, playerCount);
+      if(hitFloor){
+        if(dist_slope_to_floor >= player[playerCount]->hitbox.radius){
+          if(dist_player_to_slope <= dist_player_to_floor){
+            player_to_slope(currSlope, playerCount);
+          } else {
+            player_to_floor(currFloor, playerCount);
+          }
+        } else {
+          if(dist_player_to_slope <= dist_player_to_floor){
+            player_to_floor(currFloor, playerCount);
+          } else {
+            player_to_slope(currSlope, playerCount);
+          }
+        }
+      } else if(hitWall){
+        if(dist_slope_to_wall >= player[playerCount]->hitbox.radius){
+          if(dist_player_to_slope <= dist_player_to_wall){
+            player_to_slope(currSlope, playerCount);
+          } else {
+            player_to_wall(currWall, playerCount);
+          }
+        } else {
+          if(dist_player_to_slope <= dist_player_to_wall){
+            player_to_wall(currWall, playerCount);
+          } else {
+            player_to_slope(currSlope, playerCount);
+          }
+        }
       } else {
-        if(dist_player_to_slope <= dist_player_to_floor){
-          player_to_slope(currSlope, playerCount);
+        player_to_slope(currSlope, playerCount);
+      }
+    }
+
+
+    if (hitWall) {
+      if (hitFloor) {
+        if (dist_wall_to_floor <= player[playerCount]->hitbox.radius) {
+          // Check which distance is greater to decide the collision handling
+          if (dist_player_to_wall > dist_player_to_floor) {
+            player_to_floor(currFloor, playerCount);
+          } else {
+            player_to_wall(currWall, playerCount);
+          }
+          // Adjust vertical position
+          player[playerCount]->pos.v[1] = currFloor.center.v[1] + player[playerCount]->hitbox.radius * 1.5;
+          } else {
+            player_to_wall(currWall, playerCount);
+          }
+      } else {
+          if (dist_player_to_wall <= player[playerCount]->hitbox.radius) {
+            player_to_wall(currWall, playerCount);
+          }
+      }
+    }
+
+    if(hitFloor){
+      if(hitSlope){
+        if(hitWall){
+          player_to_wall(currWall, playerCount);
+          player_to_floor(currFloor, playerCount);
+        } else {
+          if(dist_player_to_slope <= dist_player_to_floor){
+            player_to_slope(currSlope, playerCount);
+          } else {
+            player_to_floor(currFloor, playerCount);
+          }
+        }
+      } else {
+        player_to_floor(currFloor, playerCount);
+      }
+    }
+  } else {
+    // Check if there's a floor below and if it is close enough to collide with
+    if(player[playerCount]->hitbox.center.v[1] < currFloor.center.v[1]){
+      hitFloor = true;
+    }
+    if(player[playerCount]->hitbox.center.v[1] < nextFloor.center.v[1]){
+      hitFloor = true;
+    }
+    if(player[playerCount]->hitbox.center.v[1] < 0){ // 0 should be lowest floor
+      hitFloor = true;
+    }
+
+    if(hitSlope){
+      if (dist_player_to_slope < player[playerCount]->hitbox.radius*2){
+        player_to_slope(currSlope, playerCount);
+      }
+    }
+
+    //if(hitWall){
+    //  if(dist_player_to_wall < player[playerCount]->hitbox.radius*0.5f){
+    //    player_to_wall(currWall, playerCount);
+    //  }
+    //}
+
+    if(hitFloor){
+      if(dist_player_to_lowest < player[playerCount]->hitbox.radius + player[playerCount]->currSpeed){
+        player_to_floor(nextFloor, playerCount);
+      }
+      // ... otherwise
+      if(hitSlope){
+        if(hitWall){
+          // ... if hitting both, check distances
+          if(dist_player_to_slope > dist_player_to_wall){
+            // ... if wall is closer and close enough to collide with
+            if (dist_player_to_wall < player[playerCount]->hitbox.radius){
+              player_to_wall(currWall, playerCount);
+              player_to_floor(currFloor, playerCount);
+            }
+          } else {
+            // ... otherwise, slope
+            player_to_slope(currSlope, playerCount);
+            player_to_floor(currFloor, playerCount);
+          }
+          
+        } else {
+          if(dist_player_to_slope < dist_player_to_floor){
+            if (dist_player_to_slope < player[playerCount]->hitbox.radius*2){
+              player_to_slope(currSlope, playerCount);
+            } else {
+              player_to_floor(currFloor, playerCount);
+            }
+          } else {
+            if (dist_player_to_slope < player[playerCount]->hitbox.radius*2){
+              player_to_slope(currSlope, playerCount);
+            } else {
+              player_to_floor(currFloor, playerCount);
+            }
+          }
+        }
+      }
+
+      if(hitWall){
+        if(dist_player_to_wall < dist_player_to_floor){
+          if(dist_player_to_wall < 5.0f){
+            player_to_wall(currWall, playerCount);
+            player_to_floor(currFloor, playerCount);
+          }
         } else {
           player_to_floor(currFloor, playerCount);
         }
       }
-    } else {
-      player_to_floor(currFloor, playerCount);
+
+      if(dist_player_to_floor < dist_player_to_lowest){
+        if(player[playerCount]->hitbox.center.v[1] > currFloor.center.v[1] + player[playerCount]->hitbox.radius){
+          player_to_floor(currFloor, playerCount);
+        }
+      }
     }
   }
 
@@ -562,9 +627,9 @@ void player_update(void){
   for (int i = 0; i < numPlayers; ++i) {
 
     if(numPlayers > 2){
-      speedMultiplayer = SPEED_MODIFIER * SPEED_MODIFIER;
+      speedMultiplayer = 1.3f;
     } else {
-       speedMultiplayer = SPEED_MODIFIER;
+       speedMultiplayer = 1.1f;
     }
   
   // Transform input direction to camera's coordinate system
@@ -687,9 +752,12 @@ void player_update(void){
 
     if(!player[i]->isGrounded){
       if (player[i]->pos.v[1] > groundLevel) {
-        player[i]->vel.v[1] += GRAVITY * jumpFixedTime;
-        player[i]->pos.v[1] += player[i]->vel.v[1] * jumpFixedTime;
-        player[i]->hitbox.center.v[1] += player[i]->pos.v[1] * jumpFixedTime;
+        player[i]->vel.v[1] = t3d_lerp(player[i]->vel.v[1], GRAVITY, fallFixedTime);
+        player[i]->pos.v[1] = t3d_lerp(player[i]->pos.v[1],player[i]->vel.v[1], fallFixedTime);
+        player[i]->hitbox.center.v[1] = t3d_lerp(player[i]->hitbox.center.v[1],player[i]->pos.v[1], fallFixedTime);
+        //player[i]->vel.v[1] += GRAVITY * jumpFixedTime;
+        //player[i]->pos.v[1] += player[i]->vel.v[1] * jumpFixedTime;
+        //player[i]->hitbox.center.v[1] += player[i]->pos.v[1] * jumpFixedTime;
         player[i]->scale.v[1] -= 0.02f;
         if(player[i]->scale.v[1] < 0.3f){
           player[i]->scale.v[1] = 0.3f;
@@ -700,9 +768,9 @@ void player_update(void){
         player[i]->vel.v[1] = 0.0f;
         player[i]->scale.v[1] = 1.0f;
         if(numPlayers > 2){
-          player[i]->jumpForce = 14.0f * JUMP_MODIFIER;
+          player[i]->jumpForce = player[i]->pos.v[1] + 450.0f;
         } else {
-          player[i]->jumpForce = 10.0f * JUMP_MODIFIER;
+          player[i]->jumpForce = player[i]->pos.v[1] + 400.0f;
         }
       }
     }
@@ -711,6 +779,9 @@ void player_update(void){
   // do land
   if(playerState[i] == PLAYER_LAND){
     player[i]->scale.v[1] = 1.0f;
+    if(player[i]->currSpeed > 0.5f){
+      player[i]->currSpeed = 0.5f;
+    }
     playerState[i] = PLAYER_IDLE;
   }
 
@@ -843,7 +914,7 @@ void player_update(void){
 
   if(playerState[i] == PLAYER_JUMP){
 
-    t3d_anim_update(&animJump[i], deltaTime);
+    t3d_anim_update(&animJump[i], jumpTime);
     player[i]->scale.v[1] += 0.02f;
     if(player[i]->scale.v[1] > 1.4f){
       player[i]->scale.v[1] = 1.4f;
@@ -855,10 +926,12 @@ void player_update(void){
     }
 
     // Apply gravity
-    player[i]->vel.v[1] += GRAVITY * jumpFixedTime;
+    player[i]->vel.v[1] = t3d_lerp(player[i]->vel.v[1], GRAVITY, jumpFixedTime);
+    //player[i]->vel.v[1] += GRAVITY * jumpFixedTime;
 
     // Update player position
-    player[i]->pos.v[1] += player[i]->vel.v[1] * jumpFixedTime;
+    player[i]->pos.v[1] = t3d_lerp(player[i]->pos.v[1],player[i]->vel.v[1], jumpFixedTime);
+    //player[i]->pos.v[1] += player[i]->vel.v[1] * jumpFixedTime;
 
     // Update player bounding box
     player[i]->hitbox.center.v[0] = player[i]->pos.v[0];
@@ -936,19 +1009,19 @@ void player_update(void){
 
   // Handle surface rotations
   float pitch = 0;
-  float roll = 0;
+  //float roll = 0;
   if(lastSurface.type == SURFACE_FLOOR){
     pitch = 0;
-    roll = 0;
+    //roll = 0;
   } else {
     T3DVec3 lastSurfaceNormal = lastSurface.normal;
     t3d_vec3_norm(&lastSurfaceNormal);
     pitch = atan2f(lastSurfaceNormal.v[2], lastSurfaceNormal.v[1]);
     pitch = pitch * 180.0f / T3D_PI;
     pitch = clamp(pitch, 0.6f, -0.6f);
-    roll = atan2f(lastSurfaceNormal.v[1], lastSurfaceNormal.v[0]);
-    roll = roll * 180.0f / T3D_PI;
-    roll = clamp(roll, 0.3f, -0.3f);
+    //roll = atan2f(lastSurfaceNormal.v[1], lastSurfaceNormal.v[0]);
+    //roll = roll * 180.0f / T3D_PI;
+    //roll = clamp(roll, 0.3f, -0.3f);
   }
   
   if(!player[i]->isGrounded){
@@ -963,13 +1036,11 @@ void player_update(void){
   player[i]->shadowPos.v[0] = player[i]->pos.v[0];
   player[i]->shadowPos.v[2] = player[i]->pos.v[2];
 
-  Surface rayFloor = closest_surface_below_raycast(player[i]->pos, testLevelFloor, testLevelFloorCount);
-  Surface nextFloor = find_closest_surface(player[i]->pos, testLevelFloor, testLevelFloorCount);
-  //Surface raySlope = closest_surface_below_raycast(player[i]->pos, testLevelSlope, testLevelSlopeCount);
-  Surface nextSlope = find_closest_surface(player[i]->pos, testLevelSlope, testLevelSlopeCount);
-  //T3DVec3 lastSlopeNormal = nextSlope.normal;
-  float dist_player_next_floor = distance_to_surface(player[i]->pos, nextFloor);
-  float dist_player_next_slope = distance_to_surface(player[i]->pos, nextSlope);
+  Surface nextFloor = find_closest_surface(player[i]->hitbox.center, testLevelFloor, testLevelFloorCount);
+  Surface nextSlope = find_closest_surface(player[i]->hitbox.center, testLevelSlope, testLevelSlopeCount);
+  
+  float dist_player_next_floor = distance_to_surface(player[i]->hitbox.center, nextFloor);
+  float dist_player_next_slope = distance_to_surface(player[i]->hitbox.center, nextSlope);
   bool shadowOnSlope = false;
 
   if (dist_player_next_slope < dist_player_next_floor){
@@ -978,15 +1049,8 @@ void player_update(void){
     shadowOnSlope = false;
   }
 
-  //t3d_vec3_norm(&lastSlopeNormal);
-  //float newPitch = atan2f(lastSlopeNormal.v[2], lastSlopeNormal.v[1]);
-  //newPitch = newPitch * 180.0f / T3D_PI;
-  //newPitch = clamp(newPitch, 0.6f, -0.6f);
-  //float newRoll = atan2f(lastSlopeNormal.v[0], lastSlopeNormal.v[1]);
-  //newRoll = newRoll * 180.0f / T3D_PI;
-  //newRoll = clamp(newRoll, 0.3f, -0.3f);
-
   if(!player[i]->isGrounded){
+    Surface rayFloor = closest_surface_below_raycast(player[i]->pos, testLevelFloor, testLevelFloorCount);
     if(shadowOnSlope){
       if(dist_player_next_slope > player[i]->hitbox.radius*2.0f){    
         player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], intersectionY, 0.8f);
@@ -994,7 +1058,7 @@ void player_update(void){
         player[i]->shadowPos.v[1] = intersectionY;
       }
     } else {
-      if(dist_player_next_floor > player[i]->hitbox.radius*2.0f){
+      if(dist_player_next_floor > player[i]->hitbox.radius*1.5f){
         player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], rayFloor.center.v[1], 0.8f);
       } else {
         player[i]->shadowPos.v[1] = nextFloor.center.v[1];

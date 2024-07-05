@@ -55,8 +55,8 @@ void check_crates_collisions(Actor *crates[], int numCrates) {
       if (check_box_collision(crates[i]->hitbox.shape.aabb, crates[j]->hitbox.shape.aabb)) {
         resolve_box_collision_offset_xz(crates[j]->hitbox.shape.aabb, &crates[i]->pos, .2f);
         if(crates[j]->IsBouncy == true) {
-          crates[j]->pos.v[0] += crates[i]->pos.v[0]  * fixedTime;
-          crates[j]->pos.v[2] += crates[i]->pos.v[2] * fixedTime;
+          crates[j]->pos.v[0] += crates[i]->pos.v[0]  * jumpFixedTime;
+          crates[j]->pos.v[2] += crates[i]->pos.v[2] * jumpFixedTime;
         }
       }
     }
@@ -437,9 +437,9 @@ void balls_update(void){
     }
 
     // Update position based on velocity
-    balls[b]->hitbox.shape.sphere.center.v[0] += balls[b]->vel.v[0] * jumpFixedTime;
-    balls[b]->hitbox.shape.sphere.center.v[1] += balls[b]->vel.v[1] * jumpFixedTime;
-    balls[b]->hitbox.shape.sphere.center.v[2] += balls[b]->vel.v[2] * jumpFixedTime;
+    balls[b]->hitbox.shape.sphere.center.v[0] += balls[b]->vel.v[0] * fallFixedTime;
+    balls[b]->hitbox.shape.sphere.center.v[1] += balls[b]->vel.v[1] * fallFixedTime;
+    balls[b]->hitbox.shape.sphere.center.v[2] += balls[b]->vel.v[2] * fallFixedTime;
     balls[b]->pos = balls[b]->hitbox.shape.sphere.center;
 
     // Limit position inside of bounds
@@ -462,15 +462,15 @@ void balls_update(void){
 
     // Calculate new pitch (rotation around x-axis based on move direction)
     newPitch = atan2f(-balls[b]->vel.v[1], balls[b]->vel.v[2]); // Assuming vel.v[1] is y-axis velocity
-    balls[b]->rot.v[0] = t3d_lerp_angle(balls[b]->rot.v[0], newPitch, 0.1f);
+    balls[b]->rot.v[0] = t3d_lerp_angle(balls[b]->rot.v[0], newPitch, 0.3f);
 
     // Calculate new yaw (rotation around y-axis based on move direction)
     newYaw = atan2f(-balls[b]->vel.v[0], balls[b]->vel.v[2]); // Assuming vel.v[0] is x-axis velocity
-    balls[b]->rot.v[1] = t3d_lerp_angle(balls[b]->rot.v[1], newYaw, 0.1f);
+    balls[b]->rot.v[1] = t3d_lerp_angle(balls[b]->rot.v[1], newYaw, 0.4f);
 
     // Calculate new roll (rotation around z-axis based on move direction)
     newRoll = atan2f(-balls[b]->vel.v[0], balls[b]->vel.v[1]); // Assuming vel.v[0] is x-axis velocity
-    balls[b]->rot.v[2] = t3d_lerp_angle(balls[b]->rot.v[2], newRoll, 0.1f);
+    balls[b]->rot.v[2] = t3d_lerp_angle(balls[b]->rot.v[2], newRoll, 0.2f);
   }
 
 }

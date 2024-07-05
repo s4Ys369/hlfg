@@ -111,6 +111,8 @@ typedef enum {
     STYLE_2,
     STYLE_3,
     STYLE_DEBUG,
+    STYLE_DB_PASS,
+    STYLE_DB_FAIL,
     MAX_NUM_STYLES
 } FONT_STYLE_ID;
 
