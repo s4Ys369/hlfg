@@ -706,6 +706,69 @@ void resolve_sphere_surface_collision(Sphere *sphere, T3DVec3 *position, T3DVec3
     }
 }
 
+// Function to check if a ray intersects a surface
+float intersectionY;
+bool ray_intersects_surface(T3DVec3 rayOrigin, T3DVec3 rayDir, Surface surface, float* intersectionAngle) {
+    T3DVec3 vertex0 = surface.posA;
+    T3DVec3 vertex1 = surface.posB;
+    T3DVec3 vertex2 = surface.posC;
+    T3DVec3 edge1;
+    t3d_vec3_diff(&edge1, &vertex1, &vertex0);
+    T3DVec3 edge2;
+    t3d_vec3_diff(&edge2, &vertex2, &vertex0);
+
+    T3DVec3 h;
+    t3d_vec3_cross(&h, &rayDir, &edge2);
+    float a = t3d_vec3_dot(&edge1, &h);
+    if (a > -FLT_MIN && a < FLT_MIN) {
+        return false; // Ray is parallel to the triangle
+    }
+    if (a == 0){
+        a = FLT_MIN;
+    }
+    float f = 1.0f / a;
+    T3DVec3 s;
+    t3d_vec3_diff(&s, &rayOrigin, &vertex0);
+    float u = f * t3d_vec3_dot(&s, &h);
+    if (u < 0.0f || u > 1.0f) {
+        return false; // Intersection is outside the triangle
+    }
+    T3DVec3 q;
+    t3d_vec3_cross(&q, &s, &edge1);
+    float v = f * t3d_vec3_dot(&rayDir, &q);
+    if (v < 0.0f || u + v > 1.0f) {
+        return false; // Intersection is outside the triangle
+    }
+    float t = f * t3d_vec3_dot(&edge2, &q);
+    if (t > FLT_MIN) { // Intersection point is on the ray
+        *intersectionAngle = rayOrigin.v[1] - t; // Intersection point's Y value
+        return true;
+    } else {
+        return false; // Intersection point is behind the ray origin
+    }
+}
+
+// Function to cast a ray and find the closest intersection point with the surfaces downwards
+Surface closest_surface_below_raycast(T3DVec3 startPos, Surface* surfaces, int surfaceCount) {
+  Surface closestSurface;
+  T3DVec3 down = {{0,-1,0}};
+  float closestDist = FLT_MAX;
+
+  for (int i = 0; i < surfaceCount; i++) {
+    Surface currentSurface = surfaces[i];
+    // Check for intersection of the ray with the current surface
+    if (ray_intersects_surface(startPos, down, currentSurface, &intersectionY)) {
+      float dist = fabsf(startPos.v[1] - intersectionY);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closestSurface = currentSurface;
+      }
+    }
+  }
+
+  return closestSurface;
+}
+
 // Catch all
 bool check_collisions(CollisionShape a, CollisionShape b) {
     if (a.type == SHAPE_BOX && b.type == SHAPE_BOX) {

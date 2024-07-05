@@ -97,7 +97,7 @@ int main()
 
       t3d_mat4fp_from_srt_euler(shadowMatFP[p],
         (float[3]){0.25f, 0.25f, 0.25f},
-        (float[3]){player[p]->rot.v[0], -player[p]->rot.v[1], player[p]->rot.v[2]},
+        (float[3]){player[p]->shadowRot.v[0], 0.0f, player[p]->shadowRot.v[2]},
         player[p]->shadowPos.v
       );
 

@@ -171,6 +171,7 @@ void player_init(void){
     player[i]->scale = (T3DVec3){{1,1,1}};
     player[i]->pos = playerStartPos;
     player[i]->shadowPos = player[i]->pos;
+    player[i]->shadowRot = player[i]->rot;
     player[i]->forward = (T3DVec3){{0,0,1}};
     player[i]->hitbox = (Sphere){player[i]->pos, 16.0f};
 
@@ -914,10 +915,10 @@ void player_update(void){
             int closestCrate = find_closest(player[i]->pos, crates, numCrates);
             if(!check_sphere_box_collision(player[i]->hitbox, crates[closestCrate]->hitbox.shape.aabb)){
               // Check if the player is outside bounds in the x and z directions
-              if (player[i]->hitbox.center.v[0] > crates[closestCrate]->hitbox.shape.aabb.max.v[0] ||
-                  player[i]->hitbox.center.v[0] < crates[closestCrate]->hitbox.shape.aabb.min.v[0] ||
-                  player[i]->hitbox.center.v[2] > crates[closestCrate]->hitbox.shape.aabb.max.v[2] ||
-                  player[i]->hitbox.center.v[2] < crates[closestCrate]->hitbox.shape.aabb.min.v[2]) {
+              if (player[i]->hitbox.center.v[0] >= crates[closestCrate]->hitbox.shape.aabb.max.v[0] ||
+                  player[i]->hitbox.center.v[0] <= crates[closestCrate]->hitbox.shape.aabb.min.v[0] ||
+                  player[i]->hitbox.center.v[2] >= crates[closestCrate]->hitbox.shape.aabb.max.v[2] ||
+                  player[i]->hitbox.center.v[2] <= crates[closestCrate]->hitbox.shape.aabb.min.v[2]) {
 
                 playerState[i] = PLAYER_FALL;
               }
@@ -934,7 +935,6 @@ void player_update(void){
 
 
   // Handle surface rotations
-  Surface nextFloor = find_closest_surface(player[i]->hitbox.center, testLevelFloor, testLevelFloorCount);
   float pitch = 0;
   float roll = 0;
   if(lastSurface.type == SURFACE_FLOOR){
@@ -961,18 +961,49 @@ void player_update(void){
     
   // update shadow
   player[i]->shadowPos.v[0] = player[i]->pos.v[0];
+  player[i]->shadowPos.v[2] = player[i]->pos.v[2];
+
+  Surface rayFloor = closest_surface_below_raycast(player[i]->pos, testLevelFloor, testLevelFloorCount);
+  Surface nextFloor = find_closest_surface(player[i]->pos, testLevelFloor, testLevelFloorCount);
+  //Surface raySlope = closest_surface_below_raycast(player[i]->pos, testLevelSlope, testLevelSlopeCount);
+  Surface nextSlope = find_closest_surface(player[i]->pos, testLevelSlope, testLevelSlopeCount);
+  //T3DVec3 lastSlopeNormal = nextSlope.normal;
+  float dist_player_next_floor = distance_to_surface(player[i]->pos, nextFloor);
+  float dist_player_next_slope = distance_to_surface(player[i]->pos, nextSlope);
+  bool shadowOnSlope = false;
+
+  if (dist_player_next_slope < dist_player_next_floor){
+    shadowOnSlope = true;
+  } else {
+    shadowOnSlope = false;
+  }
+
+  //t3d_vec3_norm(&lastSlopeNormal);
+  //float newPitch = atan2f(lastSlopeNormal.v[2], lastSlopeNormal.v[1]);
+  //newPitch = newPitch * 180.0f / T3D_PI;
+  //newPitch = clamp(newPitch, 0.6f, -0.6f);
+  //float newRoll = atan2f(lastSlopeNormal.v[0], lastSlopeNormal.v[1]);
+  //newRoll = newRoll * 180.0f / T3D_PI;
+  //newRoll = clamp(newRoll, 0.3f, -0.3f);
+
   if(!player[i]->isGrounded){
-    float dist_player_last_floor = distance_to_surface(player[i]->hitbox.center, lastFloor);
-    float dist_player_next_floor = distance_to_surface(player[i]->hitbox.center, nextFloor);
-    if(dist_player_next_floor <= dist_player_last_floor){
-      player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], nextFloor.center.v[1], 0.6f);
+    if(shadowOnSlope){
+      if(dist_player_next_slope > player[i]->hitbox.radius*2.0f){    
+        player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], intersectionY, 0.8f);
+      } else { 
+        player[i]->shadowPos.v[1] = intersectionY;
+      }
     } else {
-      player[i]->shadowPos.v[1] = lastFloor.center.v[1];
+      if(dist_player_next_floor > player[i]->hitbox.radius*2.0f){
+        player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], rayFloor.center.v[1], 0.8f);
+      } else {
+        player[i]->shadowPos.v[1] = nextFloor.center.v[1];
+      }
     }
   } else {
+    player[i]->shadowRot = player[i]->rot;
     player[i]->shadowPos.v[1] = player[i]->pos.v[1];
   }
-  player[i]->shadowPos.v[2] = player[i]->pos.v[2];
 
   //reset projectile
   if(player[i]->projectile.speed == 0.0f){
