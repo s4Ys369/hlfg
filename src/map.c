@@ -344,7 +344,7 @@ void map_init(void){
     mapMatFP = malloc_uncached(sizeof(T3DMat4FP));
     //meshMatFP = malloc_uncached(sizeof(T3DMat4FP));
     //mesh2MatFP = malloc_uncached(sizeof(T3DMat4FP));
-    t3d_mat4fp_from_srt_euler(mapMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
+    t3d_mat4fp_from_srt_euler(mapMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, -100, 0});
     //t3d_mat4fp_from_srt_euler(meshMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
     //t3d_mat4fp_from_srt_euler(mesh2MatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
