@@ -25,6 +25,7 @@ extern T3DMat4FP* triangleMatFP;
 extern rspq_block_t *dplTri;
 extern int col_debug;
 extern int matCount;
+extern rspq_syncpoint_t syncPoint;
 
 void debug_models_init(void);
 void draw_debug_ui(void);

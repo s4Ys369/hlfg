@@ -60,7 +60,7 @@ filesystem/%.sprite: assets/%.png
 	@echo "    [SPRITE] $@"
 	$(N64_MKSPRITE) $(MKSPRITE_FLAGS) -o filesystem "$<"
 
-filesystem/BG0.rgba32.sprite: MKSPRITE_FLAGS=-f RGBA32 -c 2 -v
+filesystem/BG0.rgba16.sprite: MKSPRITE_FLAGS=-f RGBA16 -c 1
 
 filesystem/models/%.t3dm: assets/models/%.glb
 	@mkdir -p $(dir $@)

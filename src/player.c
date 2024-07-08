@@ -128,7 +128,7 @@ void player_init(void){
       t3d_matrix_push_pos(1);
       matCount++;
       t3d_matrix_set(playerhitboxMatFP[i], true);
-      rdpq_set_prim_color(RED);
+      rdpq_set_prim_color(T_RED);
       t3d_matrix_set(playerhitboxMatFP[i], true);
       t3d_model_draw(modelDebugSphere);
       t3d_matrix_pop(1);
@@ -148,7 +148,7 @@ void player_init(void){
       t3d_matrix_push_pos(1);
       matCount++;
       t3d_matrix_set(projectilehitboxMatFP[i], true);
-      rdpq_set_prim_color(BLUE);
+      rdpq_set_prim_color(T_BLUE);
       t3d_matrix_set(projectilehitboxMatFP[i], true);
       t3d_model_draw(modelDebugSphere);
       t3d_matrix_pop(1);
@@ -426,9 +426,9 @@ void player_to_slope(Surface currSlope, int playerCount){
 
 // floor surface collisions
 void player_to_floor(Surface currFloor, int playerCount){
-    resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, &currFloor);
     if(player[playerCount]->isGrounded == true && player[playerCount]->pos.v[1] <= currFloor.center.v[1]){
       player[playerCount]->pos.v[1] = currFloor.center.v[1];
+      resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, &currFloor);
     }
     playerState[playerCount] = PLAYER_LAND;
     lastFloor = currFloor;

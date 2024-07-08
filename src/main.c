@@ -22,7 +22,6 @@ int main()
 {
   debug_init_isviewer();
   debug_init_usblog();
-  asset_init_compression(2);
 
   dfs_init(DFS_DEFAULT_LOCATION);
 
@@ -45,7 +44,11 @@ int main()
   sound_init();
   ui_init();
 
-  rspq_syncpoint_t syncPoint = 0;
+  syncPoint = 0;
+
+  rspq_syncpoint_t syncPoint1 = 10;
+  rspq_syncpoint_t syncPoint2 = 20;
+  rspq_syncpoint_t syncPoint3 = 30;
 
   for(;;)
   {
@@ -68,6 +71,7 @@ int main()
       cam_update();
     }
 
+    if(syncPoint == syncPoint1)rspq_syncpoint_wait(syncPoint);
 
     // Update actor matrices
     for (int c = 0; c < numCrates; ++c) {
@@ -85,6 +89,8 @@ int main()
         balls[b]->pos.v
       );
     }
+
+    if(syncPoint == syncPoint2)rspq_syncpoint_wait(syncPoint);
 
     // Update player's extra matrices separately
     for (int p = 0; p < numPlayers; ++p) {
@@ -117,6 +123,7 @@ int main()
 
     }
 
+    if(syncPoint == syncPoint3)rspq_syncpoint_wait(syncPoint);
     
     for (int np = 0; np < numPlayers; ++np) {
       // Update players matrices
@@ -134,7 +141,7 @@ int main()
       
     t3d_mat4fp_from_srt_euler(testLevelMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
-    if(syncPoint)rspq_syncpoint_wait(syncPoint); // wait for the RSP to process the previous frame
+    if(syncPoint)rspq_syncpoint_wait(syncPoint);
 
     // Now recalc. the matrices, this will cause any model referencing them to use the new pose
     for (int i = 0; i < numPlayers; ++i) {
@@ -237,7 +244,7 @@ int main()
     rdpq_sync_pipe();
     rdpq_set_scissor(0, 0, sizeX, sizeY);
     rdpq_set_mode_standard();
-    rdpq_set_mode_fill(RGBA32(0, 0, 0, 0xFF));
+    rdpq_set_mode_fill(BLACK);
 
     // draw thick lines between the screens
     switch (numPlayers){
@@ -255,8 +262,11 @@ int main()
         rdpq_fill_rectangle(sizeX/2-1, 0, sizeX/2+1, sizeY);
         break;
     }
-    ui_update();
+
     draw_debug_ui();
+
+    ui_update();
+    
     rdpq_detach_show();
   }
 

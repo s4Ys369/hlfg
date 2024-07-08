@@ -24,6 +24,7 @@ float posX = 12;
 float posY = 12;
 int matCount = 0;
 uint64_t timeMS = 0;
+rspq_syncpoint_t syncPoint;
 
 
 const char* playerStateStrings[NUM_PLAYER_STATES] = {
@@ -112,34 +113,12 @@ void draw_debug_ui(void){
     col_debug = 0;
   }
 
-  float fps = display_get_fps();
-  uint8_t fpsCheck = STYLE_DEBUG;
-  if (fps >= 40){
-    fpsCheck = STYLE_DB_PASS;
-  } else if (fps >= 25) {
-    fpsCheck = STYLE_DEBUG;
-  } else {
-    fpsCheck = STYLE_DB_FAIL;
-  }
-
-  rdpq_load_tile(TILE5,0,0,32,32);
-  rdpq_set_prim_color(T_BLACK);
-  rdp_draw_textured_rectangle_scaled(TILE5, 10, 191, 56, 205, 1,1, MIRROR_XY);
+  //rdp_draw_textured_rectangle_scaled(TILE1, 10, 191, 56, 205, 1,1, MIRROR_XY);
   // not sure why RDP & RDPQ don't like the tiles
-  //rdpq_texture_rectangle_raw(TILE5, 12, 203, 55, 211, 0,0,1,1); // pos[n] * 13.33333 for columns and rows
-  rdpq_text_printf(&textParams, nextFont, 12, 191, "FPS");
-  rdpq_text_printf(&(rdpq_textparms_t){
-    .width = 22,
-    .height = 20,
-    .align = ALIGN_RIGHT,
-    .disable_aa_fix = true,
-    .style_id = fpsCheck,
-  }, nextFont, 32, 191, "%.1f", display_get_fps());
   
   if (text_debug){
     posY = 12;
-    rdpq_set_prim_color(T_BLACK);
-    rdp_draw_textured_rectangle_scaled(TILE5, 10, 10, 80, 180, 1,1, MIRROR_XY);
+    rdpq_fill_rectangle(10, 10, 80, 224);
     // Player
     rdpq_text_printf(&textParams, nextFont, posX, posY, "X %.2f", player[0]->pos.v[0]);posY+=10;
     rdpq_text_printf(&textParams, nextFont, posX, posY, "Y %.2f", player[0]->pos.v[1]);posY+=10;
@@ -166,9 +145,9 @@ void draw_debug_ui(void){
     float dDistCrate = t3d_vec3_distance(&player[0]->hitbox.center, &crates[dCrate]->hitbox.shape.aabb.min);
     bool dHitCrate = check_sphere_box_collision(player[0]->hitbox, crates[dCrate]->hitbox.shape.aabb);
     rdpq_text_printf(&textParams, nextFont, posX, posY, "Box %d", dHitCrate);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX+5, posY, "Dist %.2f", dDistCrate);posY+=15;
-
-    rdpq_text_printf(&textParams, nextFont, posX+5, posY, "Mats %u", matCount);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX+5, posY, "Dist %.2f", dDistCrate);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "%u", syncPoint);posY+=10;
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "Mats %u", matCount);posY+=10;
     if(matCount >= 8 && timeMS == 0){
       uint64_t nowMS = get_ticks_ms();
       timeMS = nowMS;

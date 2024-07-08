@@ -12,24 +12,10 @@
 float textX;
 float textY;
 rdpq_font_t *font[MAX_NUM_FONTS];
-sprite_t *BG0;
-sprite_t *BG1;
 bool isPaused;
 int nextFont = FONT_8BIT_3;
 
 void ui_init (void){
-    rdpq_sync_load();
-    BG0 = sprite_load("rom:/BG0.rgba32.sprite");
-    rdpq_sync_tile();
-    rdpq_set_mode_standard();
-    rdpq_sprite_upload(TILE5, BG0, &(rdpq_texparms_t)
-        {   .s.mirror = MIRROR_REPEAT,
-            .s.repeats = REPEAT_INFINITE,
-            .t.mirror = MIRROR_REPEAT,
-            .t.repeats = REPEAT_INFINITE,
-        }
-    );
-    
 
     font[1] =  rdpq_font_load("rom:/fonts/abaddon.font64");
     font[2] =  rdpq_font_load("rom:/fonts/8bit0.font64");
@@ -69,19 +55,19 @@ void ui_init (void){
     for (int i = 1; i < MAX_NUM_FONTS; i++) {
         rdpq_font_style(font[i], STYLE_0, &(rdpq_fontstyle_t){
             .color = WHITE,
-            .outline_color = T_WHITE,
+            .outline_color = BLACK,
         });
         rdpq_font_style(font[i], STYLE_1, &(rdpq_fontstyle_t){
             .color = GREEN,
-            .outline_color = T_GREEN,
+            .outline_color = DARK_GREEN,
         });
         rdpq_font_style(font[i], STYLE_2, &(rdpq_fontstyle_t){
             .color = RED,
-            .outline_color = T_RED,
+            .outline_color = DARK_RED,
         });
         rdpq_font_style(font[i], STYLE_3, &(rdpq_fontstyle_t){
             .color = BLACK,
-            .outline_color = T_GREY,
+            .outline_color = GREY,
         });
         rdpq_font_style(font[i], STYLE_DEBUG, &(rdpq_fontstyle_t){
             .color = WHITE,
@@ -143,14 +129,24 @@ void print_score(int fontIdx){
         .style_id = STYLE_DEBUG,
     };
 
-    rdpq_load_tile(TILE5,0,0,32,32);
-    rdpq_set_prim_color(T_GREY);
+    float fps = display_get_fps();
+    uint8_t fpsCheck = STYLE_DEBUG;
+    if (fps >= 40){
+        fpsCheck = STYLE_DB_PASS;
+    } else if (fps >= 25) {
+        fpsCheck = STYLE_DEBUG;
+    } else {
+        fpsCheck = STYLE_DB_FAIL;
+    }
+
 
     if(numPlayers > 1) {
         if(numPlayers == 2) {
-            rdp_draw_textured_rectangle_scaled(TILE5, textX, (textY-10)/2, textX+50, (textY)/2, 1,1, MIRROR_XY);
+            rdpq_set_fill_color(BLACK);
+            rdpq_fill_rectangle(textX, (textY-10)/2, textX+50, (textY)/2);
             rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
-            rdp_draw_textured_rectangle_scaled(TILE5, textX, textY-10, textX+50, textY, 1,1, MIRROR_XY);
+            rdpq_set_fill_color(BLACK);
+            rdpq_fill_rectangle(textX, textY-10, textX+50, textY);
             rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[1]->score);
         }
         if(numPlayers == 3) {
@@ -165,7 +161,16 @@ void print_score(int fontIdx){
             rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4, textY, "SCORE %d", player[3]->score);
         }
     } else {
-        rdp_draw_textured_rectangle_scaled(TILE5, textX-2, textY-10, textX+50, textY, 1,1, MIRROR_XY);
+        rdpq_set_fill_color(BLACK);
+        rdpq_fill_rectangle(textX-2, textY-30, textX+52, textY+4);
+        rdpq_fill_rectangle(10, 190, 62, 210);
+        rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_DEBUG,}, nextFont, 12, 202, "FPS");
+        rdpq_text_printf(&(rdpq_textparms_t){
+            .width = 30,
+            .height = 20,
+            .align = ALIGN_RIGHT,
+            .style_id = fpsCheck,
+        }, nextFont, 32, 191, "%.2f", display_get_fps());
         rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[0]->score);
     }   
 }
@@ -205,9 +210,9 @@ void ui_update(void){
     
 
     if(isPaused){
-        rdpq_load_tile(TILE5,0,0,32,32);
-        rdpq_set_prim_color(T_BLACK);
-        rdp_draw_textured_rectangle_scaled(TILE5, 85, 20, 235, 200, 1,1, MIRROR_DISABLED);
+        rdpq_load_tile(TILE1,0,0,32,32);
+        rdpq_set_fill_color(BLACK);
+        rdpq_fill_rectangle(85, 20, 235, 200);
 
         if(btn[0].d_left){
             if(nextFont > FONT_RESERVED + 1){
