@@ -24,6 +24,7 @@ extern T3DVertPacked* triVerts;
 extern T3DMat4FP* triangleMatFP;
 extern rspq_block_t *dplTri;
 extern int col_debug;
+extern int text_debug;
 extern int matCount;
 extern rspq_syncpoint_t syncPoint;
 

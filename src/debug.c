@@ -19,7 +19,9 @@ T3DModel *modelDebugSphere;
 T3DVertPacked* triVerts;
 T3DMat4FP* triangleMatFP;
 rspq_block_t *dplTri;
+rspq_block_t *dplDebugText;
 int col_debug;
+int text_debug;
 float posX = 12;
 float posY = 12;
 int matCount = 0;
@@ -40,9 +42,12 @@ const char* playerStateStrings[NUM_PLAYER_STATES] = {
 };
 
 void debug_models_init(void){
+  text_debug = 0;
   col_debug = 0;
   modelDebugBox = t3d_model_load("rom:/models/box.t3dm");
   modelDebugSphere = t3d_model_load("rom:/models/sphere.t3dm");
+
+  dplDebugText = NULL;
 
   //triVerts = malloc_uncached(sizeof(T3DVertPacked) * 2);
   //
@@ -88,7 +93,15 @@ void print_stack_memory_uint32(void *start, size_t size) {
 
 void draw_debug_ui(void){
 
-  int text_debug = 0;
+  float fps = display_get_fps();
+  uint8_t fpsCheck = STYLE_DEBUG;
+  if (fps >= 30){
+      fpsCheck = STYLE_DB_PASS;
+  } else if (fps >= 20) {
+      fpsCheck = STYLE_DEBUG;
+  } else {
+      fpsCheck = STYLE_DB_FAIL;
+  }
 
   rdpq_textparms_t textParams = {
     .width = 100,
@@ -97,6 +110,112 @@ void draw_debug_ui(void){
     .style_id = STYLE_DEBUG,
   };
 
+  // Print FPS
+  rdpq_text_printf(&(rdpq_textparms_t){
+      .width = 30,
+      .height = 20,
+      .align = ALIGN_RIGHT,
+      .disable_aa_fix = true,
+      .style_id = fpsCheck,
+  }, nextFont, 32, 191, "%.2f", display_get_fps());
+
+
+  // Set debug text block
+  if(!dplDebugText){
+    rspq_block_begin();
+    
+    rdpq_sync_pipe();
+    rdpq_sync_tile();
+    
+    rdpq_set_mode_standard();
+    rdpq_mode_combiner(RDPQ_COMBINER1((0,0,0,PRIM), (PRIM,0,TEX0,0)));
+    rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+    
+    rdpq_set_prim_color(T_BLACK);
+    rdpq_sprite_upload(TILE1, spriteTextWindow, &textWindowParams);
+    rdpq_sync_load(); //?
+    
+    // unhardcode?
+    rdpq_texture_rectangle(TILE1, 10, 10, 80, 190, 0, 0);
+
+    dplDebugText = rspq_block_end();
+
+  }
+
+  if(text_debug){
+    posY=12;
+    rspq_block_run(dplDebugText);
+
+    // Player
+    rdpq_text_printf(
+      &textParams, 
+      nextFont,
+      posX, posY, 
+      "X %.2f\n"
+      "Y %.2f\n"
+      "Z %.2f\n"
+      "State %s\n"
+      "Grounded %d", 
+      player[0]->pos.v[0],
+      player[0]->pos.v[1],
+      player[0]->pos.v[2],
+      playerStateStrings[playerState[0]],
+      player[0]->isGrounded
+    );
+
+    posY+=65;
+
+    // Surfaces
+    Surface dWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);
+    Surface dFloor = find_closest_surface(player[0]->hitbox.center, testLevelFloor, testLevelFloorCount);
+    Surface dSlope = find_closest_surface(player[0]->hitbox.center, testLevelSlope, testLevelSlopeCount);
+    rdpq_text_printf(
+      &textParams, 
+      nextFont,
+      posX, posY, 
+      "Wall %d\n"
+      "Floor %d\n"
+      "Slope %d", 
+      check_sphere_surface_collision(player[0]->hitbox, dWall),
+      check_sphere_surface_collision(player[0]->hitbox, dFloor),
+      check_sphere_surface_collision(player[0]->hitbox, dSlope)
+    );
+
+    posY+=45;
+
+    // Actors
+    int dBall = find_closest(player[0]->hitbox.center, balls, numBalls);
+    float dDistBall = t3d_vec3_distance(&player[0]->hitbox.center, &balls[dBall]->hitbox.shape.sphere.center);
+    bool dHitBall = check_sphere_collision(player[0]->hitbox, balls[dBall]->hitbox.shape.sphere);
+    int dCrate = find_closest(player[0]->hitbox.center, crates, numCrates);
+    float dDistCrate = t3d_vec3_distance(&player[0]->hitbox.center, &crates[dCrate]->hitbox.shape.aabb.min);
+    bool dHitCrate = check_sphere_box_collision(player[0]->hitbox, crates[dCrate]->hitbox.shape.aabb);
+
+    rdpq_text_printf(
+      &textParams, 
+      nextFont,
+      posX, posY, 
+      "Ball %d\n"
+      "   Dist %.2f\n"
+      "Box %d\n"
+      "   Dist %.2f", 
+      dHitBall,
+      dDistBall,
+      dHitCrate,
+      dDistCrate
+    );
+
+    posY+=55;
+    
+    rdpq_text_printf(&textParams, nextFont, posX, posY, "Mats %u", matCount);
+    
+    /*
+    posY+=10;
+    print_stack_memory_uint32(???, 8 * sizeof(T3DMat4FP));
+    */
+
+  }
+
 #ifndef FORCE_DEBUG_PRINT
   if(btnheld[0].r){
     text_debug = 1;
@@ -104,58 +223,13 @@ void draw_debug_ui(void){
     text_debug = 0;
   }
 #else
-  text_debug = 1;
+text_debug = 1;
 #endif
 
   if(btnheld[0].l){
     col_debug = 1;
   } else {
     col_debug = 0;
-  }
-
-  //rdp_draw_textured_rectangle_scaled(TILE1, 10, 191, 56, 205, 1,1, MIRROR_XY);
-  // not sure why RDP & RDPQ don't like the tiles
-  
-  if (text_debug){
-    posY = 12;
-    rdpq_fill_rectangle(10, 10, 80, 224);
-    // Player
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "X %.2f", player[0]->pos.v[0]);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "Y %.2f", player[0]->pos.v[1]);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "Z %.2f", player[0]->pos.v[2]);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "State %s", playerStateStrings[playerState[0]]);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "Grounded %d", player[0]->isGrounded);posY+=20;
-
-    // Surfaces
-    Surface dWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);
-    Surface dFloor = find_closest_surface(player[0]->hitbox.center, testLevelFloor, testLevelFloorCount);
-    Surface dSlope = find_closest_surface(player[0]->hitbox.center, testLevelSlope, testLevelSlopeCount);
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "Wall %d", check_sphere_surface_collision(player[0]->hitbox, dWall));posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "Floor %d", check_sphere_surface_collision(player[0]->hitbox, dFloor));posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "Slope %d", check_sphere_surface_collision(player[0]->hitbox, dSlope));posY+=20;
-
-    // Actors
-    int dBall = find_closest(player[0]->hitbox.center, balls, numBalls);
-    float dDistBall = t3d_vec3_distance(&player[0]->hitbox.center, &balls[dBall]->hitbox.shape.sphere.center);
-    bool dHitBall = check_sphere_collision(player[0]->hitbox, balls[dBall]->hitbox.shape.sphere);
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "Ball %d", dHitBall);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX+5, posY, "Dist %.2f", dDistBall);posY+=10;
-  
-    int dCrate = find_closest(player[0]->hitbox.center, crates, numCrates);
-    float dDistCrate = t3d_vec3_distance(&player[0]->hitbox.center, &crates[dCrate]->hitbox.shape.aabb.min);
-    bool dHitCrate = check_sphere_box_collision(player[0]->hitbox, crates[dCrate]->hitbox.shape.aabb);
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "Box %d", dHitCrate);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX+5, posY, "Dist %.2f", dDistCrate);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "%u", syncPoint);posY+=10;
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "Mats %u", matCount);posY+=10;
-    if(matCount >= 8 && timeMS == 0){
-      uint64_t nowMS = get_ticks_ms();
-      timeMS = nowMS;
-    }
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "%llu ms", timeMS);posY+=10;
-    /*
-    print_stack_memory_uint32(???, 8 * sizeof(T3DMat4FP));
-    */
   }
 
 }

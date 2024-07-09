@@ -9,14 +9,24 @@
 #include "ui.h"
 #include "utils.h"
 
-float textX;
-float textY;
+
+rspq_block_t *dplScore;
+rspq_block_t *dplControls;
 rdpq_font_t *font[MAX_NUM_FONTS];
+sprite_t *spriteTextWindow;
+rdpq_texparms_t textWindowParams = {
+    .s.repeats = REPEAT_INFINITE, 
+    .t.repeats = REPEAT_INFINITE,
+};
+
 bool isPaused;
 int nextFont = FONT_8BIT_3;
+float textX;
+float textY;
 
 void ui_init (void){
 
+    // TODO fontma
     font[1] =  rdpq_font_load("rom:/fonts/abaddon.font64");
     font[2] =  rdpq_font_load("rom:/fonts/8bit0.font64");
     font[3] =  rdpq_font_load("rom:/fonts/8bit1.font64");
@@ -118,26 +128,43 @@ void ui_init (void){
     rdpq_text_register_font(FONT_xolonium,      font[34]);
 
     isPaused = false;
+    spriteTextWindow = sprite_load("rom:/BG0.rgba16.sprite");
+
+    dplScore = NULL;
+    dplControls = NULL;
 }
 
 void print_score(int fontIdx){
     textX = 12;
     textY = 220;
 
+    // Set up block for score
+    if(!dplScore){
+        rspq_block_begin();
+
+        rdpq_sync_pipe();
+        rdpq_sync_tile();
+
+        rdpq_set_mode_standard();
+        rdpq_mode_combiner(RDPQ_COMBINER1((0,0,0,PRIM), (PRIM,0,TEX0,0)));
+        rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+
+        rdpq_set_prim_color(T_BLACK);
+        rdpq_sprite_upload(TILE1, spriteTextWindow, &textWindowParams);
+        rdpq_sync_load(); //?
+
+        rdpq_texture_rectangle(TILE1, textX-2, textY-30, textX+52, textY+4, 0, 0);
+
+        dplScore = rspq_block_end();
+    }
+
     rdpq_textparms_t scoreTextParams = {
         .disable_aa_fix = true, 
         .style_id = STYLE_DEBUG,
     };
 
-    float fps = display_get_fps();
-    uint8_t fpsCheck = STYLE_DEBUG;
-    if (fps >= 40){
-        fpsCheck = STYLE_DB_PASS;
-    } else if (fps >= 25) {
-        fpsCheck = STYLE_DEBUG;
-    } else {
-        fpsCheck = STYLE_DB_FAIL;
-    }
+    // Run text window block
+    rspq_block_run(dplScore); 
 
 
     if(numPlayers > 1) {
@@ -161,43 +188,70 @@ void print_score(int fontIdx){
             rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4, textY, "SCORE %d", player[3]->score);
         }
     } else {
-        rdpq_set_fill_color(BLACK);
-        rdpq_fill_rectangle(textX-2, textY-30, textX+52, textY+4);
-        rdpq_fill_rectangle(10, 190, 62, 210);
-        rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_DEBUG,}, nextFont, 12, 202, "FPS");
-        rdpq_text_printf(&(rdpq_textparms_t){
-            .width = 30,
-            .height = 20,
-            .align = ALIGN_RIGHT,
-            .style_id = fpsCheck,
-        }, nextFont, 32, 191, "%.2f", display_get_fps());
-        rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[0]->score);
-    }   
+        rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY-18, "FPS\n""SCORE %d", player[0]->score);
+    }
+
 }
 
 void print_controls(int fontIdx){
     textX  = 100;
     textY = 35;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_1,}, fontIdx, textX+4, textY, "IBE: Itty Bitty Engine");textY+=10;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_1,}, fontIdx, textX, textY, "Game Engine for Tiny3D");textY+=10;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_1,}, fontIdx, textX+45, textY, "v%.1f.%u", VERSION, VERSION_SUFFIX);textY+=10;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_2,}, fontIdx, textX+40, textY, "by s4ys");textY+=10;
-    
 
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "Control Stick : Move");textY+=10;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "A : Jump");textY+=10;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "B : Attack");textY+=10;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "C Down : Normal Cam");textY+=10;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "C Left & Right :");textY+=10;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX+10, textY, "Rotate Fixed Cam");textY+=10;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "C Up : Top Down Cam");textY+=10;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "Z : Recenter Cam");textY+=10;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "Hold R : Debug");textY+=10;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "Hold L : HitBoxes");textY+=20;
-    rdpq_text_printf(&(rdpq_textparms_t){.style_id = STYLE_0,}, fontIdx, textX, textY, "Change font with D Pad");textY+=10;
+    // Set up block for score
+    if(!dplControls){
+        rspq_block_begin();
+
+        rdpq_sync_pipe();
+        rdpq_sync_tile();
+
+        rdpq_set_mode_standard();
+        rdpq_mode_combiner(RDPQ_COMBINER1((0,0,0,PRIM), (PRIM,0,TEX0,0)));
+        rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+
+        rdpq_set_prim_color(T_BLACK);
+        rdpq_sprite_upload(TILE1, spriteTextWindow, &textWindowParams);
+        rdpq_sync_load(); //?
+
+        // unhardcode?
+        rdpq_texture_rectangle(TILE1, 85, 20, 235, 220, 0, 0);
+
+        rdpq_text_print(&(rdpq_textparms_t){.disable_aa_fix = true, .align= ALIGN_CENTER, .style_id = STYLE_1,}, 
+            fontIdx, 
+            textX, textY, 
+            "IBE: Itty Bitty Engine\n"
+            "Game Engine for Tiny3D\n"
+        );
+        textY+=25;
+        rdpq_text_printf(&(rdpq_textparms_t){.disable_aa_fix = true, .style_id = STYLE_1,}, fontIdx, textX+45, textY, "v%.1f.%u", VERSION, VERSION_SUFFIX);
+        textY+=10;
+        rdpq_text_print(&(rdpq_textparms_t){.disable_aa_fix = true, .style_id = STYLE_2,}, fontIdx, textX+40, textY, "by s4ys");
+        textY+=15;
+
+        rdpq_text_print(&(rdpq_textparms_t){.width = 125, .style_id = STYLE_0,}, 
+            fontIdx, 
+            textX, textY,   
+            "Control Stick : Move\n"
+            "A : Jump\n"
+            "B : Attack\n"
+            "C Down : Normal Cam\n"
+            "C Left & Right :\n"
+            "   Rotate Fixed Cam\n"
+            "C Up : Top Down Cam\n"
+            "Z : Recenter Cam\n"
+            "Hold R : Debug\n"
+            "Hold L : HitBoxes\n"
+            //"Change font with D Pad"
+        );
+
+        dplControls = rspq_block_end();
+    }
+
+    rspq_block_run(dplControls);
 }
 
 void ui_update(void){
+
+    print_score(nextFont);
     
     if(btn[0].start){
         if(isPaused == false){
@@ -207,12 +261,7 @@ void ui_update(void){
         }
     }
 
-    
-
     if(isPaused){
-        rdpq_load_tile(TILE1,0,0,32,32);
-        rdpq_set_fill_color(BLACK);
-        rdpq_fill_rectangle(85, 20, 235, 200);
 
         if(btn[0].d_left){
             if(nextFont > FONT_RESERVED + 1){
@@ -225,7 +274,5 @@ void ui_update(void){
             }
         }
         print_controls(nextFont);
-    } else {
-        print_score(nextFont);
     }
 }

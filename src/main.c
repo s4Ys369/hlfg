@@ -262,10 +262,8 @@ int main()
         rdpq_fill_rectangle(sizeX/2-1, 0, sizeX/2+1, sizeY);
         break;
     }
-
-    draw_debug_ui();
-
     ui_update();
+    draw_debug_ui();
     
     rdpq_detach_show();
   }

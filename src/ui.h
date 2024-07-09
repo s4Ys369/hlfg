@@ -11,6 +11,8 @@
 #include "player.h"
 #include "utils.h"
 
+extern sprite_t *spriteTextWindow;
+extern rdpq_texparms_t textWindowParams;
 extern bool isPaused;
 extern int nextFont;
 
