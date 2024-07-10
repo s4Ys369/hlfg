@@ -5,6 +5,16 @@
 #include <t3d/t3d.h>
 
 // COLLISIONS
+
+typedef enum {
+    FLOOR_CELL,
+    CEILING_CELL,
+    WALL_CELL,
+    SLOPE_CELL,
+    NUM_SURFACE_CELLS
+} SURFACE_CELL;
+
+
 typedef enum {
     SURFACE_FLOOR,
     SURFACE_CEILING,

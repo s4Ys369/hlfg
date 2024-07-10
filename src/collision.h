@@ -18,7 +18,7 @@ extern T3DVec3 left;
 extern T3DVec3 right;
 extern T3DVec3 farther;
 extern T3DVec3 nearer;
-
+extern Cell surfaceCell[NUM_SURFACE_CELLS];
 extern float intersectionY;
 
 // AABB
@@ -61,6 +61,8 @@ Surface find_closest_surface(T3DVec3 position, Surface* surfaces, int numSurface
 void resolve_sphere_surface_collision(Sphere *sphere, T3DVec3 *position, T3DVec3 *direction, Surface *surf);
 bool ray_intersects_surface(T3DVec3 rayOrigin, T3DVec3 rayDir, Surface surface, float* intersectionAngle);
 Surface closest_surface_below_raycast(T3DVec3 startPos, Surface* surfaces, int surfaceCount);
+void assign_surfaces_to_cells(Surface* surfaces, int numSurfaces);
+Surface find_closest_surface_by_type(T3DVec3 position, int surfaceType);
 
 bool check_collisions(CollisionShape a, CollisionShape b);
 

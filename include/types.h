@@ -4,6 +4,7 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include "enums.h"
+#include "globals.h"
 
 // CAMERA
 typedef struct {
@@ -24,6 +25,7 @@ typedef struct {
 
 
 // COLLISIONS
+
 typedef struct {
     SURFACE_TYPE type;
     T3DVec3 posA;
@@ -32,6 +34,11 @@ typedef struct {
     T3DVec3 center;
     T3DVec3 normal;
 } Surface;
+
+typedef struct {
+    Surface surfaces[NUM_CELLS];
+    int surfaceCount;
+} Cell;
 
 typedef struct {
     T3DVertPacked v[2];

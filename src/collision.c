@@ -17,6 +17,12 @@ T3DVec3 right = {{1,0,0}};
 T3DVec3 farther = {{0,0,-1}};
 T3DVec3 nearer = {{0,0,1}};
 
+Cell surfaceCell[NUM_SURFACE_CELLS];
+Cell wallGrid[NUM_CELLS][NUM_CELLS];
+//Cell ceilingGrid[NUM_CELLS][NUM_CELLS];
+Cell slopeGrid[NUM_CELLS][NUM_CELLS];
+Cell floorGrid[NUM_CELLS][NUM_CELLS];
+
 // Check AABB to AABB
 bool check_box_collision(AABB a, AABB b) {
 // Check for overlap along the X axis
@@ -651,6 +657,69 @@ Surface find_closest_surface(T3DVec3 position, Surface* surfaces, int numSurface
     }
 
     return closestSurface;
+}
+
+void get_cell_index(T3DVec3 position, int* xIndex, int* zIndex) {
+    *xIndex = (int)(position.v[0] / CELL_SIZE);
+    *zIndex = (int)(position.v[2] / CELL_SIZE);
+}
+
+void assign_surfaces_to_cells(Surface* surfaces, int numSurfaces) {
+    int xIndex;
+    int zIndex;
+    for (int i = 0; i < numSurfaces; ++i) {
+        get_cell_index(surfaces[i].center, &xIndex, &zIndex);
+        if (xIndex > -LEVEL_BOUNDARY_MAX && xIndex < LEVEL_BOUNDARY_MAX && zIndex > -LEVEL_BOUNDARY_MAX && zIndex < LEVEL_BOUNDARY_MAX) {
+            switch (surfaces[i].type) {
+                case SURFACE_WALL:
+                    wallGrid[xIndex][zIndex].surfaces[wallGrid[xIndex][zIndex].surfaceCount++] = surfaces[i];
+                    surfaceCell[WALL_CELL] = wallGrid[xIndex][zIndex];
+                    break;
+                case SURFACE_SLOPE:
+                    slopeGrid[xIndex][zIndex].surfaces[slopeGrid[xIndex][zIndex].surfaceCount++] = surfaces[i];
+                    surfaceCell[SLOPE_CELL] = slopeGrid[xIndex][zIndex];
+                    break;
+                case SURFACE_FLOOR:
+                    floorGrid[xIndex][zIndex].surfaces[floorGrid[xIndex][zIndex].surfaceCount++] = surfaces[i];
+                    surfaceCell[FLOOR_CELL] = floorGrid[xIndex][zIndex];
+                    break;
+                default:
+                    floorGrid[xIndex][zIndex].surfaces[floorGrid[xIndex][zIndex].surfaceCount++] = surfaces[i];
+                    surfaceCell[FLOOR_CELL] = floorGrid[xIndex][zIndex];
+                    break;
+            }
+        }
+    }
+
+}
+
+Surface find_closest_surface_in_cell(T3DVec3 position, Cell* cell) {
+    float minDistance = FLT_MAX;
+    Surface closestSurface;
+
+    for (int i = 0; i < cell->surfaceCount; ++i) {
+        float dist = distance_to_surface(position, cell->surfaces[i]);
+        if (dist < minDistance) {
+            minDistance = dist;
+            closestSurface = cell->surfaces[i];
+        }
+    }
+
+    return closestSurface;
+}
+
+Surface find_closest_surface_by_type(T3DVec3 position, int surfaceType) {
+
+    switch (surfaceType) {
+        case SURFACE_WALL:
+            return find_closest_surface_in_cell(position, &surfaceCell[WALL_CELL]);
+        case SURFACE_SLOPE:
+            return find_closest_surface_in_cell(position, &surfaceCell[SLOPE_CELL]);
+        case SURFACE_FLOOR:
+            return find_closest_surface_in_cell(position, &surfaceCell[FLOOR_CELL]);
+        default:
+            return find_closest_surface_in_cell(position, &surfaceCell[FLOOR_CELL]);
+    }
 }
 
 // Function to resolve collision between sphere and surface

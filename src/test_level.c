@@ -219,6 +219,9 @@ Surface testLevelSlope[36];
 int testLevelWallCount = 184;
 Surface testLevelWall[184];
 
+int testLevelSurfaceCount = 3;
+Surface testLevelSurfaces[3];
+
 void test_level_init(void){
 
     testLevelFloor[0].posA = testLevelVerts[0]; testLevelFloor[0].posB = testLevelVerts[1]; testLevelFloor[0].posC = testLevelVerts[2];
@@ -597,6 +600,9 @@ void test_level_init(void){
         testLevelWall[i].center = calc_surface_center(testLevelWall[i]);
         testLevelWall[i].normal = calc_surface_norm(testLevelWall[i]);
     }
+
+
+    assign_surfaces_to_cells(testLevelSurfaces, testLevelSurfaceCount);
 
     // Allocate map's matrix and construct
     testLevelMatFP = malloc_uncached(sizeof(T3DMat4FP));

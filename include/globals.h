@@ -18,6 +18,15 @@
 #define MAX_BALLS 5
 #define MAX_LEVELS 1
 
+// Surface cells, starting off with same size as sm64
+#define LEVEL_BOUNDARY_MAX  8192
+#define CELL_SIZE 1024
+#define CELL_HEIGHT_LIMIT           20000
+#define FLOOR_LOWER_LIMIT           -11000
+#define FLOOR_LOWER_LIMIT_MISC      (FLOOR_LOWER_LIMIT + 1000)
+#define NUM_CELLS (2 * LEVEL_BOUNDARY_MAX / CELL_SIZE)
+#define NUM_CELLS_INDEX (NUM_SURFACES_PER_CELL - 1)
+
 extern uint8_t segmentID;
 
 #endif // GLOBALS_H
