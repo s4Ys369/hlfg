@@ -440,10 +440,10 @@ void player_to_floor(Surface currFloor, int playerCount){
 void player_surface_collider(int playerCount){
 
   // Find all closest surface types
-  Surface currWall = find_closest_surface_by_type(player[playerCount]->hitbox.center, SURFACE_WALL);
-  Surface currFloor = find_closest_surface_by_type(player[playerCount]->hitbox.center,SURFACE_FLOOR);
+  Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, testLevelWall, testLevelWallCount);
+  Surface currFloor = find_closest_surface(player[playerCount]->hitbox.center, testLevelFloor, testLevelFloorCount);
   Surface nextFloor = closest_surface_below_raycast(player[playerCount]->hitbox.center, testLevelFloor, testLevelFloorCount);
-  Surface currSlope = find_closest_surface_by_type(player[playerCount]->hitbox.center, SURFACE_SLOPE);
+  Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, testLevelSlope, testLevelSlopeCount);
 
   // Check collisions for all
   bool hitSlope = false;

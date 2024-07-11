@@ -12,6 +12,6 @@
 //#define FORCE_4_PORTS
 
 // Always print instead of just when R trigger is held
-#define FORCE_DEBUG_PRINT
+// #define FORCE_DEBUG_PRINT
 
 #endif // CONFIG_H
