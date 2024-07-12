@@ -440,27 +440,39 @@ void player_to_floor(Surface currFloor, int playerCount){
 void player_surface_collider(int playerCount){
 
   // Find all closest surface types
+  Surface closestFloors[8];
+  int closestFloorsCount;
+  find_closest_surfaces(player[playerCount]->pos, testLevelFloor, testLevelFloorCount, closestFloors, &closestFloorsCount, SURFACE_FLOOR, 64.0f);
+  RaycastResult nextFloor = closest_surface_below_raycast(player[playerCount]->hitbox.center, testLevelFloor, testLevelFloorCount);
   Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, testLevelWall, testLevelWallCount);
   Surface currFloor = find_closest_surface(player[playerCount]->hitbox.center, testLevelFloor, testLevelFloorCount);
-  Surface nextFloor = closest_surface_below_raycast(player[playerCount]->hitbox.center, testLevelFloor, testLevelFloorCount);
   Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, testLevelSlope, testLevelSlopeCount);
 
   // Check collisions for all
-  bool hitSlope = false;
   bool hitFloor = false;
+
+  for (int f = 0; f < closestFloorsCount; ++f) {
+    if(player[playerCount]->isGrounded){
+      if (check_sphere_surface_collision(player[playerCount]->hitbox, closestFloors[f])){
+        hitFloor = true;
+      }
+    } else {
+      if (ray_intersects_surface(player[playerCount]->hitbox.center, down, nextFloor.surf, &nextFloor.posY)){
+        hitFloor = true;
+      }
+    }
+  }
+
+
+  bool hitSlope = false;
   bool hitWall = false;
   if (check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)){hitSlope = true;}
-  if(player[playerCount]->isGrounded){
-    if (check_sphere_surface_collision(player[playerCount]->hitbox, currFloor)){hitFloor = true;}
-  } else {
-    if (ray_intersects_surface(player[playerCount]->hitbox.center, down, currFloor, &intersectionY)){hitFloor = true;}
-  }
   if (check_sphere_surface_collision(player[playerCount]->hitbox, currWall)){hitWall = true;}
 
   // Get distances
   float dist_player_to_slope = distance_to_surface(player[playerCount]->hitbox.center, currSlope);
   float dist_player_to_floor = distance_to_surface(player[playerCount]->hitbox.center, currFloor);
-  float dist_player_to_lowest = fabsf(player[playerCount]->pos.v[1] - intersectionY);
+  float dist_player_to_lowest = fabsf(player[playerCount]->pos.v[1] - nextFloor.posY);
   float dist_player_to_wall = distance_to_surface(player[playerCount]->hitbox.center, currWall);
   float dist_slope_to_floor = t3d_vec3_distance(&currSlope.center, &currFloor.center);
   float dist_slope_to_wall = t3d_vec3_distance(&currSlope.center, &currWall.center);
@@ -545,7 +557,7 @@ void player_surface_collider(int playerCount){
     if(player[playerCount]->hitbox.center.v[1] < currFloor.center.v[1]){
       hitFloor = true;
     }
-    if(player[playerCount]->hitbox.center.v[1] < nextFloor.center.v[1]){
+    if(player[playerCount]->hitbox.center.v[1] < nextFloor.surf.center.v[1]){
       hitFloor = true;
     }
     if(player[playerCount]->hitbox.center.v[1] < 0){ // 0 should be lowest floor
@@ -566,7 +578,7 @@ void player_surface_collider(int playerCount){
 
     if(hitFloor){
       if(dist_player_to_lowest < player[playerCount]->hitbox.radius + player[playerCount]->currSpeed){
-        player_to_floor(nextFloor, playerCount);
+        player_to_floor(nextFloor.surf, playerCount);
       }
       // ... otherwise
       if(hitSlope){
@@ -619,6 +631,10 @@ void player_surface_collider(int playerCount){
       }
     }
   }
+
+  hitSlope = false;
+  hitWall = false;
+  hitFloor = false;
 
 }
 
@@ -752,12 +768,16 @@ void player_update(void){
 
     if(!player[i]->isGrounded){
       if (player[i]->pos.v[1] > groundLevel) {
-        player[i]->vel.v[1] = t3d_lerp(player[i]->vel.v[1], GRAVITY, fallFixedTime);
-        player[i]->pos.v[1] = t3d_lerp(player[i]->pos.v[1],player[i]->vel.v[1], fallFixedTime);
-        player[i]->hitbox.center.v[1] = t3d_lerp(player[i]->hitbox.center.v[1],player[i]->pos.v[1], fallFixedTime);
-        //player[i]->vel.v[1] += GRAVITY * jumpFixedTime;
-        //player[i]->pos.v[1] += player[i]->vel.v[1] * jumpFixedTime;
-        //player[i]->hitbox.center.v[1] += player[i]->pos.v[1] * jumpFixedTime;
+        // Slow fall while holding A
+        if(btnheld[i].a){
+          player[i]->vel.v[1] = t3d_lerp(player[i]->vel.v[1], GRAVITY, fallFixedTime);
+          player[i]->pos.v[1] = t3d_lerp(player[i]->pos.v[1],player[i]->vel.v[1], fallFixedTime);
+          player[i]->hitbox.center.v[1] = t3d_lerp(player[i]->hitbox.center.v[1],player[i]->pos.v[1], fallFixedTime);
+        } else {
+          player[i]->vel.v[1] = t3d_lerp(player[i]->vel.v[1], GRAVITY, jumpFixedTime);
+          player[i]->pos.v[1] = t3d_lerp(player[i]->pos.v[1],player[i]->vel.v[1], jumpFixedTime);
+          player[i]->hitbox.center.v[1] = t3d_lerp(player[i]->hitbox.center.v[1],player[i]->pos.v[1], jumpFixedTime);
+        }
         player[i]->scale.v[1] -= 0.02f;
         if(player[i]->scale.v[1] < 0.3f){
           player[i]->scale.v[1] = 0.3f;
@@ -789,17 +809,8 @@ void player_update(void){
   if(playerState[i] == PLAYER_SLIDE){
     player[i]->scale.v[1] = 1.0f;
     player[i]->cam.camPos.v[1] = player[i]->hitbox.center.v[1];
-    Surface currSlope = find_closest_surface(player[i]->hitbox.center, Slope, slopeCount);
-    if (check_sphere_surface_collision(player[i]->hitbox, currSlope)){
-      player_to_slope(currSlope, i);
-      player[i]->cam.camPos.v[1] = currSlope.center.v[1];
-      player[i]->pos.v[1] = player[i]->hitbox.center.v[1] - player[i]->hitbox.radius;
-    } else {
-      player[i]->cam.camPos.v[1] = player[i]->hitbox.center.v[1];
-      player[i]->cam.camTarget.v[1] = player[i]->hitbox.center.v[1];
-      playerState[i] = PLAYER_WALK;
-    }
-  
+    player[i]->cam.camTarget.v[1] = player[i]->hitbox.center.v[1];
+    playerState[i] = PLAYER_WALK;
   }
 
 
@@ -926,12 +937,10 @@ void player_update(void){
     }
 
     // Apply gravity
-    player[i]->vel.v[1] = t3d_lerp(player[i]->vel.v[1], GRAVITY, jumpFixedTime);
-    //player[i]->vel.v[1] += GRAVITY * jumpFixedTime;
+    player[i]->vel.v[1] += GRAVITY * fixedTime;
 
     // Update player position
-    player[i]->pos.v[1] = t3d_lerp(player[i]->pos.v[1],player[i]->vel.v[1], jumpFixedTime);
-    //player[i]->pos.v[1] += player[i]->vel.v[1] * jumpFixedTime;
+    player[i]->pos.v[1] += player[i]->vel.v[1] * fixedTime;
 
     // Update player bounding box
     player[i]->hitbox.center.v[0] = player[i]->pos.v[0];
@@ -1035,16 +1044,16 @@ void player_update(void){
 
   // update shadow
   player[i]->shadowPos.v[0] = player[i]->pos.v[0];
-  player[i]->shadowPos.v[1] = 0.15f;
   player[i]->shadowPos.v[2] = player[i]->pos.v[2];
   player[i]->shadowRot = player[i]->rot;
-  /*
   Surface nextFloor = find_closest_surface(player[i]->hitbox.center, testLevelFloor, testLevelFloorCount);
   Surface nextSlope = find_closest_surface(player[i]->hitbox.center, testLevelSlope, testLevelSlopeCount);
-  Surface rayFloor = closest_surface_below_raycast(player[i]->pos, testLevelFloor, testLevelFloorCount);
+  RaycastResult rayFloor = closest_surface_below_raycast(player[i]->pos, testLevelFloor, testLevelFloorCount);
+  RaycastResult raySlope = closest_surface_below_raycast(player[i]->pos, testLevelSlope, testLevelSlopeCount);
   
   float dist_player_next_floor = distance_to_surface(player[i]->hitbox.center, nextFloor);
   float dist_player_next_slope = distance_to_surface(player[i]->hitbox.center, nextSlope);
+  
   bool shadowOnSlope = false;
 
   if (dist_player_next_slope < dist_player_next_floor){
@@ -1056,20 +1065,16 @@ void player_update(void){
   if(!player[i]->isGrounded){
     if(shadowOnSlope){
       if(dist_player_next_slope > player[i]->hitbox.radius*2.0f){    
-        player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], intersectionY, 0.7f);
+        player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], raySlope.posY, 0.7f);
       } else { 
-        player[i]->shadowPos.v[1] = intersectionY;
+        player[i]->shadowPos.v[1] = raySlope.posY;
       }
     } else {
-      if(dist_player_next_floor < player[i]->hitbox.radius*1.5f){
-        player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], rayFloor.center.v[1], 0.7f);
-      } else {
-        player[i]->shadowPos.v[1] = nextFloor.center.v[1];
-      }
+      player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], rayFloor.surf.center.v[1], 0.7f);
     }
   } else {
     player[i]->shadowPos.v[1] = player[i]->pos.v[1];
-  }*/
+  }
 
   //reset projectile
   if(player[i]->projectile.speed == 0.0f){

@@ -34,6 +34,16 @@ typedef struct {
 } Surface;
 
 typedef struct {
+    Surface surf;
+    float posY;
+} RaycastResult;
+
+typedef struct {
+    Surface surface;
+    float distance;
+} SurfaceDistance;
+
+typedef struct {
     T3DVertPacked v[2];
 } T3DQuad;
 

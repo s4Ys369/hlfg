@@ -10,7 +10,7 @@ float deltaTime;
 float jumpTime;
 float fixedTime = 0.02f;
 float jumpFixedTime = 0.08f;
-float fallFixedTime = 0.12f;
+float fallFixedTime = 0.05f;
 
 color_t RED = (color_t){209, 0, 0, 255};
 color_t ORANGE = (color_t){255, 102, 34, 255};

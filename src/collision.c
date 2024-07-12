@@ -581,8 +581,8 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
 
     // Check distances per surface
     if(surf.type == SURFACE_SLOPE) {
-        if (dist <= (sphere.radius)*2.0f) {
-            if (dist2 <= (sphere.radius)*6.0f) {
+        if (dist <= sphere.radius*2) {
+            if (dist2 <= sphere.radius*6) {
                 return true;
             } else {
                return false; 
@@ -593,21 +593,13 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
         }
     } else if(surf.type == SURFACE_WALL) {
         if (dist <= sphere.radius) {
-            if (dist2 <= (sphere.radius)*5.0f) {
-                return true;
-            } else {
-               return false; 
-            }
+            return true;
         } else {
             return false;
         }
     } else if(surf.type == SURFACE_FLOOR) {
         if (dist <= sphere.radius) {
-            if (dist2 <= (sphere.radius)*3.9f) {
-                return true;
-            } else {
-               return false; 
-            }
+            return true;
         } else {
             return false;
         }
@@ -753,23 +745,64 @@ bool ray_intersects_surface(T3DVec3 rayOrigin, T3DVec3 rayDir, Surface surface, 
 }
 
 // Function to cast a ray and find the closest intersection point with the surfaces downwards
-Surface closest_surface_below_raycast(T3DVec3 startPos, Surface* surfaces, int surfaceCount) {
-  Surface closestSurface;
-  float closestDist = FLT_MAX;
+RaycastResult closest_surface_below_raycast(T3DVec3 startPos, Surface* surfaces, int surfaceCount) {
+    Surface closestSurface;
+    RaycastResult closestRayResult;
+    float closestDist = FLT_MAX;
 
-  for (int i = 0; i < surfaceCount; i++) {
-    Surface currentSurface = surfaces[i];
-    // Check for intersection of the ray with the current surface
-    if (ray_intersects_surface(startPos, down, currentSurface, &intersectionY)) {
-      float dist = fabsf(startPos.v[1] - intersectionY);
-      if (dist < closestDist) {
-        closestDist = dist;
-        closestSurface = currentSurface;
-      }
+    for (int i = 0; i < surfaceCount; i++) {
+        Surface currentSurface = surfaces[i];
+        // Check for intersection of the ray with the current surface
+        if (ray_intersects_surface(startPos, down, currentSurface, &intersectionY)) {
+          float dist = fabsf(startPos.v[1] - intersectionY);
+          if (dist < closestDist) {
+            closestDist = dist;
+            closestSurface = currentSurface;
+          }
+        }
     }
-  }
 
-  return closestSurface;
+    closestRayResult.surf = closestSurface;
+    closestRayResult.posY = intersectionY;
+    return closestRayResult;
+}
+
+// Function to compare two SurfaceDistance structures by distance
+int compare_surface_distance(const void* a, const void* b) {
+    SurfaceDistance* sd1 = (SurfaceDistance*)a;
+    SurfaceDistance* sd2 = (SurfaceDistance*)b;
+    if (sd1->distance < sd2->distance) return -1;
+    if (sd1->distance > sd2->distance) return 1;
+    return 0;
+}
+
+// Function to find the closest 4 surfaces of the same type within a specified range
+void find_closest_surfaces(T3DVec3 position, Surface* surfaces, int numSurfaces, Surface* closestSurfaces, int* closestCount, SURFACE_TYPE type, float range) {
+    SurfaceDistance* surfaceDistances = (SurfaceDistance*)malloc(numSurfaces * sizeof(SurfaceDistance));
+
+    // Calculate the distance to each surface and store it in surfaceDistances
+    int count = 0;
+    for (int i = 0; i < numSurfaces; ++i) {
+        if (surfaces[i].type == type) {
+            float distance = t3d_vec3_distance(&position, &surfaces[i].center);
+            if (distance <= range) {
+                surfaceDistances[count].surface = surfaces[i];
+                surfaceDistances[count].distance = distance;
+                count++;
+            }
+        }
+    }
+
+    // Sort the surfaces by distance
+    qsort(surfaceDistances, count, sizeof(SurfaceDistance), compare_surface_distance);
+
+    // Collect the closest 4 surfaces
+    *closestCount = (count < 4) ? count : 4;
+    for (int i = 0; i < *closestCount; ++i) {
+        closestSurfaces[i] = surfaceDistances[i].surface;
+    }
+
+    free(surfaceDistances);
 }
 
 // Catch all
