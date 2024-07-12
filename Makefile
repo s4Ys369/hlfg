@@ -10,7 +10,7 @@ PROJECT_NAME=ibe
 DEBUG=0
 
 ifeq ($(DEBUG),0)
-  N64_CFLAGS += -Ofast
+  N64_CFLAGS += -O2
 else
   N64_CFLAGS += -g -ggdb
 endif
