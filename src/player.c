@@ -445,7 +445,7 @@ void player_surface_collider(int playerCount){
   find_closest_surfaces(player[playerCount]->pos, testLevelFloor, testLevelFloorCount, closestFloors, &closestFloorsCount, SURFACE_FLOOR, 64.0f);
   RaycastResult nextFloor = closest_surface_below_raycast(player[playerCount]->hitbox.center, testLevelFloor, testLevelFloorCount);
   Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, testLevelWall, testLevelWallCount);
-  Surface currFloor = find_closest_surface(player[playerCount]->hitbox.center, testLevelFloor, testLevelFloorCount);
+  Surface currFloor = find_closest_surface(player[playerCount]->hitbox.center, closestFloors, closestFloorsCount);
   Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, testLevelSlope, testLevelSlopeCount);
 
   // Check collisions for all
@@ -457,7 +457,7 @@ void player_surface_collider(int playerCount){
         hitFloor = true;
       }
     } else {
-      if (ray_intersects_surface(player[playerCount]->hitbox.center, down, nextFloor.surf, &nextFloor.posY)){
+      if (ray_intersects_surface(player[playerCount]->hitbox.center, down, closestFloors[f], &nextFloor.posY)){
         hitFloor = true;
       }
     }
@@ -557,9 +557,6 @@ void player_surface_collider(int playerCount){
     if(player[playerCount]->hitbox.center.v[1] < currFloor.center.v[1]){
       hitFloor = true;
     }
-    if(player[playerCount]->hitbox.center.v[1] < nextFloor.surf.center.v[1]){
-      hitFloor = true;
-    }
     if(player[playerCount]->hitbox.center.v[1] < 0){ // 0 should be lowest floor
       hitFloor = true;
     }
@@ -578,7 +575,7 @@ void player_surface_collider(int playerCount){
 
     if(hitFloor){
       if(dist_player_to_lowest < player[playerCount]->hitbox.radius + player[playerCount]->currSpeed){
-        player_to_floor(nextFloor.surf, playerCount);
+        player_to_floor(currFloor, playerCount);
       }
       // ... otherwise
       if(hitSlope){

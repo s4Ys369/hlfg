@@ -749,12 +749,13 @@ RaycastResult closest_surface_below_raycast(T3DVec3 startPos, Surface* surfaces,
     Surface closestSurface;
     RaycastResult closestRayResult;
     float closestDist = FLT_MAX;
+    float dist = FLT_MIN;
 
     for (int i = 0; i < surfaceCount; i++) {
         Surface currentSurface = surfaces[i];
         // Check for intersection of the ray with the current surface
         if (ray_intersects_surface(startPos, down, currentSurface, &intersectionY)) {
-          float dist = fabsf(startPos.v[1] - intersectionY);
+          dist = fabsf(startPos.v[1] - intersectionY);
           if (dist < closestDist) {
             closestDist = dist;
             closestSurface = currentSurface;
