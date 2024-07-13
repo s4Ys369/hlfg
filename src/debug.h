@@ -22,9 +22,14 @@ extern T3DMat4FP* boxLPMatFP[];
 extern T3DMat4FP* boxSMatFP[];
 extern T3DVertPacked* triVerts;
 extern T3DMat4FP* triangleMatFP;
-extern rspq_block_t *dplTri;
+extern rspq_block_t *dplFloorTri;
+extern rspq_block_t *dplSlopeTri;
+extern rspq_block_t *dplWallTri;
 extern int col_debug;
 extern int text_debug;
+extern int col_floor;
+extern int col_slope;
+extern int col_wall;
 extern int matCount;
 extern rspq_syncpoint_t syncPoint;
 

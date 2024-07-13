@@ -18,10 +18,15 @@ T3DModel *modelDebugBox;
 T3DModel *modelDebugSphere;
 T3DVertPacked* triVerts;
 T3DMat4FP* triangleMatFP;
-rspq_block_t *dplTri;
+rspq_block_t *dplFloorTri;
+rspq_block_t *dplSlopeTri;
+rspq_block_t *dplWallTri;
 rspq_block_t *dplDebugText;
 int col_debug;
 int text_debug;
+int col_floor = 0;
+int col_slope = 0;
+int col_wall = 0;
 float posX = 12;
 float posY = 12;
 int matCount = 0;
@@ -45,12 +50,14 @@ void debug_models_init(void){
   text_debug = 0;
   col_debug = 0;
   modelDebugBox = t3d_model_load("rom:/models/box.t3dm");
-  modelDebugSphere = t3d_model_load("rom:/models/sphere.t3dm");
+  modelDebugSphere = t3d_model_load("rom:/models/debugsphere.t3dm");
 
   dplDebugText = NULL;
-  dplTri = NULL;
+  dplFloorTri = NULL;
+  dplSlopeTri = NULL;
+  dplWallTri = NULL;
 
-  triVerts = malloc_uncached(sizeof(T3DVertPacked) * 2);
+  triVerts = malloc_uncached(sizeof(T3DVertPacked) * 6);
   
   uint16_t norm = t3d_vert_pack_normal(&(T3DVec3){{ 0, 0, 1}});
   triVerts[0] = (T3DVertPacked){
@@ -58,6 +65,22 @@ void debug_models_init(void){
     .posB = {32,0,32}, .rgbaB = 0x00FF00'7F, .normB = norm,
   };
   triVerts[1] = (T3DVertPacked){
+    .posA = {64,0,64}, .rgbaA = 0x0000FF'99, .normA = norm,
+    .posB = {0,0,0}, .rgbaB = 0xFF00FF'99, .normB = norm,
+  };
+  triVerts[2] = (T3DVertPacked){
+    .posA = {0,0,0}, .rgbaA = 0xFF0000'7F, .normA = norm,
+    .posB = {32,0,32}, .rgbaB = 0x00FF00'7F, .normB = norm,
+  };
+  triVerts[3] = (T3DVertPacked){
+    .posA = {64,0,64}, .rgbaA = 0x0000FF'99, .normA = norm,
+    .posB = {0,0,0}, .rgbaB = 0xFF00FF'99, .normB = norm,
+  };
+  triVerts[4] = (T3DVertPacked){
+    .posA = {0,0,0}, .rgbaA = 0xFF0000'7F, .normA = norm,
+    .posB = {32,0,32}, .rgbaB = 0x00FF00'7F, .normB = norm,
+  };
+  triVerts[5] = (T3DVertPacked){
     .posA = {64,0,64}, .rgbaA = 0x0000FF'99, .normA = norm,
     .posB = {0,0,0}, .rgbaB = 0xFF00FF'99, .normB = norm,
   };
@@ -225,6 +248,7 @@ text_debug = 1;
     Surface cWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);
     Surface cSlope = find_closest_surface(player[0]->hitbox.center, testLevelSlope, testLevelSlopeCount);
     if(check_sphere_surface_collision(player[0]->hitbox, cFloor)){
+      col_floor = 1;
       triVerts[0].posA[0] = (int16_t)(cFloor.posA.v[0]);
       triVerts[0].posA[1] = (int16_t)(cFloor.posA.v[1]);
       triVerts[0].posA[2] = (int16_t)(cFloor.posA.v[2]);
@@ -237,32 +261,35 @@ text_debug = 1;
       triVerts[1].posA[1] = (int16_t)(cFloor.posC.v[1]);
       triVerts[1].posA[2] = (int16_t)(cFloor.posC.v[2]);
 
-      if(!dplTri) {
+      if(!dplFloorTri) {
         rspq_block_begin();
           rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
           t3d_state_set_drawflags(T3D_FLAG_SHADED | T3D_FLAG_DEPTH);
           t3d_matrix_push(triangleMatFP);
-          t3d_vert_load(triVerts, 0, 4);
+          t3d_vert_load(triVerts, 0, 12);
           t3d_matrix_pop(1);
           t3d_tri_draw(0, 1, 2);
           t3d_tri_sync();
-        dplTri = rspq_block_end();
+        dplFloorTri = rspq_block_end();
       }
+    } else {
+      col_floor = 0;
     }
     if(check_sphere_surface_collision(player[0]->hitbox, cSlope)){
-      triVerts[0].posA[0] = (int16_t)(cSlope.posA.v[0]);
-      triVerts[0].posA[1] = (int16_t)(cSlope.posA.v[1]);
-      triVerts[0].posA[2] = (int16_t)(cSlope.posA.v[2]);
+      col_slope = 1;
+      triVerts[2].posA[0] = (int16_t)(cSlope.posA.v[0]);
+      triVerts[2].posA[1] = (int16_t)(cSlope.posA.v[1]);
+      triVerts[2].posA[2] = (int16_t)(cSlope.posA.v[2]);
 
-      triVerts[0].posB[0] = (int16_t)(cSlope.posB.v[0]);
-      triVerts[0].posB[1] = (int16_t)(cSlope.posB.v[1]);
-      triVerts[0].posB[2] = (int16_t)(cSlope.posB.v[2]);
+      triVerts[2].posB[0] = (int16_t)(cSlope.posB.v[0]);
+      triVerts[2].posB[1] = (int16_t)(cSlope.posB.v[1]);
+      triVerts[2].posB[2] = (int16_t)(cSlope.posB.v[2]);
 
-      triVerts[1].posA[0] = (int16_t)(cSlope.posC.v[0]);
-      triVerts[1].posA[1] = (int16_t)(cSlope.posC.v[1]);
-      triVerts[1].posA[2] = (int16_t)(cSlope.posC.v[2]);
+      triVerts[3].posA[0] = (int16_t)(cSlope.posC.v[0]);
+      triVerts[3].posA[1] = (int16_t)(cSlope.posC.v[1]);
+      triVerts[3].posA[2] = (int16_t)(cSlope.posC.v[2]);
 
-      if(!dplTri) {
+      if(!dplSlopeTri) {
         rspq_block_begin();
 
           rdpq_sync_pipe();
@@ -273,28 +300,32 @@ text_debug = 1;
           rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
 
           t3d_matrix_push(triangleMatFP);
-          t3d_vert_load(triVerts, 0, 4);
+          t3d_vert_load(triVerts, 0, 12);
           t3d_matrix_pop(1);
-          t3d_tri_draw(0, 1, 2);
+          t3d_tri_draw(4, 5, 6);
 
           t3d_tri_sync();
-        dplTri = rspq_block_end();
+        dplSlopeTri = rspq_block_end();
       }
+    } else {
+      col_slope = 0;
     }
     if(check_sphere_surface_collision(player[0]->hitbox, cWall)){
-      triVerts[0].posA[0] = (int16_t)(cWall.posA.v[0]);
-      triVerts[0].posA[1] = (int16_t)(cWall.posA.v[1]);
-      triVerts[0].posA[2] = (int16_t)(cWall.posA.v[2]);
+      col_wall = 1;
 
-      triVerts[0].posB[0] = (int16_t)(cWall.posB.v[0]);
-      triVerts[0].posB[1] = (int16_t)(cWall.posB.v[1]);
-      triVerts[0].posB[2] = (int16_t)(cWall.posB.v[2]);
+      triVerts[4].posA[0] = (int16_t)(cWall.posA.v[0]);
+      triVerts[4].posA[1] = (int16_t)(cWall.posA.v[1]);
+      triVerts[4].posA[2] = (int16_t)(cWall.posA.v[2]);
 
-      triVerts[1].posA[0] = (int16_t)(cWall.posC.v[0]);
-      triVerts[1].posA[1] = (int16_t)(cWall.posC.v[1]);
-      triVerts[1].posA[2] = (int16_t)(cWall.posC.v[2]);
+      triVerts[4].posB[0] = (int16_t)(cWall.posB.v[0]);
+      triVerts[4].posB[1] = (int16_t)(cWall.posB.v[1]);
+      triVerts[4].posB[2] = (int16_t)(cWall.posB.v[2]);
 
-      if(!dplTri) {
+      triVerts[5].posA[0] = (int16_t)(cWall.posC.v[0]);
+      triVerts[5].posA[1] = (int16_t)(cWall.posC.v[1]);
+      triVerts[5].posA[2] = (int16_t)(cWall.posC.v[2]);
+
+      if(!dplWallTri) {
         rspq_block_begin();
 
           rdpq_sync_pipe();
@@ -305,16 +336,21 @@ text_debug = 1;
           rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
 
           t3d_matrix_push(triangleMatFP);
-          t3d_vert_load(triVerts, 0, 4);
+          t3d_vert_load(triVerts, 0, 12);
           t3d_matrix_pop(1);
-          t3d_tri_draw(0, 1, 2);
+          t3d_tri_draw(8, 9, 10);
 
           t3d_tri_sync();
-        dplTri = rspq_block_end();
+        dplWallTri = rspq_block_end();
       }
+    } else {
+      col_wall = 0;
     }
   } else {
     col_debug = 0;
+    col_floor = 0;
+    col_slope = 0;
+    col_wall = 0;
   }
 
 }

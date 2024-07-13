@@ -224,9 +224,17 @@ int main()
           rspq_block_run(dplProjectile[d]);
         }
         if(col_debug){
-          rspq_block_run(dplTri);
-          //rspq_block_run(dplPlayerHitBox[d]);
-          //rspq_block_run(dplProjectileHitBox[d]);
+          if(dplFloorTri != NULL && col_floor){
+            rspq_block_run(dplFloorTri);
+          }
+          if(dplSlopeTri != NULL && col_slope){
+            rspq_block_run(dplSlopeTri);
+          }
+          if(dplWallTri != NULL && col_wall){
+            rspq_block_run(dplWallTri);
+          }
+          rspq_block_run(dplPlayerHitBox[d]);
+          rspq_block_run(dplProjectileHitBox[d]);
         }
       }
 

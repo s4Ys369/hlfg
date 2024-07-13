@@ -125,6 +125,9 @@ void player_init(void){
     dplPlayer[i] = rspq_block_end();
 
     rspq_block_begin();
+      rdpq_sync_pipe();
+      rdpq_set_mode_standard();
+      rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
       t3d_matrix_push_pos(1);
       matCount++;
       t3d_matrix_set(playerhitboxMatFP[i], true);
@@ -145,6 +148,9 @@ void player_init(void){
     dplProjectile[i] = rspq_block_end();
 
     rspq_block_begin();
+      rdpq_sync_pipe();
+      rdpq_set_mode_standard();
+      rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
       t3d_matrix_push_pos(1);
       matCount++;
       t3d_matrix_set(projectilehitboxMatFP[i], true);
