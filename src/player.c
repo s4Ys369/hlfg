@@ -197,9 +197,9 @@ void player_init(void){
     player[i]->vel = (T3DVec3){{0,0,0}};
 
     if(numPlayers > 2){
-      player[i]->jumpForce = player[i]->pos.v[1] + 450.0f;
+      player[i]->jumpForce = 650.0f;
     } else {
-      player[i]->jumpForce = player[i]->pos.v[1] + 400.0f;
+      player[i]->jumpForce = 600.0f;
     }
 
     player[i]->score = 0;
@@ -448,13 +448,19 @@ void player_to_floor(Surface currFloor, int playerCount){
 void player_surface_collider(int playerCount){
 
   // Find all closest surface types
+  float searchDiameter = player[playerCount]->hitbox.radius * 4.0f; // Double the player's hitbox diameter
+
   Surface closestFloors[8];
   int closestFloorsCount;
-  float searchDiameter = player[playerCount]->hitbox.radius * 4.0f; // Double the player's hitbox diameter
   find_closest_surfaces(player[playerCount]->pos, testLevelFloor, testLevelFloorCount, closestFloors, &closestFloorsCount, SURFACE_FLOOR, searchDiameter);
-  RaycastResult nextFloor = closest_surface_below_raycast(player[playerCount]->hitbox.center, testLevelFloor, testLevelFloorCount);
-  Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, testLevelWall, testLevelWallCount);
   Surface currFloor = find_closest_surface(player[playerCount]->hitbox.center, closestFloors, closestFloorsCount);
+  RaycastResult nextFloor = closest_surface_below_raycast(player[playerCount]->hitbox.center, testLevelFloor, testLevelFloorCount);
+
+  Surface closestWalls[4];
+  int closestWallsCount;
+  find_closest_surfaces(player[playerCount]->pos, testLevelWall, testLevelWallCount, closestWalls, &closestWallsCount, SURFACE_WALL, searchDiameter);
+  Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, closestWalls, closestWallsCount);
+
   Surface currSlope = find_closest_surface(player[playerCount]->hitbox.center, testLevelSlope, testLevelSlopeCount);
 
   // Check collisions for all
@@ -472,11 +478,16 @@ void player_surface_collider(int playerCount){
     }
   }
 
+  bool hitWall = false;
+  
+  for (int w = 0; w < closestWallsCount; ++w) {
+    if (check_sphere_surface_collision(player[playerCount]->hitbox, closestWalls[w])){
+      hitWall = true;
+    }
+  }
 
   bool hitSlope = false;
-  bool hitWall = false;
   if (check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)){hitSlope = true;}
-  if (check_sphere_surface_collision(player[playerCount]->hitbox, currWall)){hitWall = true;}
 
   // Get distances
   float dist_player_to_slope = distance_to_surface(player[playerCount]->hitbox.center, currSlope);
@@ -794,9 +805,9 @@ void player_update(void){
         player[i]->vel.v[1] = 0.0f;
         player[i]->scale.v[1] = 1.0f;
         if(numPlayers > 2){
-          player[i]->jumpForce = 450.0f;
+          player[i]->jumpForce = 650.0f;
         } else {
-          player[i]->jumpForce = 400.0f;
+          player[i]->jumpForce = 600.0f;
         }
       }
     }
@@ -922,7 +933,7 @@ void player_update(void){
     }
 
     // Apply jump force modifier
-    player[i]->vel.v[1] = player[i]->jumpForce;
+    player[i]->vel.v[1] = player[i]->jumpForce + player[i]->pos.v[1];
 
     playerState[i] = PLAYER_JUMP;
   }
@@ -941,7 +952,7 @@ void player_update(void){
     }
 
     // Apply gravity
-    player[i]->vel.v[1] = t3d_lerp(player[i]->vel.v[1], -GRAVITY, fixedTime);
+    player[i]->vel.v[1] = t3d_lerp(player[i]->vel.v[1], GRAVITY, fixedTime);
 
     // Update player position
     player[i]->pos.v[1] = t3d_lerp(player[i]->pos.v[1], player[i]->vel.v[1], fixedTime);
@@ -1065,12 +1076,13 @@ void player_update(void){
     shadowOnSlope = false;
   }
 
+
   if(!player[i]->isGrounded){
     if(shadowOnSlope){
       if(dist_player_next_slope > player[i]->hitbox.radius*2.0f){    
         player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], raySlope.posY, 0.7f);
       } else { 
-        player[i]->shadowPos.v[1] = raySlope.posY;
+        player[i]->shadowPos.v[1] = rayFloor.surf.center.v[1];
       }
     } else {
       player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], rayFloor.surf.center.v[1], 0.7f);

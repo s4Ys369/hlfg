@@ -592,7 +592,7 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
             return false;
         }
     } else if(surf.type == SURFACE_WALL) {
-        if (dist <= sphere.radius) {
+        if (dist <= sphere.radius+0.1f) {
             return true;
         } else {
             return false;
