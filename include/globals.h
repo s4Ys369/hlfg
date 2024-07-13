@@ -14,8 +14,8 @@
 
 // Used for struct memory allocation
 #define MAX_PLAYERS 4
-#define MAX_CRATES 4
-#define MAX_BALLS 5
+#define MAX_CRATES 3
+#define MAX_BALLS 3
 #define MAX_LEVELS 1
 
 extern uint8_t segmentID;

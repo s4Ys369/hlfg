@@ -430,7 +430,9 @@ void player_to_floor(Surface currFloor, int playerCount){
       player[playerCount]->pos.v[1] = currFloor.center.v[1];
       resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, &currFloor);
     }
-    playerState[playerCount] = PLAYER_LAND;
+    if (!player[playerCount]->isGrounded){
+      playerState[playerCount] = PLAYER_LAND;
+    }
     lastFloor = currFloor;
     lastSurface = lastFloor;
     airAttackCount = 0;
@@ -724,15 +726,18 @@ void player_update(void){
   }
   
   // do walk
-  if(player[i]->isGrounded && player[i]->currSpeed > 0.1f){
+  if(player[i]->isGrounded){
     if(playerState[i] != PLAYER_JUMP_START 
       && playerState[i] != PLAYER_JUMP 
       && playerState[i] != PLAYER_FALL 
       && playerState[i] != PLAYER_SLIDE
       && playerState[i] != PLAYER_ATTACK_START 
       && playerState[i] != PLAYER_ATTACK) {
-
-      playerState[i] = PLAYER_WALK;
+        if(player[i]->currSpeed > 0.1f) {
+          playerState[i] = PLAYER_WALK;
+        } else {
+          playerState[i] = PLAYER_IDLE;
+        }
     }
   }
 
@@ -794,12 +799,10 @@ void player_update(void){
   }
 
   // do land
-  if(playerState[i] == PLAYER_LAND){
+  while(playerState[i] == PLAYER_LAND){
     player[i]->scale.v[1] = 1.0f;
-    if(player[i]->currSpeed > 0.5f){
-      player[i]->currSpeed = 0.5f;
-    }
     playerState[i] = PLAYER_IDLE;
+    break;
   }
 
   // do slide/slope interaction

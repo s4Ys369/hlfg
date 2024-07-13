@@ -5,7 +5,7 @@
 #include <t3d/t3d.h>
 
 // SEED is used for random number generation, see src/utils.c
-#define SEED 420
+#define SEED 469
 
 // See src/input.c
 #define ARES_1_PLAYER

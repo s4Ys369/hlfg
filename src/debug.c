@@ -155,15 +155,17 @@ void draw_debug_ui(void){
       "Y %.2f\n"
       "Z %.2f\n"
       "State %s\n"
-      "Grounded %d", 
+      "Grounded %d\n"
+      "Speed %.2f", 
       player[0]->pos.v[0],
       player[0]->pos.v[1],
       player[0]->pos.v[2],
       playerStateStrings[playerState[0]],
-      player[0]->isGrounded
+      player[0]->isGrounded,
+      player[0]->currSpeed
     );
 
-    posY+=65;
+    posY+=80;
 
     // Surfaces
     Surface dWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);
@@ -207,7 +209,7 @@ void draw_debug_ui(void){
 
     posY+=55;
     
-    rdpq_text_printf(&textParams, nextFont, posX, posY, "Mats %u", matCount);
+    //rdpq_text_printf(&textParams, nextFont, posX, posY, "Mats %u", matCount);
     
     /*
     posY+=10;
