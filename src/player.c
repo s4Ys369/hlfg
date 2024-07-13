@@ -444,7 +444,8 @@ void player_surface_collider(int playerCount){
   // Find all closest surface types
   Surface closestFloors[8];
   int closestFloorsCount;
-  find_closest_surfaces(player[playerCount]->pos, testLevelFloor, testLevelFloorCount, closestFloors, &closestFloorsCount, SURFACE_FLOOR, 64.0f);
+  float searchDiameter = player[playerCount]->hitbox.radius * 4.0f; // Double the player's hitbox diameter
+  find_closest_surfaces(player[playerCount]->pos, testLevelFloor, testLevelFloorCount, closestFloors, &closestFloorsCount, SURFACE_FLOOR, searchDiameter);
   RaycastResult nextFloor = closest_surface_below_raycast(player[playerCount]->hitbox.center, testLevelFloor, testLevelFloorCount);
   Surface currWall = find_closest_surface(player[playerCount]->hitbox.center, testLevelWall, testLevelWallCount);
   Surface currFloor = find_closest_surface(player[playerCount]->hitbox.center, closestFloors, closestFloorsCount);
@@ -556,9 +557,6 @@ void player_surface_collider(int playerCount){
     }
   } else {
     // Check if there's a floor below and if it is close enough to collide with
-    if(player[playerCount]->hitbox.center.v[1] < currFloor.center.v[1]){
-      hitFloor = true;
-    }
     if(player[playerCount]->hitbox.center.v[1] < 0){ // 0 should be lowest floor
       hitFloor = true;
     }
@@ -569,11 +567,11 @@ void player_surface_collider(int playerCount){
       }
     }
 
-    //if(hitWall){
-    //  if(dist_player_to_wall < player[playerCount]->hitbox.radius*0.5f){
-    //    player_to_wall(currWall, playerCount);
-    //  }
-    //}
+    if(hitWall){
+      if(dist_player_to_wall < player[playerCount]->hitbox.radius){
+        player_to_wall(currWall, playerCount);
+      }
+    }
 
     if(hitFloor){
       if(dist_player_to_lowest < player[playerCount]->hitbox.radius + player[playerCount]->currSpeed){
@@ -790,9 +788,9 @@ void player_update(void){
         player[i]->vel.v[1] = 0.0f;
         player[i]->scale.v[1] = 1.0f;
         if(numPlayers > 2){
-          player[i]->jumpForce = player[i]->pos.v[1] + 450.0f;
+          player[i]->jumpForce = 450.0f;
         } else {
-          player[i]->jumpForce = player[i]->pos.v[1] + 400.0f;
+          player[i]->jumpForce = 400.0f;
         }
       }
     }
@@ -937,15 +935,14 @@ void player_update(void){
     }
 
     // Apply gravity
-    player[i]->vel.v[1] += GRAVITY * fixedTime;
+    player[i]->vel.v[1] = t3d_lerp(player[i]->vel.v[1], -GRAVITY, fixedTime);
 
     // Update player position
-    player[i]->pos.v[1] += player[i]->vel.v[1] * fixedTime;
+    player[i]->pos.v[1] = t3d_lerp(player[i]->pos.v[1], player[i]->vel.v[1], fixedTime);
 
     // Update player bounding box
-    player[i]->hitbox.center.v[0] = player[i]->pos.v[0];
-    player[i]->hitbox.center.v[1] = player[i]->pos.v[1] + player[i]->hitbox.radius;
-    player[i]->hitbox.center.v[2] = player[i]->pos.v[2];
+    t3d_vec3_lerp(&player[i]->hitbox.center, &player[i]->pos, &player[i]->hitbox.center, fixedTime);
+    player[i]->hitbox.center.v[1] = player[i]->hitbox.center.v[1] + player[i]->hitbox.radius;
 
     // Check for collision with players then actors then floor
     if(numPlayers > 1){

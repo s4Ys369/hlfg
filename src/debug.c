@@ -48,33 +48,22 @@ void debug_models_init(void){
   modelDebugSphere = t3d_model_load("rom:/models/sphere.t3dm");
 
   dplDebugText = NULL;
+  dplTri = NULL;
 
-  //triVerts = malloc_uncached(sizeof(T3DVertPacked) * 2);
-  //
-  //uint16_t norm = t3d_vert_pack_normal(&(T3DVec3){{ 0, 0, 1}});
-  //triVerts[0] = (T3DVertPacked){
-  //  .posA = {0,0,0}, .rgbaA = 0xFF0000'FF, .normA = norm,
-  //  .posB = {32,0,32}, .rgbaB = 0x00FF00'FF, .normB = norm,
-  //};
-  //triVerts[1] = (T3DVertPacked){
-  //  .posA = {64,0,64}, .rgbaA = 0x0000FF'FF, .normA = norm,
-  //  .posB = {0,0,0}, .rgbaB = 0xFF00FF'FF, .normB = norm,
-  //};
-  //
-  //triangleMatFP = malloc_uncached(sizeof(T3DMat4FP));
-  //t3d_mat4fp_from_srt_euler(triangleMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
-  //
-  //rspq_block_begin();
-  //  t3d_matrix_push_pos(1);
-  //  t3d_matrix_set(triangleMatFP, true);
-  //  t3d_vert_load(triVerts, 62, 4);
-  //  t3d_tri_draw(0, 1, 2);
-  //  t3d_tri_sync();
-  //  t3d_matrix_pop(1);
-  //
-  //dplTri = rspq_block_end();
-  //
-  //rspq_block_run(dplTri);
+  triVerts = malloc_uncached(sizeof(T3DVertPacked) * 2);
+  
+  uint16_t norm = t3d_vert_pack_normal(&(T3DVec3){{ 0, 0, 1}});
+  triVerts[0] = (T3DVertPacked){
+    .posA = {0,0,0}, .rgbaA = 0xFF0000'7F, .normA = norm,
+    .posB = {32,0,32}, .rgbaB = 0x00FF00'7F, .normB = norm,
+  };
+  triVerts[1] = (T3DVertPacked){
+    .posA = {64,0,64}, .rgbaA = 0x0000FF'99, .normA = norm,
+    .posB = {0,0,0}, .rgbaB = 0xFF00FF'99, .normB = norm,
+  };
+  
+  triangleMatFP = malloc_uncached(sizeof(T3DMat4FP));
+  t3d_mat4fp_from_srt_euler(triangleMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
 }
 
@@ -156,16 +145,18 @@ void draw_debug_ui(void){
       "Z %.2f\n"
       "State %s\n"
       "Grounded %d\n"
-      "Speed %.2f", 
+      "Speed %.2f\n"
+      "VelY %.2f", 
       player[0]->pos.v[0],
       player[0]->pos.v[1],
       player[0]->pos.v[2],
       playerStateStrings[playerState[0]],
       player[0]->isGrounded,
-      player[0]->currSpeed
+      player[0]->currSpeed,
+      player[0]->vel.v[1]
     );
 
-    posY+=80;
+    posY+=95;
 
     // Surfaces
     Surface dWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);
@@ -185,7 +176,7 @@ void draw_debug_ui(void){
 
     posY+=45;
 
-    // Actors
+    /* Actors
     int dBall = find_closest(player[0]->hitbox.center, balls, numBalls);
     float dDistBall = t3d_vec3_distance(&player[0]->hitbox.center, &balls[dBall]->hitbox.shape.sphere.center);
     bool dHitBall = check_sphere_collision(player[0]->hitbox, balls[dBall]->hitbox.shape.sphere);
@@ -211,7 +202,7 @@ void draw_debug_ui(void){
     
     //rdpq_text_printf(&textParams, nextFont, posX, posY, "Mats %u", matCount);
     
-    /*
+    
     posY+=10;
     print_stack_memory_uint32(???, 8 * sizeof(T3DMat4FP));
     */
@@ -230,6 +221,98 @@ text_debug = 1;
 
   if(btnheld[0].l){
     col_debug = 1;
+    Surface cFloor = find_closest_surface(player[0]->hitbox.center, testLevelFloor, testLevelFloorCount);
+    Surface cWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);
+    Surface cSlope = find_closest_surface(player[0]->hitbox.center, testLevelSlope, testLevelSlopeCount);
+    if(check_sphere_surface_collision(player[0]->hitbox, cFloor)){
+      triVerts[0].posA[0] = (int16_t)(cFloor.posA.v[0]);
+      triVerts[0].posA[1] = (int16_t)(cFloor.posA.v[1]);
+      triVerts[0].posA[2] = (int16_t)(cFloor.posA.v[2]);
+
+      triVerts[0].posB[0] = (int16_t)(cFloor.posB.v[0]);
+      triVerts[0].posB[1] = (int16_t)(cFloor.posB.v[1]);
+      triVerts[0].posB[2] = (int16_t)(cFloor.posB.v[2]);
+
+      triVerts[1].posA[0] = (int16_t)(cFloor.posC.v[0]);
+      triVerts[1].posA[1] = (int16_t)(cFloor.posC.v[1]);
+      triVerts[1].posA[2] = (int16_t)(cFloor.posC.v[2]);
+
+      if(!dplTri) {
+        rspq_block_begin();
+          rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
+          t3d_state_set_drawflags(T3D_FLAG_SHADED | T3D_FLAG_DEPTH);
+          t3d_matrix_push(triangleMatFP);
+          t3d_vert_load(triVerts, 0, 4);
+          t3d_matrix_pop(1);
+          t3d_tri_draw(0, 1, 2);
+          t3d_tri_sync();
+        dplTri = rspq_block_end();
+      }
+    }
+    if(check_sphere_surface_collision(player[0]->hitbox, cSlope)){
+      triVerts[0].posA[0] = (int16_t)(cSlope.posA.v[0]);
+      triVerts[0].posA[1] = (int16_t)(cSlope.posA.v[1]);
+      triVerts[0].posA[2] = (int16_t)(cSlope.posA.v[2]);
+
+      triVerts[0].posB[0] = (int16_t)(cSlope.posB.v[0]);
+      triVerts[0].posB[1] = (int16_t)(cSlope.posB.v[1]);
+      triVerts[0].posB[2] = (int16_t)(cSlope.posB.v[2]);
+
+      triVerts[1].posA[0] = (int16_t)(cSlope.posC.v[0]);
+      triVerts[1].posA[1] = (int16_t)(cSlope.posC.v[1]);
+      triVerts[1].posA[2] = (int16_t)(cSlope.posC.v[2]);
+
+      if(!dplTri) {
+        rspq_block_begin();
+
+          rdpq_sync_pipe();
+
+          rdpq_set_mode_standard();
+          rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
+          t3d_state_set_drawflags(T3D_FLAG_SHADED | T3D_FLAG_DEPTH);
+          rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+
+          t3d_matrix_push(triangleMatFP);
+          t3d_vert_load(triVerts, 0, 4);
+          t3d_matrix_pop(1);
+          t3d_tri_draw(0, 1, 2);
+
+          t3d_tri_sync();
+        dplTri = rspq_block_end();
+      }
+    }
+    if(check_sphere_surface_collision(player[0]->hitbox, cWall)){
+      triVerts[0].posA[0] = (int16_t)(cWall.posA.v[0]);
+      triVerts[0].posA[1] = (int16_t)(cWall.posA.v[1]);
+      triVerts[0].posA[2] = (int16_t)(cWall.posA.v[2]);
+
+      triVerts[0].posB[0] = (int16_t)(cWall.posB.v[0]);
+      triVerts[0].posB[1] = (int16_t)(cWall.posB.v[1]);
+      triVerts[0].posB[2] = (int16_t)(cWall.posB.v[2]);
+
+      triVerts[1].posA[0] = (int16_t)(cWall.posC.v[0]);
+      triVerts[1].posA[1] = (int16_t)(cWall.posC.v[1]);
+      triVerts[1].posA[2] = (int16_t)(cWall.posC.v[2]);
+
+      if(!dplTri) {
+        rspq_block_begin();
+
+          rdpq_sync_pipe();
+
+          rdpq_set_mode_standard();
+          rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
+          t3d_state_set_drawflags(T3D_FLAG_SHADED | T3D_FLAG_DEPTH);
+          rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+
+          t3d_matrix_push(triangleMatFP);
+          t3d_vert_load(triVerts, 0, 4);
+          t3d_matrix_pop(1);
+          t3d_tri_draw(0, 1, 2);
+
+          t3d_tri_sync();
+        dplTri = rspq_block_end();
+      }
+    }
   } else {
     col_debug = 0;
   }

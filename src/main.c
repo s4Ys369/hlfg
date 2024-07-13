@@ -224,12 +224,9 @@ int main()
           rspq_block_run(dplProjectile[d]);
         }
         if(col_debug){
-          rspq_block_run(dplMap);
-          rspq_block_run(dplPlayerHitBox[d]);
-          rspq_block_run(dplProjectileHitBox[d]);
-          //rspq_block_run(dplMesh);
-          //rspq_block_run(dplMesh2);
-          //rspq_block_run(dplTri);
+          rspq_block_run(dplTri);
+          //rspq_block_run(dplPlayerHitBox[d]);
+          //rspq_block_run(dplProjectileHitBox[d]);
         }
       }
 
