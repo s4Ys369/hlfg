@@ -581,7 +581,7 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
 
     // Check distances per surface
     if(surf.type == SURFACE_SLOPE) {
-        if (dist <= sphere.radius*2) {
+        if (dist <= sphere.radius * 1.2f) {
             if (dist2 <= sphere.radius*6) {
                 return true;
             } else {
@@ -641,7 +641,7 @@ Surface find_closest_surface(T3DVec3 position, Surface* surfaces, int numSurface
 
     for (int i = 0; i < numSurfaces; ++i) {
         dist = t3d_vec3_distance(&position, &surfaces[i].center);
-        if (dist < minDistance) {
+        if (!isnan(dist) && dist < minDistance) {
             minDistance = dist;
             closestSurface = surfaces[i];
         }
@@ -769,7 +769,11 @@ RaycastResult closest_surface_below_raycast(T3DVec3 startPos, Surface* surfaces,
     }
 
     closestRayResult.surf = closestSurface;
-    closestRayResult.posY = intersectionY;
+    if(!isnan(intersectionY)){
+        closestRayResult.posY = intersectionY;
+    } else {
+        closestRayResult.posY = 0;
+    }
     return closestRayResult;
 }
 
