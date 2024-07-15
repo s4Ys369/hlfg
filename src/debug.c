@@ -117,7 +117,7 @@ void draw_debug_ui(void){
 
   rdpq_textparms_t textParams = {
     .width = 100,
-    .height = 100,
+    .height = 140,
     .disable_aa_fix = true,
     .style_id = STYLE_DEBUG,
   };
@@ -169,17 +169,21 @@ void draw_debug_ui(void){
       "State %s\n"
       "Grounded %d\n"
       "Speed %.2f\n"
-      "VelY %.2f", 
+      "\n"
+      "Rumble\n"
+      "Detected %d\n"
+      "Active %d", 
       player[0]->pos.v[0],
       player[0]->pos.v[1],
       player[0]->pos.v[2],
       playerStateStrings[playerState[0]],
       player[0]->isGrounded,
       player[0]->currSpeed,
-      player[0]->vel.v[1]
+      rumble_supported[0],
+      rumble_active[0]
     );
 
-    posY+=95;
+    posY+=140;
 
     // Surfaces
     Surface dWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);

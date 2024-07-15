@@ -10,6 +10,11 @@ joypad_buttons_t btn[MAX_PLAYERS];
 joypad_buttons_t btnheld[MAX_PLAYERS];
 
 int numPlayers;
+bool rumble_supported[MAX_PLAYERS];
+bool rumble_active[MAX_PLAYERS];
+bool rumbleLong[MAX_PLAYERS];
+bool rumbleShort[MAX_PLAYERS];
+bool rumbleWave[MAX_PLAYERS];
 
 // Init joypads and check how many are plugged in
 void input_init(void){
@@ -40,9 +45,71 @@ void input_init(void){
 #endif // ARES_1_PLAYER
 }
 
+
+int shortTimer = 0;
+// Simple 10 frame rumble
+void rumble_short(int numPlayer){
+    joypad_set_rumble_active(numPlayer, true);
+    rumble_active[numPlayer] = true;
+    shortTimer++;
+    if(shortTimer >= 10){
+        joypad_set_rumble_active(numPlayer, false);
+        rumbleShort[numPlayer] = false;
+        rumble_active[numPlayer] = false;
+        shortTimer = 0;
+    }
+}
+
+int longTimer = 0;
+// Simple 13 frame rumble
+void rumble_long(int numPlayer){
+    joypad_set_rumble_active(numPlayer, true);
+    rumble_active[numPlayer] = true;
+    longTimer++;
+    if(longTimer >= 13){
+        joypad_set_rumble_active(numPlayer, false);
+        rumble_active[numPlayer] = false;
+        rumbleLong[numPlayer] = false;
+        longTimer = 0;
+    }
+}
+
+
+int sineTimer = 0;
+const float freq = 0.2f;
+const float amplitude = 15.0f;
+const float threshold = 0.0f;
+// Rumble that has a sine wave pulse
+void rumble_wave(int numPlayer) {
+    float sineValue = sinf(sineTimer * freq * 2 * T3D_PI);
+    sineTimer++;
+    if(sineTimer < 60){
+        if (sineValue > threshold) {
+            // Turn rumble on
+            joypad_set_rumble_active(numPlayer, true);
+            rumbleWave[numPlayer] = true;
+            rumble_active[numPlayer] = true;
+        } else {
+            // Turn rumble off
+            joypad_set_rumble_active(numPlayer, false);
+            rumble_active[numPlayer] = false;
+            rumbleWave[numPlayer] = false;
+        }
+    } else {
+        // Turn rumble off
+        joypad_set_rumble_active(numPlayer, false);
+        rumble_active[numPlayer] = false;
+        rumbleWave[numPlayer] = false;
+        sineTimer = 0;
+        sineValue = 0;
+    }
+
+}
+
 // Poll joypads based on number of players
 void input_update(void){
     joypad_poll();
+
     switch(numPlayers){
         case PLAYERS_0:
         case PLAYERS_1:
@@ -84,4 +151,22 @@ void input_update(void){
             btnheld[3] = joypad_get_buttons_held(JOYPAD_PORT_4);
             break;
     }
+
+    for(int np = 0; np < numPlayers; ++np){
+        rumble_supported[np] = joypad_get_rumble_supported(np);
+        if(rumbleLong[np]) {
+            rumble_long(np);
+        }
+        if(rumbleShort[np]){
+            rumble_short(np);
+        }
+        if(rumbleWave[np]){
+            rumble_wave(np);
+        }
+        if(btn[np].l){
+            joypad_set_rumble_active(np, false);
+            rumble_active[np] = false;
+        }
+    }
+
 }

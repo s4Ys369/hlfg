@@ -215,6 +215,9 @@ void player_init(void){
 
       if (check_sphere_box_collision(player[p]->hitbox, FloorBox)) {
         player[p]->pos = playerStartPos;
+        if(!rumbleLong[p] && !rumbleShort[p] && !rumbleWave[p]){
+          rumbleShort[p] = true;
+        }
       }
     }
   }
@@ -326,6 +329,10 @@ void player_bounced(PlayerParams *player[], int playerCount) {
   float bounceMultiplier = 1.8f;
 
   playerState[playerCount] = PLAYER_JUMP_START;
+
+  if(!rumbleLong[playerCount] && !rumbleShort[playerCount] && !rumbleWave[playerCount]){
+    rumbleLong[playerCount] = true;
+  }
 
   player[playerCount]->vel.v[1] += (player[playerCount]->jumpForce * bounceMultiplier) + GRAVITY * jumpFixedTime;
 
@@ -543,6 +550,9 @@ void player_update(void){
     {
       sound_jump();
       playerState[i] = PLAYER_JUMP_START;
+      if(!rumbleLong[i] && !rumbleShort[i] && !rumbleWave[i]){
+        rumbleShort[i] = true;
+      }
     }
   }
 
@@ -550,7 +560,9 @@ void player_update(void){
   if(btn[i].b) {
     sound_attack();
     playerState[i] = PLAYER_ATTACK_START;
-
+    if(!rumbleLong[i] && !rumbleShort[i] && !rumbleWave[i]){
+      rumbleShort[i] = true;
+    }
   }
 
   // Player movement
@@ -685,6 +697,9 @@ void player_update(void){
   while(playerState[i] == PLAYER_LAND){
     player[i]->scale.v[1] = 1.0f;
     playerState[i] = PLAYER_IDLE;
+    if(!rumbleLong[i] && !rumbleShort[i] && !rumbleWave[i]){
+        rumbleLong[i] = true;
+      }
     break;
   }
 
@@ -693,6 +708,9 @@ void player_update(void){
     player[i]->scale.v[1] = 1.0f;
     player[i]->cam.camPos.v[1] = player[i]->hitbox.center.v[1];
     player[i]->cam.camTarget.v[1] = player[i]->hitbox.center.v[1];
+    if(!rumbleLong[i] && !rumbleShort[i] && !rumbleWave[i]){
+      rumbleWave[i] = true;
+    }
     playerState[i] = PLAYER_WALK;
   }
 
