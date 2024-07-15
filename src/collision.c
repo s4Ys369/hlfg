@@ -581,7 +581,7 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
 
     // Check distances per surface
     if(surf.type == SURFACE_SLOPE) {
-        if (dist <= sphere.radius * 1.2f) {
+        if (dist <= sphere.radius * 1.5f) {
             if (dist2 <= sphere.radius*6) {
                 return true;
             } else {
@@ -592,13 +592,13 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
             return false;
         }
     } else if(surf.type == SURFACE_WALL) {
-        if (dist <= sphere.radius) {
+        if (dist <= sphere.radius*1.2) {
             return true;
         } else {
             return false;
         }
     } else if(surf.type == SURFACE_FLOOR) {
-        if (dist <= sphere.radius*2) {
+        if (dist <= sphere.radius*2.2) {
             if (dist2 <= sphere.radius*4) {
                 return true;
             } else {
@@ -689,8 +689,8 @@ void resolve_sphere_surface_collision(Sphere *sphere, T3DVec3 *position, T3DVec3
         sphere->center.v[2] = sphere->center.v[2] + move_direction.v[2];
 
         t3d_vec3_scale(&move_direction, &move_direction, 0.1f);
-        velocity->v[0] = sphere->center.v[0] - move_direction.v[0];
-        velocity->v[2] = sphere->center.v[2] - move_direction.v[2];
+        velocity->v[0] -= move_direction.v[0];
+        velocity->v[2] -= move_direction.v[2];
         position->v[0] = sphere->center.v[0];
         position->v[2] = sphere->center.v[2];
     }
@@ -878,7 +878,7 @@ void combine_normals(T3DVec3* normals, int count, T3DVec3* combinedNormal) {
 void resolve_multi_collision(Sphere* sphere, T3DVec3* position, T3DVec3* velocity, T3DVec3* normal, float penetrationDepth) {
     T3DVec3 moveDirection;
     t3d_vec3_scale(&moveDirection, normal, penetrationDepth);
-    t3d_vec3_add(&sphere->center, &sphere->center, &moveDirection);
+    t3d_vec3_diff(&sphere->center, &sphere->center, &moveDirection);
 
     // Adjust position and velocity accordingly
     position->v[0] = sphere->center.v[0];
