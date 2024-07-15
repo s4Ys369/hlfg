@@ -592,15 +592,20 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
             return false;
         }
     } else if(surf.type == SURFACE_WALL) {
-        if (dist <= sphere.radius+0.1f) {
+        if (dist <= sphere.radius) {
             return true;
         } else {
             return false;
         }
     } else if(surf.type == SURFACE_FLOOR) {
-        if (dist <= sphere.radius+0.1f) {
-            return true;
+        if (dist <= sphere.radius*2) {
+            if (dist2 <= sphere.radius*4) {
+                return true;
+            } else {
+               return false; 
+            }
         } else {
+            // No collision
             return false;
         }
     } else {
@@ -804,6 +809,109 @@ void find_closest_surfaces(T3DVec3 position, Surface* surfaces, int numSurfaces,
     }
 
     free(surfaceDistances);
+}
+
+// Function to find the closest 3 surfaces of any type within a specified range
+void find_closest_surfaces_any_type(T3DVec3 position, Surface* surfaces, int numSurfaces, Surface* closestSurfaces, int* closestCount, float range) {
+    SurfaceDistance* surfaceDistances = (SurfaceDistance*)malloc(numSurfaces * sizeof(SurfaceDistance));
+
+    // Calculate the distance to each surface and store it in surfaceDistances
+    int count = 0;
+    for (int i = 0; i < numSurfaces; ++i) {
+        float distance = t3d_vec3_distance(&position, &surfaces[i].center);
+        if (distance <= range) {
+            surfaceDistances[count].surface = surfaces[i];
+            surfaceDistances[count].distance = distance;
+            count++;
+        }
+    }
+
+    // Sort the surfaces by distance
+    qsort(surfaceDistances, count, sizeof(SurfaceDistance), compare_surface_distance);
+
+    // Collect the closest 3 surfaces
+    *closestCount = (count < 3) ? count : 3;
+    for (int i = 0; i < *closestCount; ++i) {
+        closestSurfaces[i] = surfaceDistances[i].surface;
+    }
+
+    free(surfaceDistances);
+}
+
+// Function to combine multiple surface arrays into a single array
+void combine_surfaces(Surface* combinedArray, int* combinedCount, Surface* floorArray, int floorCount, Surface* slopeArray, int slopeCount, Surface* wallArray, int wallCount) {
+    int count = 0;
+
+    // Copy floor surfaces
+    memcpy(&combinedArray[count], floorArray, floorCount * sizeof(Surface));
+    count += floorCount;
+
+    // Copy slope surfaces
+    memcpy(&combinedArray[count], slopeArray, slopeCount * sizeof(Surface));
+    count += slopeCount;
+
+    // Copy wall surfaces
+    memcpy(&combinedArray[count], wallArray, wallCount * sizeof(Surface));
+    count += wallCount;
+
+    *combinedCount = count;
+}
+
+void combine_normals(T3DVec3* normals, int count, T3DVec3* combinedNormal) {
+    combinedNormal->v[0] = 0;
+    combinedNormal->v[1] = 0;
+    combinedNormal->v[2] = 0;
+
+    for (int i = 0; i < count; ++i) {
+        combinedNormal->v[0] += normals[i].v[0];
+        combinedNormal->v[1] += normals[i].v[1];
+        combinedNormal->v[2] += normals[i].v[2];
+    }
+
+    t3d_vec3_norm(combinedNormal);
+}
+
+void resolve_multi_collision(Sphere* sphere, T3DVec3* position, T3DVec3* velocity, T3DVec3* normal, float penetrationDepth) {
+    T3DVec3 moveDirection;
+    t3d_vec3_scale(&moveDirection, normal, penetrationDepth);
+    t3d_vec3_add(&sphere->center, &sphere->center, &moveDirection);
+
+    // Adjust position and velocity accordingly
+    position->v[0] = sphere->center.v[0];
+    position->v[1] = sphere->center.v[1];
+    position->v[2] = sphere->center.v[2];
+
+    // Zero out the velocity component in the direction of the normal
+    float dot = t3d_vec3_dot(velocity, normal);
+    T3DVec3 normalComponent;
+    t3d_vec3_scale(&normalComponent, normal, dot);
+    t3d_vec3_diff(velocity, velocity, &normalComponent);
+}
+
+void handle_multi_collisions(Sphere* sphere, T3DVec3* position, T3DVec3* velocity, Surface* surfaces, int numSurfaces) {
+    T3DVec3 normals[3]; // Assuming at most 3 surfaces at corners
+    int collisionCount = 0;
+    float penetrationDepth = 0;
+
+    for (int i = 0; i < numSurfaces; ++i) {
+        Surface* surf = &surfaces[i];
+        if (check_sphere_surface_collision(*sphere, *surf)) {
+            T3DVec3 normal = calc_surface_norm(*surf);
+            normals[collisionCount] = normal;
+            // Compute penetration depth
+            T3DVec3 surfToSphere;
+            t3d_vec3_diff(&surfToSphere, &sphere->center, &surf->posA);
+            float dist = t3d_vec3_dot(&normal, &surfToSphere);
+            penetrationDepth = sphere->radius - dist;
+            collisionCount++;
+        }
+    }
+
+    if (collisionCount > 0) {
+        T3DVec3 combinedNormal;
+        combine_normals(normals, collisionCount, &combinedNormal);
+        resolve_multi_collision(sphere, position, velocity, &combinedNormal, penetrationDepth);
+    }
 }
 
 // Catch all

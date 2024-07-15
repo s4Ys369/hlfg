@@ -218,6 +218,8 @@ int testLevelSlopeCount = 36;
 Surface testLevelSlope[36];
 int testLevelWallCount = 184;
 Surface testLevelWall[184];
+int testLevelSurfacesCount = 0;
+Surface testLevelSurfaces[350];
 
 void test_level_init(void){
 
@@ -597,6 +599,13 @@ void test_level_init(void){
         testLevelWall[i].center = calc_surface_center(testLevelWall[i]);
         testLevelWall[i].normal = calc_surface_norm(testLevelWall[i]);
     }
+
+    combine_surfaces(
+        testLevelSurfaces, &testLevelSurfacesCount, 
+        testLevelFloor, testLevelFloorCount, 
+        testLevelSlope, testLevelSlopeCount, 
+        testLevelWall, testLevelWallCount
+    );
 
     // Allocate map's matrix and construct
     testLevelMatFP = malloc_uncached(sizeof(T3DMat4FP));

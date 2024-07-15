@@ -62,7 +62,9 @@ void resolve_sphere_surface_collision(Sphere *sphere, T3DVec3 *position, T3DVec3
 bool ray_intersects_surface(T3DVec3 rayOrigin, T3DVec3 rayDir, Surface surface, float* intersectionAngle);
 RaycastResult closest_surface_below_raycast(T3DVec3 startPos, Surface* surfaces, int surfaceCount);
 void find_closest_surfaces(T3DVec3 position, Surface* surfaces, int numSurfaces, Surface* closestSurfaces, int* closestCount, SURFACE_TYPE type, float range);
-
+void find_closest_surfaces_any_type(T3DVec3 position, Surface* surfaces, int numSurfaces, Surface* closestSurfaces, int* closestCount, float range);
+void combine_surfaces(Surface* combinedArray, int* combinedCount, Surface* floorArray, int floorCount, Surface* slopeArray, int slopeCount, Surface* wallArray, int wallCount);
+void handle_multi_collisions(Sphere* sphere, T3DVec3* position, T3DVec3* velocity, Surface* surfaces, int numSurfaces);
 bool check_collisions(CollisionShape a, CollisionShape b);
 
 #endif // COLLISION_H
