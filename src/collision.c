@@ -592,13 +592,17 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
             return false;
         }
     } else if(surf.type == SURFACE_WALL) {
-        if (dist <= sphere.radius*1.2) {
-            return true;
+        if (dist <= sphere.radius) {
+            if (surf.center.v[1] >= sphere.center.v[1]) {
+                return true;
+            } else {
+               return false; 
+            }
         } else {
             return false;
         }
     } else if(surf.type == SURFACE_FLOOR) {
-        if (dist <= sphere.radius*2.2) {
+        if (dist <= sphere.radius) {
             if (dist2 <= sphere.radius*4) {
                 return true;
             } else {
@@ -685,12 +689,13 @@ void resolve_sphere_surface_collision(Sphere *sphere, T3DVec3 *position, T3DVec3
     if(surf->type == SURFACE_WALL) {
 
         t3d_vec3_scale(&move_direction, &N, penetration_depth);
-        sphere->center.v[0] = sphere->center.v[0] + move_direction.v[0];
-        sphere->center.v[2] = sphere->center.v[2] + move_direction.v[2];
+        
+        sphere->center.v[0] = t3d_lerp(sphere->center.v[0], sphere->center.v[0] + move_direction.v[0], 0.7f);
+        sphere->center.v[2] = t3d_lerp(sphere->center.v[2], sphere->center.v[2] + move_direction.v[2], 0.7f);
 
-        t3d_vec3_scale(&move_direction, &move_direction, 0.1f);
-        velocity->v[0] -= move_direction.v[0];
-        velocity->v[2] -= move_direction.v[2];
+
+        velocity->v[0] = velocity->v[0] * 0.5f; // Damp velocity to prevent oscillation
+        velocity->v[2] = velocity->v[2] * 0.5f;
         position->v[0] = sphere->center.v[0];
         position->v[2] = sphere->center.v[2];
     }
@@ -916,6 +921,66 @@ void handle_multi_collisions(Sphere* sphere, T3DVec3* position, T3DVec3* velocit
         combine_normals(normals, collisionCount, &combinedNormal);
         resolve_multi_collision(sphere, position, velocity, &combinedNormal, penetrationDepth);
     }
+}
+
+void get_closest_point_on_wall(T3DVec3* closestPoint, Surface* surface, T3DVec3* point) {
+    // Assuming the surface is a vertical wall, we'll only consider the x and z coordinates
+    closestPoint->v[0] = point->v[0];
+    closestPoint->v[1] = surface->center.v[1];
+    closestPoint->v[2] = point->v[2];
+}
+
+// Function to resolve collision with a corner formed by two walls
+void resolve_corner_collision(Sphere* sphere, T3DVec3* position, T3DVec3* velocity, Surface* wall1, Surface* wall2) {
+
+     // Calculate the closest point on each wall to the sphere
+    T3DVec3 closestPointWall1, closestPointWall2;
+    get_closest_point_on_wall(&closestPointWall1, wall1, &sphere->center);
+    get_closest_point_on_wall(&closestPointWall2, wall2, &sphere->center);
+
+    // Calculate vector from each closest point to the sphere center
+    T3DVec3 wall1ToSphere, wall2ToSphere;
+    t3d_vec3_diff(&wall1ToSphere, &sphere->center, &closestPointWall1);
+    t3d_vec3_diff(&wall2ToSphere, &sphere->center, &closestPointWall2);
+
+    // Calculate distances from the sphere center to the closest points on the walls
+    float distToWall1 = t3d_vec3_len(&wall1ToSphere);
+    float distToWall2 = t3d_vec3_len(&wall2ToSphere);
+
+    // Resolve collision if the sphere is penetrating either wall
+    if (distToWall1 < sphere->radius) {
+        float penetrationDepth = sphere->radius - distToWall1;
+        t3d_vec3_norm(&wall1ToSphere);
+        t3d_vec3_scale(&wall1ToSphere, &wall1ToSphere, penetrationDepth);
+        t3d_vec3_add(&sphere->center, &sphere->center, &wall1ToSphere);
+    }
+
+    if (distToWall2 < sphere->radius) {
+        float penetrationDepth = sphere->radius - distToWall2;
+        t3d_vec3_norm(&wall2ToSphere);
+        t3d_vec3_scale(&wall2ToSphere, &wall2ToSphere, penetrationDepth);
+        t3d_vec3_add(&sphere->center, &sphere->center, &wall2ToSphere);
+    }
+
+    // Adjust position and velocity accordingly
+    position->v[0] = sphere->center.v[0];
+    position->v[2] = sphere->center.v[2];
+
+    // Recalculate velocity to avoid pointing directly into the wall
+    T3DVec3 adjustedVelocity = *velocity;
+    T3DVec3 surfaceNormal;
+    t3d_vec3_cross(&surfaceNormal, &wall1->normal, &wall2->normal);
+    t3d_vec3_norm(&surfaceNormal);
+    float dot = t3d_vec3_dot(&adjustedVelocity, &surfaceNormal);
+    if (dot < 0) {
+        t3d_vec3_scale(&surfaceNormal, &surfaceNormal, dot);
+        t3d_vec3_diff(&adjustedVelocity, &adjustedVelocity, &surfaceNormal);
+    }
+
+    // Apply dampened adjusted velocity
+    velocity->v[0] = adjustedVelocity.v[0] * 0.5f;
+    velocity->v[2] = adjustedVelocity.v[2] * 0.5f;
+
 }
 
 // Catch all

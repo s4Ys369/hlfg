@@ -486,6 +486,8 @@ void get_batched_surfaces(int playerCount){
 void player_surface_collider(int playerCount){
 
   bool hitFloor = false, hitWall = false, hitSlope = false;
+  Surface* collidedWall1 = NULL;
+  Surface* collidedWall2 = NULL;
 
   // Check collisions with floors
   for (int i = 0; i < closestFloorsCount; ++i) {
@@ -497,12 +499,15 @@ void player_surface_collider(int playerCount){
   }
 
   // Check collisions with walls
-  for (int i = 0; i < closestWallsCount; ++i) {
-      if (check_sphere_surface_collision(player[playerCount]->hitbox, closestWalls[i])) {
-          hitWall = true;
-          currWall = closestWalls[i];
-          break; // Stop after finding the first collision
+  for (int w = 0; w < closestWallsCount; ++w) {
+    if (check_sphere_surface_collision(player[playerCount]->hitbox, closestWalls[w])) {
+      if (!hitWall) {
+        collidedWall1 = &closestWalls[w];
+      } else {
+        collidedWall2 = &closestWalls[w];
       }
+      hitWall = true;
+    }
   }
 
   // Check collisions with slopes
@@ -519,7 +524,10 @@ void player_surface_collider(int playerCount){
       player_to_slope(currSlope, playerCount);
       if (hitWall) player_to_wall(currWall, playerCount);
   } else if (hitWall) {
-      player_to_wall(currWall, playerCount);
+    player_to_wall(currWall, playerCount);
+  }
+  if (collidedWall1 && collidedWall2) {
+    resolve_corner_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, collidedWall1, collidedWall2);
   }
 
   hitSlope = hitWall = hitFloor = false;
