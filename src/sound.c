@@ -2,9 +2,7 @@
 #include "../include/enums.h"
 #include "sound.h"
 
-char *xm_fn = NULL;
-xm64player_t xm;
-wav64_t sfx_jump, sfx_attack, sfx_bounce, sfx_boing;
+wav64_t sfx_jump, sfx_attack, sfx_bounce, sfx_boing, bgm;
 
 
 // Configure depending on number of channels in xm
@@ -24,8 +22,8 @@ int MUSIC_CHANNEL[] = {
 #define MAX_CHANNELS 10
 
 void sound_load(void) {
-	xm64player_open(&xm, "rom:/sound/TOYS.xm64");
-
+	wav64_open(&bgm, "rom:/sound/ene.wav64");
+	wav64_set_loop(&bgm, true);
 	wav64_open(&sfx_jump, "rom:/sound/jump.wav64");
 	wav64_open(&sfx_attack, "rom:/sound/attack.wav64");
 	wav64_open(&sfx_bounce, "rom:/sound/bounce.wav64");
@@ -36,7 +34,7 @@ void sound_init(void) {
 	audio_init(44100, 4);
 	mixer_init(MAX_CHANNELS);
 	sound_load();
-	xm64player_play(&xm, MUSIC_CHANNEL[0]);
+	wav64_play(&bgm, MUSIC_CHANNEL[0]);
 	
 }
 
