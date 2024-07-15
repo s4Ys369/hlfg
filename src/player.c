@@ -439,9 +439,9 @@ void player_to_slope(Surface currSlope, int playerCount){
 
 // floor surface collisions
 void player_to_floor(Surface currFloor, int playerCount){
-    if(player[playerCount]->isGrounded == true && player[playerCount]->pos.v[1] <= currFloor.center.v[1]){
-      player[playerCount]->pos.v[1] = currFloor.center.v[1];
+    if(player[playerCount]->isGrounded){
       resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, &currFloor);
+      player[playerCount]->pos.v[1] = currFloor.posA.v[1];
     }
     if (!player[playerCount]->isGrounded){
       playerState[playerCount] = PLAYER_LAND;
@@ -947,13 +947,14 @@ void player_update(void){
   player[i]->shadowPos.v[2] = player[i]->pos.v[2];
   player[i]->shadowRot = player[i]->rot;
   RaycastResult raySlope = closest_surface_below_raycast(player[i]->pos, testLevelSlope, testLevelSlopeCount);
+  Surface shadowSlope = find_closest_surface(player[i]->pos, testLevelSlope, testLevelSlopeCount);
   
   float dist_player_next_floor = distance_to_surface(player[i]->hitbox.center, currFloor);
-  float dist_player_next_slope = distance_to_surface(player[i]->hitbox.center, currSlope);
+  float dist_player_next_slope = distance_to_surface(player[i]->hitbox.center, shadowSlope);
   
   bool shadowOnSlope = false;
 
-  if (dist_player_next_slope < dist_player_next_floor){
+  if (!isnan(dist_player_next_slope) && !isnan(dist_player_next_floor) && dist_player_next_slope < dist_player_next_floor){
     shadowOnSlope = true;
   } else {
     shadowOnSlope = false;
@@ -962,13 +963,25 @@ void player_update(void){
 
   if(!player[i]->isGrounded){
     if(shadowOnSlope){
-      if(dist_player_next_slope > player[i]->hitbox.radius*2.0f){    
-        player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], raySlope.posY, 0.7f);
+      if(!isnan(dist_player_next_slope) && dist_player_next_slope > player[i]->hitbox.radius*2.0f){
+        if(!isnan(raySlope.posY)){
+          player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], raySlope.posY, 0.7f);
+        } else {
+          player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], 0, 0.7f);
+        }
       } else { 
-        player[i]->shadowPos.v[1] = nextFloor.surf.center.v[1];
+        if(!isnan(nextFloor.posY)){
+          player[i]->shadowPos.v[1] = nextFloor.posY;
+        } else {
+          player[i]->shadowPos.v[1] = player[i]->pos.v[1];
+        }
       }
     } else {
-      player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], nextFloor.surf.center.v[1], 0.7f);
+      if(!isnan(nextFloor.posY)){
+        player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], nextFloor.posY, 0.7f);
+      } else {
+        player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], 0, 0.7f);
+      }
     }
   } else {
     player[i]->shadowPos.v[1] = player[i]->pos.v[1];
