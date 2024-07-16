@@ -182,7 +182,7 @@ void crates_init(void){
       t3d_matrix_push_pos(1);
       matCount++;
       t3d_matrix_set(crateMatFP[i], true);
-      rdpq_set_prim_color(WHITE);
+      rdpq_set_prim_color(crateColor[i]);
       t3d_matrix_set(crateMatFP[i], true);
       t3d_model_draw(modelCrate);
       t3d_matrix_pop(1);
@@ -316,7 +316,7 @@ void ball_surface_collider(int ballCount){
 
 void actors_init(void){
 
-  modelCrate = t3d_model_load("rom:/models/spring.t3dm");
+  modelCrate = t3d_model_load("rom:/models/box.t3dm");
   crates_init();
   modelBall = t3d_model_load("rom:/models/sphere.t3dm");
   balls_init();
