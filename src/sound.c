@@ -31,7 +31,7 @@ void sound_load(void) {
 }
 
 void sound_init(void) {
-	audio_init(44100, 4);
+	audio_init(48000, 4);
 	mixer_init(MAX_CHANNELS);
 	sound_load();
 	wav64_play(&bgm, MUSIC_CHANNEL[0]);

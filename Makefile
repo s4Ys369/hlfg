@@ -88,6 +88,8 @@ filesystem/sound/%.wav64: assets/sound/%.wav
 	@echo "    [AUDIO] $@"
 	@$(N64_AUDIOCONV) $(AUDIOCONV_FLAGS) -o $(dir $@) "$<"
 
+filesystem/sound/ene.wav64: AUDIOCONV_FLAGS=--wav-compress 3
+
 $(BUILD_DIR)/$(PROJECT_NAME).dfs: $(assets_conv)
 $(BUILD_DIR)/$(PROJECT_NAME).elf: $(src:%.c=$(BUILD_DIR)/%.o)
 
