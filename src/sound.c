@@ -2,11 +2,13 @@
 #include "../include/enums.h"
 #include "sound.h"
 
-wav64_t sfx_jump, sfx_attack, sfx_bounce, sfx_boing, bgm;
+char *xm_fn = NULL;
+xm64player_t xm;
+wav64_t sfx_jump, sfx_attack, sfx_bounce, sfx_boing;
 
 
 // Configure depending on number of channels in xm
-#define MAX_BGM_CHANNELS 8
+#define MAX_BGM_CHANNELS 16
 int MUSIC_CHANNEL[] = {
 	BGM1,
 	BGM2,
@@ -15,15 +17,21 @@ int MUSIC_CHANNEL[] = {
 	BGM5,
 	BGM6,
 	BGM7,
-	BGM8
+	BGM8,
+	BGM9,
+	BGM10,
+	BGM11,
+	BGM12,
+	BGM13,
+	BGM14,
+	BGM15,
+	BGM16
 };
 
-// based on SFX channels (currently 2) plus BGM channels
-#define MAX_CHANNELS 10
 
 void sound_load(void) {
-	wav64_open(&bgm, "rom:/sound/ene.wav64");
-	wav64_set_loop(&bgm, true);
+	xm64player_open(&xm, "rom:/sound/ene.xm64");
+
 	wav64_open(&sfx_jump, "rom:/sound/jump.wav64");
 	wav64_open(&sfx_attack, "rom:/sound/attack.wav64");
 	wav64_open(&sfx_bounce, "rom:/sound/bounce.wav64");
@@ -32,9 +40,9 @@ void sound_load(void) {
 
 void sound_init(void) {
 	audio_init(48000, 4);
-	mixer_init(MAX_CHANNELS);
+	mixer_init(NUM_CHANNELS);
 	sound_load();
-	wav64_play(&bgm, MUSIC_CHANNEL[0]);
+	xm64player_play(&xm, MUSIC_CHANNEL[0]);
 	
 }
 

@@ -72,8 +72,16 @@ typedef enum {
 	BGM5,
 	BGM6,
 	BGM7,
-	BGM8
-    // add more?
+	BGM8,
+    BGM9,
+	BGM10,
+	BGM11,
+	BGM12,
+	BGM13,
+	BGM14,
+	BGM15,
+	BGM16,
+    NUM_CHANNELS
 } SOUND_CHANNEL;
 
 
