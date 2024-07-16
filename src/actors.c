@@ -179,9 +179,11 @@ void crates_init(void){
 
     // Create gfx call to draw crate
     rspq_block_begin();
+      t3d_matrix_push_pos(1);
       matCount++;
+      t3d_matrix_set(crateMatFP[i], true);
       rdpq_set_prim_color(WHITE);
-      t3d_matrix_push(crateMatFP[i]);
+      t3d_matrix_set(crateMatFP[i], true);
       t3d_model_draw(modelCrate);
       t3d_matrix_pop(1);
     dplCrate[i] = rspq_block_end();
