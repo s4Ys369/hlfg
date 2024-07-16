@@ -581,8 +581,8 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
 
     // Check distances per surface
     if(surf.type == SURFACE_SLOPE) {
-        if (dist <= sphere.radius * 1.5f) {
-            if (dist2 <= sphere.radius*6) {
+        if (dist <= sphere.radius*1.3f) {
+            if (dist2 <= sphere.radius*5.0f) {
                 return true;
             } else {
                return false; 
@@ -592,7 +592,7 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
             return false;
         }
     } else if(surf.type == SURFACE_WALL) {
-        if (dist <= sphere.radius) {
+        if (dist <= sphere.radius*1.1f) {
             if (surf.center.v[1] >= sphere.center.v[1]) {
                 return true;
             } else {
@@ -602,8 +602,8 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
             return false;
         }
     } else if(surf.type == SURFACE_FLOOR) {
-        if (dist <= sphere.radius*1.2f) {
-            if (dist2 <= sphere.radius*4) {
+        if (dist <= sphere.radius*1.5f) {
+            if (dist2 <= sphere.radius*4.0f) {
                 return true;
             } else {
                return false; 
@@ -688,7 +688,7 @@ void resolve_sphere_surface_collision(Sphere *sphere, T3DVec3 *position, T3DVec3
     }
     if(surf->type == SURFACE_WALL) {
 
-        t3d_vec3_scale(&move_direction, &N, penetration_depth);
+        t3d_vec3_scale(&move_direction, &N, (penetration_depth*1.1f));
         
         sphere->center.v[0] = t3d_lerp(sphere->center.v[0], sphere->center.v[0] + move_direction.v[0], 0.7f);
         sphere->center.v[2] = t3d_lerp(sphere->center.v[2], sphere->center.v[2] + move_direction.v[2], 0.7f);
@@ -930,10 +930,9 @@ void get_closest_point_on_wall(T3DVec3* closestPoint, Surface* surface, T3DVec3*
     closestPoint->v[2] = point->v[2];
 }
 
-// Function to resolve collision with a corner formed by two walls
-void resolve_corner_collision(Sphere* sphere, T3DVec3* position, T3DVec3* velocity, Surface* wall1, Surface* wall2) {
-
-     // Calculate the closest point on each wall to the sphere
+// Function to resolve collision with a corner formed by two walls and keep track of the floor collision
+void resolve_corner_collision(Sphere* sphere, T3DVec3* position, T3DVec3* velocity, Surface* wall1, Surface* wall2, Surface* floor) {
+    // Calculate the closest point on each wall to the sphere
     T3DVec3 closestPointWall1, closestPointWall2;
     get_closest_point_on_wall(&closestPointWall1, wall1, &sphere->center);
     get_closest_point_on_wall(&closestPointWall2, wall2, &sphere->center);
@@ -948,25 +947,45 @@ void resolve_corner_collision(Sphere* sphere, T3DVec3* position, T3DVec3* veloci
     float distToWall2 = t3d_vec3_len(&wall2ToSphere);
 
     // Resolve collision if the sphere is penetrating either wall
-    if (distToWall1 < sphere->radius) {
+    if (distToWall1*1.1f < sphere->radius) {
         float penetrationDepth = sphere->radius - distToWall1;
         t3d_vec3_norm(&wall1ToSphere);
         t3d_vec3_scale(&wall1ToSphere, &wall1ToSphere, penetrationDepth);
-        t3d_vec3_add(&sphere->center, &sphere->center, &wall1ToSphere);
+        sphere->center.v[0] += wall1ToSphere.v[0];
+        sphere->center.v[2] += wall1ToSphere.v[2];
     }
 
-    if (distToWall2 < sphere->radius) {
+    if (distToWall2*1.1f < sphere->radius) {
         float penetrationDepth = sphere->radius - distToWall2;
         t3d_vec3_norm(&wall2ToSphere);
         t3d_vec3_scale(&wall2ToSphere, &wall2ToSphere, penetrationDepth);
-        t3d_vec3_add(&sphere->center, &sphere->center, &wall2ToSphere);
+        sphere->center.v[0] += wall2ToSphere.v[0];
+        sphere->center.v[2] += wall2ToSphere.v[2];
     }
 
     // Adjust position and velocity accordingly
     position->v[0] = sphere->center.v[0];
     position->v[2] = sphere->center.v[2];
 
-    // Recalculate velocity to avoid pointing directly into the wall
+    // Handle floor collision to keep the player grounded
+    T3DVec3 closestPointFloor;
+    get_closest_point_on_wall(&closestPointFloor, floor, &sphere->center);
+    T3DVec3 floorToSphere;
+    t3d_vec3_diff(&floorToSphere, &sphere->center, &closestPointFloor);
+    float distToFloor = t3d_vec3_len(&floorToSphere);
+
+    if (distToFloor*1.1f < sphere->radius) {
+        float penetrationDepth = sphere->radius - distToFloor;
+        sphere->center.v[0] += penetrationDepth;
+        sphere->center.v[1] += penetrationDepth;
+        sphere->center.v[2] += penetrationDepth;
+        position->v[1] = sphere->center.v[1];
+        position->v[0] = sphere->center.v[0];
+        position->v[2] = sphere->center.v[2];
+        velocity->v[1] = 0; // Reset vertical velocity to keep grounded
+    }
+
+    // Recalculate velocity to avoid pointing directly into the walls
     T3DVec3 adjustedVelocity = *velocity;
     T3DVec3 surfaceNormal;
     t3d_vec3_cross(&surfaceNormal, &wall1->normal, &wall2->normal);
@@ -980,7 +999,6 @@ void resolve_corner_collision(Sphere* sphere, T3DVec3* position, T3DVec3* veloci
     // Apply dampened adjusted velocity
     velocity->v[0] = adjustedVelocity.v[0] * 0.5f;
     velocity->v[2] = adjustedVelocity.v[2] * 0.5f;
-
 }
 
 // Catch all

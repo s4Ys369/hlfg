@@ -527,7 +527,7 @@ void player_surface_collider(int playerCount){
     player_to_wall(currWall, playerCount);
   }
   if (collidedWall1 && collidedWall2) {
-    resolve_corner_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, collidedWall1, collidedWall2);
+    resolve_corner_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, collidedWall1, collidedWall2, closestFloors);
   }
 
   hitSlope = hitWall = hitFloor = false;
