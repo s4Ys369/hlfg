@@ -602,7 +602,7 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
             return false;
         }
     } else if(surf.type == SURFACE_FLOOR) {
-        if (dist <= sphere.radius) {
+        if (dist <= sphere.radius*1.2f) {
             if (dist2 <= sphere.radius*4) {
                 return true;
             } else {

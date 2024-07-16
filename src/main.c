@@ -56,16 +56,10 @@ int main()
 
     get_jump_time();
     input_update();
+    sound_update_buffer();
 
     // Simple Pause State
     if (!isPaused){
-
-      //Don't worry about sound when dealing multiplayer
-      if(numPlayers < 2){
-        sound_update_buffer();
-      }
-
-
       actors_update();
       player_update();
       cam_update();
