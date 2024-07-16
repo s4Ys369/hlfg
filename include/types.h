@@ -81,6 +81,18 @@ typedef struct {
     bool IsBouncy;
 } Actor;
 
+// LEVELS
+typedef struct {
+    int floorCount;
+    Surface* floors;
+    int slopeCount;
+    Surface* slopes;
+    int wallCount;
+    Surface* walls;
+    int totalSurfaceCount;
+    Surface* surfaces;
+} LevelSurfaces;
+
 // PLAYER
 typedef struct {
     T3DVec3 pos;

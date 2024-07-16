@@ -33,6 +33,7 @@ src =   src/main.c \
 		src/collision.c \
 		src/debug.c \
 		src/input.c \
+		src/levels.c \
 		src/map.c \
 		src/player.c \
 		src/sound.c \

@@ -9,6 +9,7 @@
 #include "collision.h"
 #include "debug.h"
 #include "input.h"
+#include "levels.h"
 #include "map.h"
 #include "player.h"
 #include "sound.h"
@@ -38,6 +39,7 @@ int main()
   debug_models_init();
 
   map_init();
+  levels_init();
   actors_init();
   player_init();
   cam_init();

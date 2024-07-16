@@ -11,6 +11,7 @@
 #include "collision.h"
 #include "debug.h"
 #include "input.h"
+#include "levels.h"
 #include "map.h"
 #include "player.h"
 #include "sound.h"
@@ -470,17 +471,17 @@ int closestCount;
 
 void get_batched_surfaces(int playerCount){
   searchDiameter = player[playerCount]->hitbox.radius * 4.0f; // Double the player's hitbox diameter
-  find_closest_surfaces_any_type(player[playerCount]->hitbox.center, testLevelSurfaces, testLevelSurfacesCount, closestSurfaces, &closestCount, searchDiameter);
+  find_closest_surfaces_any_type(player[playerCount]->hitbox.center, levels[currLevel].surfaces, levels[currLevel].totalSurfaceCount, closestSurfaces, &closestCount, searchDiameter);
   
-  find_closest_surfaces(player[playerCount]->pos, testLevelFloor, testLevelFloorCount, closestFloors, &closestFloorsCount, SURFACE_FLOOR, searchDiameter);
+  find_closest_surfaces(player[playerCount]->pos, levels[currLevel].floors, levels[currLevel].floorCount, closestFloors, &closestFloorsCount, SURFACE_FLOOR, searchDiameter);
   currFloor = find_closest_surface(player[playerCount]->hitbox.center, closestFloors, closestFloorsCount);
-  nextFloor = closest_surface_below_raycast(player[playerCount]->hitbox.center, testLevelFloor, testLevelFloorCount);
+  nextFloor = closest_surface_below_raycast(player[playerCount]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
 
   
-  find_closest_surfaces(player[playerCount]->pos, testLevelWall, testLevelWallCount, closestWalls, &closestWallsCount, SURFACE_WALL, searchDiameter);
+  find_closest_surfaces(player[playerCount]->pos, levels[currLevel].walls, levels[currLevel].wallCount, closestWalls, &closestWallsCount, SURFACE_WALL, searchDiameter);
   currWall = find_closest_surface(player[playerCount]->hitbox.center, closestWalls, closestWallsCount);
 
-  currSlope = find_closest_surface(player[playerCount]->hitbox.center, testLevelSlope, testLevelSlopeCount);
+  currSlope = find_closest_surface(player[playerCount]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
 }
 
 void player_surface_collider(int playerCount){
@@ -817,11 +818,11 @@ void player_update(void){
     check_actor_collisions(balls, numBalls, i);
     player_surface_collider(i);
 
-    Surface currSlope = find_closest_surface(player[i]->hitbox.center, testLevelSlope, testLevelSlopeCount);
+    Surface currSlope = find_closest_surface(player[i]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
     if (check_sphere_surface_collision(player[i]->hitbox, currSlope)){
       player[i]->pos.v[1] += player[i]->hitbox.radius * 2.5f;
     }
-    Surface currFloor = find_closest_surface(player[i]->hitbox.center, testLevelFloor, testLevelFloorCount);
+    Surface currFloor = find_closest_surface(player[i]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
     if (check_sphere_surface_collision(player[i]->hitbox, currFloor)){
       player[i]->pos.v[1] += player[i]->hitbox.radius;
     }
@@ -897,9 +898,9 @@ void player_update(void){
     }
     
     if(player[i]->pos.v[1] > groundLevel){
-      Surface currSlope = find_closest_surface(player[i]->hitbox.center, testLevelSlope, testLevelSlopeCount);
+      Surface currSlope = find_closest_surface(player[i]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
       if (!check_sphere_surface_collision(player[i]->hitbox, currSlope)){
-        Surface currFloor = find_closest_surface(player[i]->hitbox.center, testLevelFloor, testLevelFloorCount);
+        Surface currFloor = find_closest_surface(player[i]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
         if (!check_sphere_surface_collision(player[i]->hitbox, currFloor)){
           for (int c = 0; c < numCrates; ++c) {
             int closestCrate = find_closest(player[i]->pos, crates, numCrates);
@@ -954,8 +955,8 @@ void player_update(void){
   player[i]->shadowPos.v[0] = player[i]->pos.v[0];
   player[i]->shadowPos.v[2] = player[i]->pos.v[2];
   player[i]->shadowRot = player[i]->rot;
-  RaycastResult raySlope = closest_surface_below_raycast(player[i]->pos, testLevelSlope, testLevelSlopeCount);
-  Surface shadowSlope = find_closest_surface(player[i]->pos, testLevelSlope, testLevelSlopeCount);
+  RaycastResult raySlope = closest_surface_below_raycast(player[i]->pos, levels[currLevel].slopes, levels[currLevel].slopeCount);
+  Surface shadowSlope = find_closest_surface(player[i]->pos, levels[currLevel].slopes, levels[currLevel].slopeCount);
   
   float dist_player_next_floor = distance_to_surface(player[i]->hitbox.center, currFloor);
   float dist_player_next_slope = distance_to_surface(player[i]->hitbox.center, shadowSlope);

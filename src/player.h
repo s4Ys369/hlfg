@@ -15,6 +15,7 @@
 #include "collision.h"
 #include "debug.h"
 #include "input.h"
+#include "levels.h"
 #include "map.h"
 #include "sound.h"
 #include "utils.h"
