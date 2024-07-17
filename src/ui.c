@@ -6,6 +6,7 @@
 #include "debug.h"
 #include "input.h"
 #include "player.h"
+#include "sound.h"
 #include "ui.h"
 #include "utils.h"
 
@@ -21,6 +22,7 @@ rdpq_texparms_t textWindowParams = {
 
 bool isPaused;
 int nextFont = FONT_8BIT_3;
+int xmID = 0;
 float textX;
 float textY;
 
@@ -271,6 +273,18 @@ void ui_update(void){
         if(btn[0].d_right){
             if(nextFont < MAX_NUM_FONTS - 1){
                 nextFont++;
+            }
+        }
+        if(btn[0].d_down){
+            if(xmID > 0){
+                xmID--;
+                switch_xm(xmID);
+            }
+        }
+        if(btn[0].d_up){
+            if(xmID < 4){
+                xmID++;
+                switch_xm(xmID);
             }
         }
         print_controls(nextFont);

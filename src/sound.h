@@ -10,6 +10,7 @@ extern wav64_t sfx_jump, sfx_attack, sfx_bounce, sfx_boing;
 
 void sound_load(void);
 void sound_init(void);
+void switch_xm(int songID);
 void sound_update_buffer(void);
 void sound_bounce(void);
 void sound_jump(void);

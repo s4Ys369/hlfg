@@ -65,22 +65,7 @@ typedef enum {
 typedef enum {
 	SFX1,
 	SFX2,
-	BGM1,
-	BGM2,
-	BGM3,
-	BGM4,
-	BGM5,
-	BGM6,
-	BGM7,
-	BGM8,
-    BGM9,
-	BGM10,
-	BGM11,
-	BGM12,
-	BGM13,
-	BGM14,
-	BGM15,
-	BGM16,
+	MUSIC_CHANNEL,
     NUM_CHANNELS
 } SOUND_CHANNEL;
 

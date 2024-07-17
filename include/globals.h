@@ -10,6 +10,8 @@
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 
+#define MAX_BGM_CHANNELS 30
+
 #define GRAVITY -100
 
 // Used for struct memory allocation

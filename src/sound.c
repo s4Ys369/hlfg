@@ -8,29 +8,20 @@ wav64_t sfx_jump, sfx_attack, sfx_bounce, sfx_boing;
 
 
 // Configure depending on number of channels in xm
-#define MAX_BGM_CHANNELS 16
-int MUSIC_CHANNEL[] = {
-	BGM1,
-	BGM2,
-	BGM3,
-	BGM4,
-	BGM5,
-	BGM6,
-	BGM7,
-	BGM8,
-	BGM9,
-	BGM10,
-	BGM11,
-	BGM12,
-	BGM13,
-	BGM14,
-	BGM15,
-	BGM16
+
+
+
+const char* xmFileNames[5] = {
+    "rom:/sound/ene.xm64",
+    "rom:/sound/Floating-Down.xm64",
+    "rom:/sound/hand-over-hand.xm64",
+    "rom:/sound/Systematic.xm64",
+    "rom:/sound/turned-around.xm64"
 };
 
 
 void sound_load(void) {
-	xm64player_open(&xm, "rom:/sound/ene.xm64");
+	xm64player_open(&xm, xmFileNames[0]);
 
 	wav64_open(&sfx_jump, "rom:/sound/jump.wav64");
 	wav64_open(&sfx_attack, "rom:/sound/attack.wav64");
@@ -40,14 +31,22 @@ void sound_load(void) {
 
 void sound_init(void) {
 	audio_init(48000, 4);
-	mixer_init(NUM_CHANNELS);
+	mixer_init(NUM_CHANNELS+29); // sfx1, sfx 2, and music channel + 29 for 32 max
 	sound_load();
-	xm64player_play(&xm, MUSIC_CHANNEL[0]);
-	
+	xm64player_set_loop(&xm, true);
+	xm64player_set_vol(&xm, 0.3f);
+	xm64player_play(&xm, MUSIC_CHANNEL);
+}
+
+void switch_xm(int songID){
+	xm64player_close(&xm);
+	xm64player_open(&xm, xmFileNames[songID]);
+	xm64player_set_loop(&xm, true);
+	xm64player_set_vol(&xm, 0.3f);
+	xm64player_play(&xm, MUSIC_CHANNEL);
 }
 
 void sound_update_buffer(void) {
-	mixer_try_play();
     if (audio_can_write()) {
 		short *buf = audio_write_begin();
 		mixer_poll(buf, audio_get_buffer_length());
