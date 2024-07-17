@@ -81,6 +81,15 @@ typedef struct {
     bool IsBouncy;
 } Actor;
 
+typedef struct OctreeNode {
+    T3DVec3 center;         // Center of this node's bounding box
+    float halfSize;         // Half the size of the bounding box
+    struct OctreeNode *children[8];  // Pointers to child nodes
+    Actor **actors;         // List of actors in this node
+    int actorCount;         // Number of actors in this node
+    int maxActors;          // Maximum number of actors before splitting
+} OctreeNode;
+
 // LEVELS
 typedef struct {
     int floorCount;

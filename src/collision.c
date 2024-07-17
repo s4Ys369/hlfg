@@ -1002,6 +1002,16 @@ void resolve_corner_collision(Sphere* sphere, T3DVec3* position, T3DVec3* veloci
 }
 
 // Catch all
+bool check_sphere_actor_collision(Sphere sphere, CollisionShape shape) {
+    if (shape.type == SHAPE_BOX) {
+        return check_sphere_box_collision(sphere, shape.aabb);
+    }
+    if (shape.type == SHAPE_SPHERE) {
+        return check_sphere_collision(sphere, shape.sphere);
+    }
+    return false;
+}
+
 bool check_collisions(CollisionShape a, CollisionShape b) {
     if (a.type == SHAPE_BOX && b.type == SHAPE_BOX) {
         return check_box_collision(a.aabb, b.aabb);

@@ -66,6 +66,8 @@ void find_closest_surfaces_any_type(T3DVec3 position, Surface* surfaces, int num
 void combine_surfaces(Surface* combinedArray, int* combinedCount, Surface* floorArray, int floorCount, Surface* slopeArray, int slopeCount, Surface* wallArray, int wallCount);
 void handle_multi_collisions(Sphere* sphere, T3DVec3* position, T3DVec3* velocity, Surface* surfaces, int numSurfaces);
 void resolve_corner_collision(Sphere* sphere, T3DVec3* position, T3DVec3* velocity, Surface* wall1, Surface* wall2, Surface* floor);
+
+bool check_sphere_actor_collision(Sphere sphere, CollisionShape shape);
 bool check_collisions(CollisionShape a, CollisionShape b);
 
 #endif // COLLISION_H
