@@ -15,7 +15,7 @@
 #include "test_level.h"
 #include "utils.h"
 
-T3DVec3 octreeCenter = {0.0f, 0.0f, 0.0f};  // Center of your game world
+T3DVec3 octreeCenter = {{0.0f, 0.0f, 0.0f}};  // Center of your game world
 float octreeHalfSize = 600.0f;              // Half the size of your game world
 int maxActorsPerNode = 4;                  // Maximum number of actors per node before splitting
 
@@ -87,7 +87,7 @@ void check_actor_collisions_in_node(OctreeNode *node, Sphere *sphere, CollisionC
 
     // Check for collisions within this node
     for (int i = 0; i < node->actorCount; ++i) {
-        if (check_sphere_actor_collision(sphere, node->actors[i])) {
+        if (check_sphere_actor_collision(*sphere, node->actors[i]->hitbox.shape)) {
             collisionCallback(node->actors[i], playerCount);
         }
     }
@@ -105,11 +105,8 @@ void check_actor_collisions_in_node(OctreeNode *node, Sphere *sphere, CollisionC
     }
 }
 
-// Handle actor collisions using the octree
-void handle_actor_octree_collisions(OctreeNode *root, Actor **actors, int actorCount, int playerCount) {
-    Sphere playerSphere = player[playerCount]->hitbox;
-    check_actor_collisions_in_node(root, &playerSphere, [](Actor *actor, int playerCount) {
-        if (actor->hitbox.shape.type == SHAPE_BOX) {
+void actor_collision_callback(Actor *actor, int playerCount){
+    if (actor->hitbox.shape.type == SHAPE_BOX) {
             if (check_sphere_box_collision(player[playerCount]->hitbox, actor->hitbox.shape.aabb)) {
                 if (actor->IsBouncy) {
                     resolve_sphere_collision_offset(player[playerCount]->hitbox, &actor->pos, 2.0f);
@@ -129,18 +126,33 @@ void handle_actor_octree_collisions(OctreeNode *root, Actor **actors, int actorC
                 resolve_sphere_collision_xz(actor->hitbox.shape.sphere, &player[playerCount]->pos);
             }
         }
-        // Add more collision handling logic as needed
-    }, playerCount);
 }
 
-void free_octree(OctreeNode *node) {
+// Handle actor collisions using the octree
+void handle_actor_octree_collisions(OctreeNode *root, Actor **actors, int actorCount, int playerCount) {
+    Sphere playerSphere = player[playerCount]->hitbox;
+    check_actor_collisions_in_node(root, &playerSphere, actor_collision_callback, playerCount);
+}
+
+void free_octree(OctreeNode *node, bool freeActors) {
     if (!node) return;
+
+    // Free child nodes
     for (int i = 0; i < 8; ++i) {
-        free_octree(node->children[i]);
+        free_octree(node->children[i], freeActors);
     }
+
+    // Free the actors array and the actors themselves if needed
     if (node->actors) {
+        if (freeActors) {
+            for (int i = 0; i < node->actorCount; ++i) {
+                free(node->actors[i]);
+            }
+        }
         free(node->actors);
     }
+
+    // Finally, free the node itself
     free(node);
 }
 
@@ -158,6 +170,6 @@ handle_actor_octree_collisions(ballOctree, balls, numBalls, playerCount);
 handle_actor_octree_collisions(boxOctree, crates, numCrates, playerCount);
 
 // Add after main
-free_octree(ballOctree);
-free_octree(boxOctree);
+free_octree(ballOctree, true);
+free_octree(boxOctree, true);
 */

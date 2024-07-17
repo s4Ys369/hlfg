@@ -17,6 +17,7 @@
 #include "input.h"
 #include "levels.h"
 #include "map.h"
+#include "octree_test.h"
 #include "sound.h"
 #include "utils.h"
 #include "test_level.h"

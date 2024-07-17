@@ -13,6 +13,7 @@
 #include "input.h"
 #include "levels.h"
 #include "map.h"
+#include "octree_test.h"
 #include "player.h"
 #include "sound.h"
 #include "utils.h"
@@ -654,8 +655,10 @@ void player_update(void){
 
     player_surface_collider(i);
     
-    check_actor_collisions(crates, numCrates, i);
-    check_actor_collisions(balls, numBalls, i);
+    //check_actor_collisions(crates, numCrates, i);
+    //check_actor_collisions(balls, numBalls, i);
+    handle_actor_octree_collisions(ballOctree, balls, numBalls, i);
+    handle_actor_octree_collisions(boxOctree, crates, numCrates, i);
 
   }
 
@@ -670,7 +673,8 @@ void player_update(void){
     player_surface_collider(i);
 
     check_midair_actor_collisions(crates, numCrates, i);
-    check_actor_collisions(balls, numBalls, i);
+    //check_actor_collisions(balls, numBalls, i);
+    handle_actor_octree_collisions(ballOctree, balls, numBalls, i);
 
     if(!player[i]->isGrounded){
       if (player[i]->pos.v[1] > groundLevel) {
@@ -814,8 +818,8 @@ void player_update(void){
       check_player_collisions(player, numPlayers);
     }
     
-    check_actor_collisions(crates, numCrates, i);
-    check_actor_collisions(balls, numBalls, i);
+    handle_actor_octree_collisions(ballOctree, balls, numBalls, i);
+    handle_actor_octree_collisions(boxOctree, crates, numCrates, i);
     player_surface_collider(i);
 
     Surface currSlope = find_closest_surface(player[i]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
@@ -864,7 +868,8 @@ void player_update(void){
     player_surface_collider(i);
 
     check_midair_actor_collisions(crates, numCrates, i);
-    check_actor_collisions(balls, numBalls, i);
+    //check_actor_collisions(balls, numBalls, i);
+    handle_actor_octree_collisions(ballOctree, balls, numBalls, i);
   }
 
   // do grounded

@@ -90,6 +90,8 @@ typedef struct OctreeNode {
     int maxActors;          // Maximum number of actors before splitting
 } OctreeNode;
 
+typedef void (*CollisionCallback)(Actor*, int);
+
 // LEVELS
 typedef struct {
     int floorCount;

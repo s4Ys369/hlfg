@@ -35,6 +35,7 @@ src =   src/main.c \
 		src/input.c \
 		src/levels.c \
 		src/map.c \
+		src/octree_test.c \
 		src/player.c \
 		src/sound.c \
 		src/test_level.c \

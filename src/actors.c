@@ -13,6 +13,7 @@
 #include "collision.h"
 #include "debug.h"
 #include "map.h"
+#include "octree_test.h"
 #include "player.h"
 #include "test_level.h"
 #include "sound.h"
@@ -34,6 +35,9 @@ Actor *balls[MAX_BALLS];
 int numBalls;
 bool ballBounced[MAX_BALLS];
 float ballBounceForce[MAX_BALLS];
+
+OctreeNode *ballOctree;
+OctreeNode *boxOctree;
 
 void check_ball_collisions(Actor *balls[], int numBalls) {
   for (int i = 0; i < numBalls; i++) {
@@ -341,6 +345,10 @@ void actors_init(void){
   }
 
   check_ball_crate_collisions(balls, numBalls, crates, numCrates);
+  ballOctree = create_octree(octreeCenter, octreeHalfSize, maxActorsPerNode);
+  boxOctree = create_octree(octreeCenter, octreeHalfSize, maxActorsPerNode);
+  populate_octree(ballOctree, balls, numBalls);
+  populate_octree(boxOctree, crates, numCrates);
 
 }
 

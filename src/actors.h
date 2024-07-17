@@ -10,6 +10,7 @@
 #include "collision.h"
 #include "debug.h"
 #include "map.h"
+#include "octree_test.h"
 #include "player.h"
 #include "sound.h"
 #include "test_level.h"
@@ -30,6 +31,9 @@ extern Actor *balls[MAX_BALLS];
 extern int numBalls;
 extern bool ballBounced[MAX_BALLS];
 extern float ballBounceForce[MAX_BALLS];
+
+extern OctreeNode *ballOctree;
+extern OctreeNode *boxOctree;
 
 extern float dist;
 extern float minDist;
