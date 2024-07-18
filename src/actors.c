@@ -269,9 +269,23 @@ void balls_to_floor(Surface currFloor, int ballCount){
 void ball_surface_collider(int ballCount){
 
   // Find all closest surface types
-  Surface currWall = find_closest_surface(balls[ballCount]->hitbox.shape.sphere.center, testLevelWall,testLevelWallCount);
-  Surface currFloor = find_closest_surface(balls[ballCount]->hitbox.shape.sphere.center, testLevelFloor, testLevelFloorCount);
-  Surface currSlope = find_closest_surface(balls[ballCount]->hitbox.shape.sphere.center, testLevelSlope, testLevelSlopeCount);
+  Surface closestSurfaces[3];
+  int closestCount;
+  Surface closestFloors[4];
+  int closestFloorsCount;
+  Surface closestWalls[4];
+  int closestWallsCount;
+
+  float searchDiameter = balls[ballCount]->hitbox.shape.sphere.radius * 4.0f; // Double the balls's hitbox diameter
+  find_closest_surfaces_any_type(balls[ballCount]->hitbox.shape.sphere.center, levels[currLevel].surfaces, levels[currLevel].totalSurfaceCount, closestSurfaces, &closestCount, searchDiameter);
+  
+  find_closest_surfaces(balls[ballCount]->pos, levels[currLevel].floors, levels[currLevel].floorCount, closestFloors, &closestFloorsCount, SURFACE_FLOOR, searchDiameter);
+  Surface currFloor = find_closest_surface(balls[ballCount]->hitbox.shape.sphere.center, closestFloors, closestFloorsCount);
+  
+  find_closest_surfaces(balls[ballCount]->pos, levels[currLevel].walls, levels[currLevel].wallCount, closestWalls, &closestWallsCount, SURFACE_WALL, searchDiameter);
+  Surface currWall = find_closest_surface(balls[ballCount]->hitbox.shape.sphere.center, closestWalls, closestWallsCount);
+
+  Surface currSlope = find_closest_surface(balls[ballCount]->hitbox.shape.sphere.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
   
   
   // Check collisions for all
@@ -282,39 +296,20 @@ void ball_surface_collider(int ballCount){
   if (check_sphere_surface_collision(balls[ballCount]->hitbox.shape.sphere, currFloor)){hitFloor = true;}
   if (check_sphere_surface_collision(balls[ballCount]->hitbox.shape.sphere, currWall)){hitWall = true;}
 
-  /* Get distances
-  float dist_balls_to_slope = distance_to_surface(balls[ballCount]->hitbox.shape.sphere.center, currSlope);
-  float dist_balls_to_floor = distance_to_surface(balls[ballCount]->hitbox.shape.sphere.center, currFloor);
-  float dist_balls_to_wall = distance_to_surface(balls[ballCount]->hitbox.shape.sphere.center, currWall);
-  float dist_slope_to_floor = t3d_vec3_distance(&currSlope.center, &currFloor.center);
-  float dist_slope_to_wall = t3d_vec3_distance(&currSlope.center, &currWall.center);
-  float dist_wall_to_floor = t3d_vec3_distance(&currWall.center, &currFloor.center);
-  */
 
   // Determine the which collisions and in which order to handle
-  if(hitSlope){
-    if(hitFloor){
-        balls_to_slope(currSlope, ballCount);
-        balls_to_floor(currFloor, ballCount);
-    } else if(hitWall){
-        balls_to_slope(currSlope, ballCount);
-        balls_to_wall(currWall, ballCount);
-    } else {
+  if (hitFloor) {
+      balls_to_floor(currFloor, ballCount);
+      if (hitSlope) balls_to_slope(currSlope, ballCount);
+      if (hitWall) balls_to_wall(currWall, ballCount);
+  } else if (hitSlope) {
       balls_to_slope(currSlope, ballCount);
-    }
+      if (hitWall) balls_to_wall(currWall, ballCount);
+  } else if (hitWall) {
+    balls_to_wall(currWall, ballCount);
   }
 
-  if(hitWall){
-    if(hitFloor){
-        balls_to_wall(currWall, ballCount);
-        balls_to_floor(currFloor, ballCount);
-    } else if(hitSlope){
-        balls_to_slope(currSlope, ballCount);
-        balls_to_wall(currWall, ballCount);
-    } else {
-      balls_to_wall(currWall, ballCount);
-    }
-  }
+  hitSlope = hitWall = hitFloor = false;
 
 }
 
@@ -360,13 +355,13 @@ float minDist = 0;
 void balls_update(void){
   float bounceModifier = 0.8f; // Simulates energy loss
   float maxBounceHeight = 100.0f;
-  float playerBumpForce = 32.0f;
+  float playerBumpForce = 16.0f;
   float friction = 0.9f;
   float newPitch = 0.0f;
   float newYaw = 0.0f;
   float newRoll = 0.0f;
 
-  for (int b = 0; b <= numBalls; ++b) {
+  for (int b = 0; b < numBalls; ++b) {
 
     // Apply gravity every frame
     balls[b]->vel.v[1] += GRAVITY * jumpFixedTime;
@@ -407,42 +402,48 @@ void balls_update(void){
     check_ball_collisions(balls, numBalls);
     ball_surface_collider(numBalls);
 
-    // Check for the ball colliding with the player
-    if(check_sphere_collision(balls[b]->hitbox.shape.sphere, player[0]->hitbox)){
-      // Add player's current forward to the ball
-      balls[b]->vel.v[0] += player[0]->forward.v[0] * player[0]->currSpeed;
-      balls[b]->vel.v[2] += player[0]->forward.v[2] * player[0]->currSpeed;
+    for (int p = 0; p < numPlayers; ++p) {
 
-      // then bounce it
-      if (balls[b]->vel.v[1] > 5.0f) {
-        sound_bounce();
-      }
-      ballBounceForce[b] = playerBumpForce * player[0]->currSpeed;
-      ballBounced[b] = true;
+      // Check for the ball colliding with the player
+      if(check_sphere_collision(balls[b]->hitbox.shape.sphere, player[p]->hitbox)){
+        // Add player's current forward to the ball
+        balls[b]->vel.v[0] += playerBumpForce * player[p]->moveDir.v[0];
+        balls[b]->vel.v[1] += playerBumpForce;
+        balls[b]->vel.v[2] += playerBumpForce * player[p]->moveDir.v[2];
 
-    // Check for the ball colliding with the player's prjectile
-    } else if(check_sphere_collision(balls[b]->hitbox.shape.sphere, player[0]->projectile.hitbox)){
-      // Add player's current forward to the ball, with a little something
-      balls[b]->vel.v[0] += player[0]->forward.v[0] * playerBumpForce;
-      balls[b]->vel.v[2] += player[0]->forward.v[2] * playerBumpForce;
-
-      // then bounce it
-      if (balls[b]->vel.v[1] > 5.0f) {
-        sound_bounce();
-      }
-      ballBounceForce[b] = playerBumpForce;
-      ballBounced[b] = true;
-
-    } else {
-
-      // else add friction to X and Z if grounded
-      if (balls[b]->hitbox.shape.sphere.center.v[1] <= findFloor.center.v[1] + balls[b]->hitbox.shape.sphere.radius) {
+        // then bounce it
         if (balls[b]->vel.v[1] > 5.0f) {
           sound_bounce();
         }
-        balls[b]->vel.v[0] *= friction;
-        balls[b]->vel.v[2] *= friction;
+        ballBounceForce[b] = playerBumpForce;
+        ballBounced[b] = true;
+
+      // Check for the ball colliding with the player's prjectile
+      } else if(check_sphere_collision(balls[b]->hitbox.shape.sphere, player[p]->projectile.hitbox)){
+        // Add player's current forward to the ball, with a little something
+        balls[b]->vel.v[0] += player[p]->projectile.speed * player[p]->moveDir.v[0];
+        balls[b]->vel.v[1] += player[p]->projectile.speed;
+        balls[b]->vel.v[2] += player[p]->projectile.speed * player[p]->moveDir.v[2];
+
+        // then bounce it
+        if (balls[b]->vel.v[1] > 5.0f) {
+          sound_bounce();
+        }
+        ballBounceForce[b] = playerBumpForce;
+        ballBounced[b] = true;
+
+      } else {
+
+        // else add friction to X and Z if grounded
+        if (balls[b]->hitbox.shape.sphere.center.v[1] <= findFloor.center.v[1] + balls[b]->hitbox.shape.sphere.radius) {
+          if (balls[b]->vel.v[1] > 5.0f) {
+            sound_bounce();
+          }
+          balls[b]->vel.v[0] *= friction;
+          balls[b]->vel.v[2] *= friction;
+        }
       }
+
     }
 
     // Update position based on velocity
