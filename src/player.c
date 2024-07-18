@@ -688,10 +688,7 @@ void player_update(void){
           player[i]->pos.v[1] = t3d_lerp(player[i]->pos.v[1],player[i]->vel.v[1], jumpFixedTime);
           player[i]->hitbox.center.v[1] = t3d_lerp(player[i]->hitbox.center.v[1],player[i]->pos.v[1], jumpFixedTime);
         }
-        player[i]->scale.v[1] -= 0.02f;
-        if(player[i]->scale.v[1] < 0.3f){
-          player[i]->scale.v[1] = 0.3f;
-        }
+        player[i]->scale.v[1] = t3d_lerp(player[i]->scale.v[1], 1.4f, fixedTime);
 
       } else if (player[i]->pos.v[1] <= groundLevel) {
         player[i]->pos = playerStartPos;
@@ -840,10 +837,7 @@ void player_update(void){
   if(playerState[i] == PLAYER_JUMP){
 
     t3d_anim_update(&animJump[i], jumpTime);
-    player[i]->scale.v[1] += 0.02f;
-    if(player[i]->scale.v[1] > 1.4f){
-      player[i]->scale.v[1] = 1.4f;
-    }
+    player[i]->scale.v[1] = t3d_lerp(player[i]->scale.v[1], 1.4f, fixedTime);
 
     if (!animJump[i].isPlaying){
       playerState[i] = PLAYER_FALL;

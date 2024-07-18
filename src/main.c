@@ -48,10 +48,6 @@ int main()
 
   syncPoint = 0;
 
-  rspq_syncpoint_t syncPoint1 = 10;
-  rspq_syncpoint_t syncPoint2 = 20;
-  rspq_syncpoint_t syncPoint3 = 30;
-
   for(;;)
   {
     // ======== Update ======== //
@@ -66,8 +62,21 @@ int main()
       player_update();
       cam_update();
     }
+    
+    for (int i = 0; i < numPlayers; ++i) {
+      // We now blend the walk animation with the idle/attack one
+      t3d_skeleton_blend(&playerSkel[i], &playerSkel[i], &playerSkelBlend[i], player[i]->animBlend);
+    }
 
-    if(syncPoint == syncPoint1)rspq_syncpoint_wait(syncPoint);
+
+    if(syncPoint)rspq_syncpoint_wait(syncPoint);
+
+    // Now recalc. the matrices, this will cause any model referencing them to use the new pose
+    for (int i = 0; i < numPlayers; ++i) {
+      t3d_skeleton_update(&playerSkel[i]);
+    }
+
+    t3d_mat4fp_from_srt_euler(testLevelMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
     // Update actor matrices
     for (int c = 0; c < numCrates; ++c) {
@@ -86,8 +95,6 @@ int main()
       );
     }
 
-    if(syncPoint == syncPoint2)rspq_syncpoint_wait(syncPoint);
-
     // Update player's extra matrices separately
     for (int p = 0; p < numPlayers; ++p) {
 
@@ -104,7 +111,7 @@ int main()
       );
 
       t3d_mat4fp_from_srt_euler(playerhitboxMatFP[p],
-        player[p]->scale.v,
+        (float[3]){1.0f, 1.0f, 1.0f},
         (float[3]){0.0f, 0.0f, 0.0f},
         player[p]->hitbox.center.v
       );
@@ -119,8 +126,6 @@ int main()
 
     }
 
-    if(syncPoint == syncPoint3)rspq_syncpoint_wait(syncPoint);
-    
     for (int np = 0; np < numPlayers; ++np) {
       // Update players matrices
       t3d_mat4fp_from_srt_euler(playerMatFP[np],
@@ -128,20 +133,6 @@ int main()
           (float[3]){player[np]->rot.v[0], -player[np]->rot.v[1], player[np]->rot.v[2]},
           player[np]->pos.v
         );
-    }
-
-    for (int i = 0; i < numPlayers; ++i) {
-      // We now blend the walk animation with the idle/attack one
-      t3d_skeleton_blend(&playerSkel[i], &playerSkel[i], &playerSkelBlend[i], player[i]->animBlend);
-    }
-      
-    t3d_mat4fp_from_srt_euler(testLevelMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
-
-    if(syncPoint)rspq_syncpoint_wait(syncPoint);
-
-    // Now recalc. the matrices, this will cause any model referencing them to use the new pose
-    for (int i = 0; i < numPlayers; ++i) {
-      t3d_skeleton_update(&playerSkel[i]);
     }
 
 
