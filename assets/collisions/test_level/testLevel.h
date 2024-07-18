@@ -11,12 +11,18 @@
 #include "utils.h"
 
 extern T3DVec3 testLevelVerts[196];
+
 extern int testLevelFloorCount;
 extern Surface testLevelFloor[130];
+
 extern int testLevelSlopeCount;
 extern Surface testLevelSlope[36];
+
 extern int testLevelWallCount;
 extern Surface testLevelWall[184];
+
+extern int testLevelSurfacesCount;
+extern Surface testLevelSurfaces[350];
 
 extern T3DMat4FP* testLevelMatFP;
 extern T3DModel *modelTestlevel;

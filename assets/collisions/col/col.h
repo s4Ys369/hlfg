@@ -11,12 +11,18 @@
 #include "utils.h"
 
 extern T3DVec3 colVerts[25];
+
 extern int colWallCount;
 extern Surface colWall[8];
+
 extern int colSlopeCount;
 extern Surface colSlope[13];
+
 extern int colFloorCount;
 extern Surface colFloor[11];
+
+extern int colSurfacesCount;
+extern Surface colSurfaces[32];
 
 extern T3DMat4FP* colMatFP;
 extern T3DModel *modelCol;

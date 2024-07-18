@@ -60,9 +60,15 @@ def generate_c_file(name, vertices, surfaces, output_file):
             file.write(f'    {{{{{v[0]}, {v[1]}, {v[2]}}}}},\n')
         file.write('};\n\n')
 
+        # Calculate total number of tris
+        total_tris = sum(len(tris) for tris in surfaces.values())
+
         for surface_type, tris in surfaces.items():
-            file.write(f'int {name}{surface_type.capitalize()}Count = {len(tris)};\n')
+            file.write(f'\nint {name}{surface_type.capitalize()}Count = {len(tris)};\n')
             file.write(f'Surface {name}{surface_type.capitalize()}[{len(tris)}];\n')
+
+        file.write(f'\nint {name}SurfacesCount = 0;\n')
+        file.write(f'Surface {name}Surfaces[{total_tris}];\n')
 
         file.write(f'\nvoid {name}_init(void){{\n')
 
@@ -78,6 +84,13 @@ def generate_c_file(name, vertices, surfaces, output_file):
             file.write(f'        {name}{surface_type.capitalize()}[i].center = calc_surface_center({name}{surface_type.capitalize()}[i]);\n')
             file.write(f'        {name}{surface_type.capitalize()}[i].normal = calc_surface_norm({name}{surface_type.capitalize()}[i]);\n')
             file.write('    }\n')
+
+        file.write('\n    // Combine the surfaces for collision detection\n')
+        file.write('    combine_surfaces(\n')
+        file.write(f'       {name}Surfaces, &{name}SurfacesCount,\n')
+        for surface_type, tris in surfaces.items():
+            file.write(f'       {name}{surface_type.capitalize()}, {name}{surface_type.capitalize()}Count,\n')
+        file.write('    );\n')
 
         file.write('\n    // Allocate map\'s matrix and construct\n')
         file.write(f'    {name}MatFP = malloc_uncached(sizeof(T3DMat4FP));\n')
@@ -112,10 +125,14 @@ def generate_h_file(name, vertices, surfaces, output_file):
 
         file.write(f'extern T3DVec3 {name}Verts[{len(vertices)}];\n')
 
-        for surface_type, tris in surfaces.items():
-            file.write(f'extern int {name}{surface_type.capitalize()}Count;\n')
-            file.write(f'extern Surface {name}{surface_type.capitalize()}[{len(tris)}];\n')
+        # Calculate total number of tris
+        total_tris = sum(len(tris) for tris in surfaces.values())
 
+        for surface_type, tris in surfaces.items():
+            file.write(f'\nextern int {name}{surface_type.capitalize()}Count;\n')
+            file.write(f'extern Surface {name}{surface_type.capitalize()}[{len(tris)}];\n')
+        file.write(f'\nextern int {name}SurfacesCount;\n')
+        file.write(f'extern Surface {name}Surfaces[{total_tris}];\n')
         file.write(f'\nextern T3DMat4FP* {name}MatFP;\n')
         file.write(f'extern T3DModel *model{name.capitalize()};\n')
         file.write(f'extern rspq_block_t *dpl{name.capitalize()};\n\n')

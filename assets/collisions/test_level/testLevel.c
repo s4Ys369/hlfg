@@ -212,12 +212,18 @@ T3DVec3 testLevelVerts[196] =
     {{-171, 64, -284}},
 };
 
+
 int testLevelFloorCount = 130;
 Surface testLevelFloor[130];
+
 int testLevelSlopeCount = 36;
 Surface testLevelSlope[36];
+
 int testLevelWallCount = 184;
 Surface testLevelWall[184];
+
+int testLevelSurfacesCount = 0;
+Surface testLevelSurfaces[350];
 
 void testLevel_init(void){
     testLevelFloor[0].posA = testLevelVerts[0]; testLevelFloor[0].posB = testLevelVerts[1]; testLevelFloor[0].posC = testLevelVerts[2];
@@ -595,12 +601,20 @@ void testLevel_init(void){
         testLevelWall[i].normal = calc_surface_norm(testLevelWall[i]);
     }
 
+    // Combine the surfaces for collision detection
+    combine_surfaces(
+       testLevelSurfaces, &testLevelSurfacesCount,
+       testLevelFloor, testLevelFloorCount,
+       testLevelSlope, testLevelSlopeCount,
+       testLevelWall, testLevelWallCount,
+    );
+
     // Allocate map's matrix and construct
     testLevelMatFP = malloc_uncached(sizeof(T3DMat4FP));
     t3d_mat4fp_from_srt_euler(testLevelMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
     // Load model
-    modelTestlevel = t3d_model_load("rom:/testLevel.t3dm");
+    modelTestlevel = t3d_model_load("rom:/models/testLevel.t3dm");
 
     // Create map's RSPQ block
     rspq_block_begin();

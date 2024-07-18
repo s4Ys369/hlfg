@@ -78,12 +78,18 @@ T3DVec3 mesh2Verts[62] =
     {{896, 0, -85}},
 };
 
+
 int mesh2FloorCount = 12;
 Surface mesh2Floor[12];
+
 int mesh2SlopeCount = 30;
 Surface mesh2Slope[30];
+
 int mesh2WallCount = 64;
 Surface mesh2Wall[64];
+
+int mesh2SurfacesCount = 0;
+Surface mesh2Surfaces[106];
 
 void mesh2_init(void){
     mesh2Floor[0].posA = mesh2Verts[0]; mesh2Floor[0].posB = mesh2Verts[1]; mesh2Floor[0].posC = mesh2Verts[2];
@@ -217,12 +223,20 @@ void mesh2_init(void){
         mesh2Wall[i].normal = calc_surface_norm(mesh2Wall[i]);
     }
 
+    // Combine the surfaces for collision detection
+    combine_surfaces(
+       mesh2Surfaces, &mesh2SurfacesCount,
+       mesh2Floor, mesh2FloorCount,
+       mesh2Slope, mesh2SlopeCount,
+       mesh2Wall, mesh2WallCount,
+    );
+
     // Allocate map's matrix and construct
     mesh2MatFP = malloc_uncached(sizeof(T3DMat4FP));
     t3d_mat4fp_from_srt_euler(mesh2MatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
     // Load model
-    modelMesh2 = t3d_model_load("rom:/mesh2.t3dm");
+    modelMesh2 = t3d_model_load("rom:/models/mesh2.t3dm");
 
     // Create map's RSPQ block
     rspq_block_begin();

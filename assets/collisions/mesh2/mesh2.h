@@ -11,12 +11,18 @@
 #include "utils.h"
 
 extern T3DVec3 mesh2Verts[62];
+
 extern int mesh2FloorCount;
 extern Surface mesh2Floor[12];
+
 extern int mesh2SlopeCount;
 extern Surface mesh2Slope[30];
+
 extern int mesh2WallCount;
 extern Surface mesh2Wall[64];
+
+extern int mesh2SurfacesCount;
+extern Surface mesh2Surfaces[106];
 
 extern T3DMat4FP* mesh2MatFP;
 extern T3DModel *modelMesh2;

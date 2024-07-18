@@ -848,7 +848,7 @@ void find_closest_surfaces_any_type(T3DVec3 position, Surface* surfaces, int num
 }
 
 // Function to combine multiple surface arrays into a single array
-void combine_surfaces(Surface* combinedArray, int* combinedCount, Surface* floorArray, int floorCount, Surface* slopeArray, int slopeCount, Surface* wallArray, int wallCount) {
+void combine_surfaces(Surface* combinedArray, int* combinedCount, Surface* wallArray, int wallCount, Surface* slopeArray, int slopeCount, Surface* floorArray, int floorCount) {
     int count = 0;
 
     // Copy floor surfaces

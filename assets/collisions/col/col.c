@@ -41,12 +41,18 @@ T3DVec3 colVerts[25] =
     {{-288, 128, -256}},
 };
 
+
 int colWallCount = 8;
 Surface colWall[8];
+
 int colSlopeCount = 13;
 Surface colSlope[13];
+
 int colFloorCount = 11;
 Surface colFloor[11];
+
+int colSurfacesCount = 0;
+Surface colSurfaces[32];
 
 void col_init(void){
     colWall[0].posA = colVerts[0]; colWall[0].posB = colVerts[1]; colWall[0].posC = colVerts[2];
@@ -106,12 +112,20 @@ void col_init(void){
         colFloor[i].normal = calc_surface_norm(colFloor[i]);
     }
 
+    // Combine the surfaces for collision detection
+    combine_surfaces(
+       colSurfaces, &colSurfacesCount,
+       colWall, colWallCount,
+       colSlope, colSlopeCount,
+       colFloor, colFloorCount,
+    );
+
     // Allocate map's matrix and construct
     colMatFP = malloc_uncached(sizeof(T3DMat4FP));
     t3d_mat4fp_from_srt_euler(colMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
     // Load model
-    modelCol = t3d_model_load("rom:/col.t3dm");
+    modelCol = t3d_model_load("rom:/models/col.t3dm");
 
     // Create map's RSPQ block
     rspq_block_begin();

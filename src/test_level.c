@@ -600,11 +600,13 @@ void test_level_init(void){
         testLevelWall[i].normal = calc_surface_norm(testLevelWall[i]);
     }
 
+    // Combine the surfaces for collision detection
     combine_surfaces(
         testLevelSurfaces, &testLevelSurfacesCount, 
-        testLevelFloor, testLevelFloorCount, 
-        testLevelSlope, testLevelSlopeCount, 
-        testLevelWall, testLevelWallCount
+        testLevelWall, testLevelWallCount,
+        testLevelSlope, testLevelSlopeCount,
+        testLevelFloor, testLevelFloorCount
+        
     );
 
     // Allocate map's matrix and construct
