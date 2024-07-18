@@ -22,27 +22,16 @@ void input_init(void){
 
 /*  Ares always sets every port as connected when loading,
     so until I finding a good way to detect Ares vs console,
-    use this define for testing in single player mode */
-#ifdef ARES_1_PLAYER
-    numPlayers = PLAYERS_1;
+    use this define for testing in various modes */
+#ifdef FORCE_PLAYERS
+    numPlayers = FORCE_PLAYERS;
 #else
-#ifdef FORCE_4_PORTS
-    numPlayers = PLAYERS_4;
-#else
-    if(joypad_is_connected(JOYPAD_PORT_1)){
-        numPlayers++;
+    for(int port = 1; port <= 4; port++) {
+        if(joypad_is_connected(port)) {
+            numPlayers++;
+        }
     }
-    if(joypad_is_connected(JOYPAD_PORT_2)){
-        numPlayers++;
-    }
-    if(joypad_is_connected(JOYPAD_PORT_3)){
-        numPlayers++;
-    }
-    if(joypad_is_connected(JOYPAD_PORT_4)){
-        numPlayers++;
-    }
-#endif // FORCE_4_PORTS
-#endif // ARES_1_PLAYER
+#endif
 }
 
 
