@@ -171,11 +171,7 @@ void print_score(int fontIdx){
 
     if(numPlayers > 1) {
         if(numPlayers == 2) {
-            rdpq_set_fill_color(BLACK);
-            rdpq_fill_rectangle(textX, (textY-10)/2, textX+50, (textY)/2);
             rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
-            rdpq_set_fill_color(BLACK);
-            rdpq_fill_rectangle(textX, textY-10, textX+50, textY);
             rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[1]->score);
         }
         if(numPlayers == 3) {
