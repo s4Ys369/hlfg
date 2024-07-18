@@ -300,18 +300,18 @@ int main()
     rspq_block_free(dplPlayer[i]);
   }
 
+  free_octree(ballOctree, true);
+  free_octree(boxOctree, true);
 
   for (int i = 0; i < numCrates; ++i) {
     t3d_model_free(modelCrate);
     free_uncached(crateMatFP[i]);
-    free(crates[i]);
     rspq_block_free(dplCrate[i]);
   }
 
   for (int i = 0; i < numBalls; ++i) {
     t3d_model_free(modelBall);
     free_uncached(ballMatFP[i]);
-    free(balls[i]);
     rspq_block_free(dplBall[i]);
   }
 
