@@ -2,6 +2,7 @@
 #define DEBUG_H
 
 #include <libdragon.h>
+#include <rspq_profile.h>
 #include <t3d/t3d.h>
 #include <t3d/t3dmath.h>
 #include "../include/config.h"
@@ -27,13 +28,15 @@ extern rspq_block_t *dplSlopeTri;
 extern rspq_block_t *dplWallTri;
 extern int col_debug;
 extern int text_debug;
+extern int profile;
 extern int col_floor;
 extern int col_slope;
 extern int col_wall;
 extern int matCount;
 extern rspq_syncpoint_t syncPoint;
 
-void debug_models_init(void);
+void profiler_update(void);
+void ibe_debug_init(void);
 void draw_debug_ui(void);
 
 
