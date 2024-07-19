@@ -52,6 +52,13 @@ int main()
   {
     // ======== Update ======== //
 
+    int textureIndex = 0;
+    if(btnheld[0].d_down){
+      textureIndex = 1;
+    } else {
+      textureIndex = 0;
+    }
+
     get_jump_time();
     input_update();
     sound_update_buffer();
@@ -191,6 +198,7 @@ int main()
         rspq_block_run(dplCrate[c]);
       }
 
+      rdpq_set_lookup_address(1, sprites[textureIndex]->data);
       for (int b = 0; b < numBalls; ++b) {
         rspq_block_run(dplBall[b]);
       }

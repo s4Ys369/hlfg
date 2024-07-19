@@ -38,6 +38,8 @@ extern OctreeNode *boxOctree;
 extern float dist;
 extern float minDist;
 
+extern sprite_t* sprites[2];
+
 void resolve_actor_to_actor_col(Actor *origin, int originCount, Actor **target, int targetCount);
 void crates_init(void);
 void balls_init(void);

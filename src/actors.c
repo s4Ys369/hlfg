@@ -39,6 +39,18 @@ float ballBounceForce[MAX_BALLS];
 OctreeNode *ballOctree;
 OctreeNode *boxOctree;
 
+
+// This is a callback for t3d_model_draw_custom, it is used when a texture in a model is set to dynamic/"reference"
+void dynamic_tex_cb(void* userData, const T3DMaterial* material, rdpq_texparms_t *tileParams, rdpq_tile_t tile) {
+  if(tile != TILE0)return; // we only want to set one texture
+  // 'userData' is a value you can pass into 't3d_model_draw_custom', this can be any value or struct you want...
+  surface_t* surface = (surface_t*)userData; // ...in this case it is a surface pointer
+
+  rdpq_sync_tile();
+  rdpq_mode_tlut(TLUT_NONE);
+  rdpq_tex_upload(TILE0, surface, NULL);
+}
+
 void check_ball_collisions(Actor *balls[], int numBalls) {
   for (int i = 0; i < numBalls; i++) {
     for (int j = i + 1; j < numBalls; j++) {
@@ -196,10 +208,16 @@ void crates_init(void){
 
 }
 
+
+sprite_t* sprites[2];
+
 // Initialize balls
 float ballStartingY = 50.0f;
 void balls_init(void){
   numBalls = (int)(random_float(1.0f,MAX_BALLS));
+  sprites[0] = sprite_load("rom:/BG1.rgba16.sprite");
+  sprites[1] = sprite_load("rom:/BG2.rgba16.sprite");
+  surface_t placeholder = surface_make_placeholder_linear(1, FMT_RGBA16, 32, 32);
 
   for (int i = 0; i <= numBalls; ++i) {
    ballMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
@@ -222,14 +240,18 @@ void balls_init(void){
     ballBounced[i] = false;
     ballBounceForce[i] = 150.0f;
 
-    // Create gfx call to draw crate
+
+    // Create gfx call to draw ball
     rspq_block_begin();
       t3d_matrix_push_pos(1);
       matCount++;
       t3d_matrix_set(ballMatFP[i], true);
       rdpq_set_prim_color(ORANGE);
       t3d_matrix_set(ballMatFP[i], true);
-      t3d_model_draw(modelBall);
+      t3d_model_draw_custom(modelBall, (T3DModelDrawConf){
+        .userData = &placeholder,
+        .dynTextureCb = dynamic_tex_cb,
+      });
       t3d_matrix_pop(1);
     dplBall[i] = rspq_block_end();
 
