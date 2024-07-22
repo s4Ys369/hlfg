@@ -26,6 +26,16 @@ typedef enum {
     CAM_TOP_DOWN
 } CAM_MODE;
 
+
+// DEBUG
+typedef enum {
+    DEBUG_RENDER_ALL,
+    DEBUG_HIDE_LEVEL,
+    DEBUG_HIDE_OBJECTS,
+    DEBUG_HIDE_ALL,
+    NUM_DEBUG_MODES
+} DEBUG_MODE;
+
 // PLAYER
 typedef enum {
     PLAYERS_0,

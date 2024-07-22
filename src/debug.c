@@ -24,6 +24,7 @@ rspq_block_t *dplWallTri;
 rspq_block_t *dplDebugText;
 int col_debug;
 int text_debug;
+int debug_mode = DEBUG_RENDER_ALL;
 int col_floor = 0;
 int col_slope = 0;
 int col_wall = 0;
@@ -44,6 +45,13 @@ const char* playerStateStrings[NUM_PLAYER_STATES] = {
     "Fall",
     "Land",
     "Slide"
+};
+
+const char* debugModeStrings[NUM_DEBUG_MODES] = {
+    "Render All",
+    "Hide Level",
+    "Hide Objects",
+    "Hide All"
 };
 
 void debug_models_init(void){
@@ -158,6 +166,19 @@ void draw_debug_ui(void){
     posY=12;
     rspq_block_run(dplDebugText);
 
+    if(!isPaused){
+      if(btn[0].d_left){
+        if(debug_mode > DEBUG_RENDER_ALL){
+            debug_mode--;
+        }
+      }
+      if(btn[0].d_right){
+        if(debug_mode < DEBUG_HIDE_ALL){
+          debug_mode++;
+        }
+      }
+    }
+
     // Player
     rdpq_text_printf(
       &textParams, 
@@ -169,7 +190,7 @@ void draw_debug_ui(void){
       "State %s\n"
       "Grounded %d\n"
       "Speed %.2f\n"
-      "\n"
+      "%s\n"
       "Rumble\n"
       "Detected %d\n"
       "Active %d", 
@@ -179,6 +200,7 @@ void draw_debug_ui(void){
       playerStateStrings[playerState[0]],
       player[0]->isGrounded,
       player[0]->currSpeed,
+      debugModeStrings[debug_mode],
       rumble_supported[0],
       rumble_active[0]
     );

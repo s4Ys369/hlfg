@@ -189,20 +189,25 @@ int main()
       t3d_viewport_attach(vp);
       t3d_light_set_directional(0, colorDir, &lightDirVec);
       
-      // Run levels block
-      for (int l = 0; l < numLevels; ++l) {
-        //t3d_segment_set(SEGMENT_LEVELS, &testLevelMatFP);
-        rspq_block_run(dplTestLevel);
-      }
-      
-      // then actors
-      for (int c = 0; c < numCrates; ++c) {
-        rspq_block_run(dplCrate[c]);
+      // debug render toggle
+      if(debug_mode == DEBUG_RENDER_ALL || debug_mode == DEBUG_HIDE_OBJECTS){
+        // Run levels block
+        for (int l = 0; l < numLevels; ++l) {
+          //t3d_segment_set(SEGMENT_LEVELS, &testLevelMatFP);
+          rspq_block_run(dplTestLevel);
+        }
       }
 
-      rdpq_set_lookup_address(1, sprites[textureIndex]->data);
-      for (int b = 0; b < numBalls; ++b) {
-        rspq_block_run(dplBall[b]);
+      if(debug_mode == DEBUG_RENDER_ALL || debug_mode == DEBUG_HIDE_LEVEL){
+        // then actors
+        for (int c = 0; c < numCrates; ++c) {
+          rspq_block_run(dplCrate[c]);
+        }
+    
+        rdpq_set_lookup_address(1, sprites[textureIndex]->data);
+        for (int b = 0; b < numBalls; ++b) {
+          rspq_block_run(dplBall[b]);
+        }
       }
 
       // then the player blocks

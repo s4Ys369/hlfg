@@ -27,6 +27,7 @@ extern rspq_block_t *dplSlopeTri;
 extern rspq_block_t *dplWallTri;
 extern int col_debug;
 extern int text_debug;
+extern int debug_mode;
 extern int col_floor;
 extern int col_slope;
 extern int col_wall;
