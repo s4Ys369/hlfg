@@ -72,9 +72,7 @@ typedef enum {
 
 // UI
 typedef enum {
-    FONT_RESERVED_0,
-    FONT_RESERVED_1, // FONT_BUILTIN_DEBUG_MONO
-    FONT_RESERVED_2, // FONT_BUILTIN_DEBUG_VAR
+    FONT_RESERVED,
     FONT_abaddon,
     FONT_8BIT_0,
     FONT_8BIT_1,

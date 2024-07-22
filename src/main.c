@@ -30,13 +30,14 @@ int main()
   surface_t depthBuffer = surface_alloc(FMT_RGBA16, display_get_width(), display_get_height());
 
   rdpq_init();
-  ibe_debug_init();
+  input_init();
 
   // Default stack size is 8, but lower or raiser the size produces undesired results
   //t3d_init((T3DInitParams){.matrixStackSize = 8});
   t3d_init((T3DInitParams){});
 
-  input_init();
+  debug_models_init();
+
   map_init();
   levels_init();
   actors_init();
@@ -60,12 +61,10 @@ int main()
 
     get_jump_time();
     input_update();
-    if(profile == 0){
-      sound_update_buffer();
-    }
+    sound_update_buffer();
 
     // Simple Pause State
-    if (!isPaused && profile == 0){
+    if (!isPaused){
       actors_update();
       player_update();
       cam_update();
@@ -263,13 +262,10 @@ int main()
         rdpq_fill_rectangle(sizeX/2-1, 0, sizeX/2+1, sizeY);
         break;
     }
-    if(profile == 0){
-      ui_update();
-    }
+    ui_update();
     draw_debug_ui();
     
     rdpq_detach_show();
-    profiler_update();
   }
 
 

@@ -1,9 +1,7 @@
 #include <libdragon.h>
-#include <rspq_profile.h>
 #include <t3d/t3d.h>
 #include <t3d/t3dmath.h>
 #include "../include/config.h"
-#include "../include/debug_overlay.h"
 #include "../include/enums.h"
 #include "../include/globals.h"
 #include "../include/types.h"
@@ -26,7 +24,6 @@ rspq_block_t *dplWallTri;
 rspq_block_t *dplDebugText;
 int col_debug;
 int text_debug;
-int profile = 0;
 int col_floor = 0;
 int col_slope = 0;
 int col_wall = 0;
@@ -49,35 +46,8 @@ const char* playerStateStrings[NUM_PLAYER_STATES] = {
     "Slide"
 };
 
-void profiler_init(void){
-  profile_data.frame_count = 0;
-  rspq_profile_start();
-  rdpq_debug_start();
-}
-
-bool requestDisplayMetrics = false;
-bool displayMetrics = false;
-float last3dFPS = 0.0f;
-uint64_t frame = 0;
-
-void profiler_update(void){
-  frame++;
-  rspq_profile_next_frame();
-
-  if(frame >= 30) {
-    if(!displayMetrics){
-      last3dFPS = display_get_fps();
-      rspq_wait();
-      rspq_profile_get_data(&profile_data);
-      if(requestDisplayMetrics)displayMetrics = true;
-    }
-
-    frame = 0;
-    rspq_profile_reset();
-  }
-}
-
 void debug_models_init(void){
+  text_debug = 0;
   col_debug = 0;
   modelDebugBox = t3d_model_load("rom:/models/box.t3dm");
   modelDebugSphere = t3d_model_load("rom:/models/debugsphere.t3dm");
@@ -120,12 +90,6 @@ void debug_models_init(void){
 
 }
 
-void ibe_debug_init(void){
-  text_debug = 0;
-  profiler_init();
-  debug_models_init();
-}
-
 // Function to print the contents of the stack memory as uint32_t values
 void print_stack_memory_uint32(void *start, size_t size) {
     uint32_t *p = (uint32_t *)start;
@@ -140,14 +104,6 @@ void print_stack_memory_uint32(void *start, size_t size) {
 }
 
 void draw_debug_ui(void){
-
-  if(displayMetrics){
-    rdpq_sync_pipe();
-    rdpq_set_mode_standard();
-    t3d_screen_clear_color(BLACK);
-    debug_draw_perf_overlay(last3dFPS);
-    rspq_wait();
-  }
 
   float fps = display_get_fps();
   uint8_t fpsCheck = STYLE_DEBUG;
@@ -167,7 +123,6 @@ void draw_debug_ui(void){
   };
 
   // Print FPS
-  if(profile == 0){
   rdpq_text_printf(&(rdpq_textparms_t){
       .width = 30,
       .height = 20,
@@ -175,7 +130,6 @@ void draw_debug_ui(void){
       .disable_aa_fix = true,
       .style_id = fpsCheck,
   }, nextFont, 32, 191, "%.2f", display_get_fps());
-  }
 
 
   // Set debug text block
@@ -284,23 +238,13 @@ void draw_debug_ui(void){
 
 #ifndef FORCE_DEBUG_PRINT
   if(btnheld[0].r){
-    text_debug = 0;
-    profile = 1;
+    text_debug = 1;
   } else {
     text_debug = 0;
-    profile = 0;
   }
 #else
 text_debug = 1;
-requestDisplayMetrics = true;
 #endif
-
-  if (profile){
-    requestDisplayMetrics = true;
-  } else {
-    requestDisplayMetrics = false;
-    displayMetrics = false;
-  }
 
   if(btnheld[0].l){
     col_debug = 1;
