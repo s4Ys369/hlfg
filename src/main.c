@@ -147,16 +147,16 @@ int main()
     rdpq_attach(display_get(), &depthBuffer);
     t3d_frame_start();
 
-    color_t fogColor = WHITE;
-    rdpq_set_prim_color(WHITE);
-    //rdpq_mode_fog(RDPQ_FOG_STANDARD);
-    //rdpq_set_fog_color(fogColor);
+    color_t fogColor = INDIGO;
+    rdpq_set_prim_color(INDIGO);
+    rdpq_mode_fog(RDPQ_FOG_STANDARD);
+    rdpq_set_fog_color(fogColor);
 
-    t3d_screen_clear_color(fogColor);
+    t3d_screen_clear_color(VIOLET);
     t3d_screen_clear_depth();
 
-    //t3d_fog_set_range(20.0f, 150.0f);
-    //t3d_fog_set_enabled(true);
+    t3d_fog_set_range(32.0f, 384.0f);
+    t3d_fog_set_enabled(true);
     
     t3d_light_set_ambient(colorAmbient);
     t3d_light_set_count(1);
@@ -165,6 +165,8 @@ int main()
     float fov = T3D_DEG_TO_RAD(75.0f);
     float fov2p = T3D_DEG_TO_RAD(50.0f);
     float fov4p = T3D_DEG_TO_RAD(85.0f);
+    float near = 32.0f;
+    float far = 512.0f;
     for (int i = 0; i < numPlayers; ++i) {
       T3DViewport *vp = &player[i]->cam.viewport;
       T3DVec3 CP = player[i]->cam.camPos;
@@ -172,18 +174,18 @@ int main()
 
       // FOV looks off at different window sizes, so adjust
       if (numPlayers == 2){
-        t3d_viewport_set_projection(vp, fov2p, 20.0f, 750.0f);
+        t3d_viewport_set_projection(vp, fov2p, near, far);
       }else if (numPlayers == 3){
-        t3d_viewport_set_projection(&player[0]->cam.viewport, fov2p, 20.0f, 750.0f);
-        t3d_viewport_set_projection(&player[1]->cam.viewport, fov4p, 20.0f, 500.0f);
-        t3d_viewport_set_projection(&player[2]->cam.viewport, fov4p, 20.0f, 500.0f);
+        t3d_viewport_set_projection(&player[0]->cam.viewport, fov2p, near, far);
+        t3d_viewport_set_projection(&player[1]->cam.viewport, fov4p, near, far);
+        t3d_viewport_set_projection(&player[2]->cam.viewport, fov4p, near, far);
       } else if (numPlayers == 4){
-        t3d_viewport_set_projection(vp, fov4p, 20.0f, 500.0f);
+        t3d_viewport_set_projection(vp, fov4p, near, far);
       } else {
-        t3d_viewport_set_projection(vp, fov, 20.0f, 1000.0f);
+        t3d_viewport_set_projection(vp, fov, near, far);
       }
 
-      t3d_viewport_look_at(vp, &CP, &CT, &(T3DVec3){{0,1,0}});
+      t3d_viewport_look_at(vp, &CP, &CT, &up);
       t3d_viewport_attach(vp);
       t3d_light_set_directional(0, colorDir, &lightDirVec);
       

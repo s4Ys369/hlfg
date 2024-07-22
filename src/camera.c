@@ -10,14 +10,14 @@
 #include "utils.h"
 
 T3DVec3 lightDirVec;
-uint8_t colorAmbient[4] = {0x69, 0x64, 0x5D, 0xFF};
-uint8_t colorDir[4] = {0xFF, 0xAA, 0xAA, 0xFF};
+uint8_t colorAmbient[4] = {51, 0, 68, 255};
+uint8_t colorDir[4] = {255, 218, 33, 255};
 
 // Handles camera, light, and viewports 
 void cam_init(void){
 
   // init light direction
-  lightDirVec = (T3DVec3){{1.0f, 1.0f, 1.0f}};
+  lightDirVec = (T3DVec3){{0.7f, 1.0f, -0.3f}};
   t3d_vec3_norm(&lightDirVec);
 
   // init player camera
