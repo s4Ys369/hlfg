@@ -122,14 +122,15 @@ void player_init(void){
 
     // Create player's RSPQ blocks
     rspq_block_begin();
+      rdpq_sync_pipe(); // threw this in, no effect
       if(hack2p){
         rdpq_mode_begin();
-          t3d_frame_start();
+          t3d_frame_start(); // When 2 players, and ONLY 2 players, the second player is rendered inside out
         rdpq_mode_end();
       }
       t3d_matrix_push_pos(1);
-      matCount++;
-      t3d_matrix_set(playerMatFP[i], true);
+      matCount++; // My debug counter for number for matrices
+      t3d_matrix_set(playerMatFP[i], true); 
       rdpq_set_prim_color(GREEN);
       t3d_matrix_set(playerMatFP[i], true);
       t3d_model_draw_skinned(modelPlayer, &playerSkel[i]);
@@ -138,6 +139,7 @@ void player_init(void){
 
     rspq_block_begin();
       rdpq_mode_begin();
+        rdpq_sync_pipe();
         rdpq_set_mode_standard();
         rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
       rdpq_mode_end();
@@ -162,6 +164,7 @@ void player_init(void){
 
     rspq_block_begin();
       rdpq_mode_begin();
+        rdpq_sync_pipe();
         rdpq_set_mode_standard();
         rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
       rdpq_mode_end();
@@ -175,11 +178,12 @@ void player_init(void){
     dplProjectileHitBox[i] = rspq_block_end();
 
     rspq_block_begin();
+      rdpq_sync_pipe();
       t3d_matrix_push_pos(1);
       matCount++;
       t3d_matrix_set(shadowMatFP[i], true);
       rdpq_set_prim_color(TRANSPARENT);
-      t3d_matrix_set(shadowMatFP[i], true);
+      t3d_matrix_set(shadowMatFP[i], false);
       t3d_model_draw(modelShadow);
       t3d_matrix_pop(1);
     dplShadow[i] = rspq_block_end();
