@@ -168,6 +168,13 @@ int main()
     float near = 32.0f;
     float far = 512.0f;
     for (int i = 0; i < numPlayers; ++i) {
+      t3d_frame_start();
+      rdpq_set_prim_color(INDIGO);
+      rdpq_mode_fog(RDPQ_FOG_STANDARD);
+      rdpq_set_fog_color(fogColor);
+      t3d_screen_clear_depth();
+      t3d_fog_set_range(32.0f, 384.0f);
+      t3d_fog_set_enabled(true);
       T3DViewport *vp = &player[i]->cam.viewport;
       T3DVec3 CP = player[i]->cam.camPos;
       T3DVec3 CT = player[i]->cam.camTarget;

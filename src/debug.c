@@ -267,7 +267,7 @@ void draw_debug_ui(void){
 text_debug = 1;
 #endif
 
-  if(btnheld[0].l){
+  if(btnheld[0].l && numPlayers == 1){
     col_debug = 1;
     Surface cFloor = find_closest_surface(player[0]->hitbox.center, testLevelFloor, testLevelFloorCount);
     Surface cWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);

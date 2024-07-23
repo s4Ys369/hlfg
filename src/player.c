@@ -114,9 +114,19 @@ void player_init(void){
     animFall[i] = t3d_anim_create(modelPlayer, "fall");
     t3d_anim_attach(&animFall[i], &playerSkelBlend[i]);
 
+    int hack2p = 0;
+    if (numPlayers == 2){
+      hack2p = 1;
+    }
+
 
     // Create player's RSPQ blocks
     rspq_block_begin();
+      if(hack2p){
+        rdpq_mode_begin();
+          t3d_frame_start();
+        rdpq_mode_end();
+      }
       t3d_matrix_push_pos(1);
       matCount++;
       t3d_matrix_set(playerMatFP[i], true);
