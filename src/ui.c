@@ -143,18 +143,18 @@ void print_score(int fontIdx){
     // Set up block for score
     if(!dplScore){
         rspq_block_begin();
+            rdpq_mode_begin();
+                rdpq_sync_pipe();
+                rdpq_sync_tile();
+                rdpq_set_mode_standard();
+                rdpq_mode_combiner(RDPQ_COMBINER1((0,0,0,PRIM), (PRIM,0,TEX0,0)));
+                rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+            rdpq_mode_end();
 
-        rdpq_sync_tile();
-        rdpq_mode_begin();
-            rdpq_set_mode_standard();
-            rdpq_mode_combiner(RDPQ_COMBINER1((0,0,0,PRIM), (PRIM,0,TEX0,0)));
-            rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
-        rdpq_mode_end();
+            rdpq_set_prim_color(T_BLACK);
+            rdpq_sprite_upload(TILE1, spriteTextWindow, &textWindowParams);
 
-        rdpq_set_prim_color(T_BLACK);
-        rdpq_sprite_upload(TILE1, spriteTextWindow, &textWindowParams);
-
-        rdpq_texture_rectangle(TILE1, textX-2, textY-30, textX+52, textY+4, 0, 0);
+            rdpq_texture_rectangle(TILE1, textX-2, textY-30, textX+52, textY+4, 0, 0);
 
         dplScore = rspq_block_end();
     }
@@ -197,9 +197,10 @@ void print_controls(int fontIdx){
     // Set up block for score
     if(!dplControls){
         rspq_block_begin();
-        rdpq_sync_tile();
 
         rdpq_mode_begin();
+            rdpq_sync_pipe();
+            rdpq_sync_tile();
             rdpq_set_mode_standard();
             rdpq_mode_combiner(RDPQ_COMBINER1((0,0,0,PRIM), (PRIM,0,TEX0,0)));
             rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);

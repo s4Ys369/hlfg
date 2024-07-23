@@ -143,9 +143,10 @@ void draw_debug_ui(void){
   // Set debug text block
   if(!dplDebugText){
     rspq_block_begin();
-    
-    rdpq_sync_tile();
+
     rdpq_mode_begin();
+      rdpq_sync_pipe();
+      rdpq_sync_tile();
       rdpq_set_mode_standard();
       rdpq_mode_combiner(RDPQ_COMBINER1((0,0,0,PRIM), (PRIM,0,TEX0,0)));
       rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
@@ -288,8 +289,8 @@ text_debug = 1;
 
       if(!dplFloorTri) {
         rspq_block_begin();
-
           rdpq_mode_begin();
+            rdpq_sync_pipe();
             rdpq_set_mode_standard();
             rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
             t3d_state_set_drawflags(T3D_FLAG_SHADED | T3D_FLAG_DEPTH);
@@ -322,8 +323,8 @@ text_debug = 1;
 
       if(!dplSlopeTri) {
         rspq_block_begin();
-
           rdpq_mode_begin();
+            rdpq_sync_pipe();
             rdpq_set_mode_standard();
             rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
             t3d_state_set_drawflags(T3D_FLAG_SHADED | T3D_FLAG_DEPTH);
@@ -358,8 +359,8 @@ text_debug = 1;
 
       if(!dplWallTri) {
         rspq_block_begin();
-
           rdpq_mode_begin();
+            rdpq_sync_pipe();
             rdpq_set_mode_standard();
             rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
             t3d_state_set_drawflags(T3D_FLAG_SHADED | T3D_FLAG_DEPTH);

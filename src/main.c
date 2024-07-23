@@ -23,6 +23,7 @@ int main()
 {
   debug_init_isviewer();
   debug_init_usblog();
+  asset_init_compression(2);
 
   dfs_init(DFS_DEFAULT_LOCATION);
 
@@ -30,6 +31,7 @@ int main()
   surface_t depthBuffer = surface_alloc(FMT_RGBA16, display_get_width(), display_get_height());
 
   rdpq_init();
+  rdpq_debug_start();
   input_init();
 
   // Default stack size is 8, but lower or raiser the size produces undesired results
@@ -61,7 +63,6 @@ int main()
 
     get_jump_time();
     input_update();
-    sound_update_buffer();
 
     // Simple Pause State
     if (!isPaused){
@@ -69,19 +70,8 @@ int main()
       player_update();
       cam_update();
     }
-    
-    for (int i = 0; i < numPlayers; ++i) {
-      // We now blend the walk animation with the idle/attack one
-      t3d_skeleton_blend(&playerSkel[i], &playerSkel[i], &playerSkelBlend[i], player[i]->animBlend);
-    }
 
-
-    if(syncPoint)rspq_syncpoint_wait(syncPoint);
-
-    // Now recalc. the matrices, this will cause any model referencing them to use the new pose
-    for (int i = 0; i < numPlayers; ++i) {
-      t3d_skeleton_update(&playerSkel[i]);
-    }
+    sound_update_buffer();
 
     t3d_mat4fp_from_srt_euler(testLevelMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
@@ -131,6 +121,19 @@ int main()
         player[p]->projectile.hitbox.center.v
       );
 
+    }
+    
+    for (int i = 0; i < numPlayers; ++i) {
+      // We now blend the walk animation with the idle/attack one
+      t3d_skeleton_blend(&playerSkel[i], &playerSkel[i], &playerSkelBlend[i], player[i]->animBlend);
+    }
+
+
+    if(syncPoint)rspq_syncpoint_wait(syncPoint);
+
+    // Now recalc. the matrices, this will cause any model referencing them to use the new pose
+    for (int i = 0; i < numPlayers; ++i) {
+      t3d_skeleton_update(&playerSkel[i]);
     }
 
     for (int np = 0; np < numPlayers; ++np) {
@@ -255,6 +258,7 @@ int main()
 
     int sizeX = display_get_width();
     int sizeY = display_get_height();
+    rdpq_sync_pipe();
     rdpq_set_scissor(0, 0, sizeX, sizeY);
     rdpq_set_mode_standard();
     rdpq_set_mode_fill(BLACK);
