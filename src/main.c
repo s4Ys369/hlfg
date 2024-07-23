@@ -31,7 +31,12 @@ int main()
   surface_t depthBuffer = surface_alloc(FMT_RGBA16, display_get_width(), display_get_height());
 
   rdpq_init();
-  rdpq_debug_start();
+#ifdef FORCE_PLAYERS
+  if(FORCE_PLAYERS > 1) {
+    rdpq_debug_start(); // Multiplayer only works while RDPQ Debug is enabled, probably auto sync related
+    //rdpq_debug_log(true);
+  }
+#endif // FORCE_PLAYERS
   input_init();
 
   // Default stack size is 8, but lower or raiser the size produces undesired results
@@ -70,8 +75,7 @@ int main()
       player_update();
       cam_update();
     }
-
-    sound_update_buffer();
+    if(numPlayers <= 2)sound_update_buffer();
 
     t3d_mat4fp_from_srt_euler(testLevelMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
@@ -90,6 +94,28 @@ int main()
         balls[b]->rot.v,
         balls[b]->pos.v
       );
+    }
+    
+    for (int i = 0; i < numPlayers; ++i) {
+      // We now blend the walk animation with the idle/attack one
+      t3d_skeleton_blend(&playerSkel[i], &playerSkel[i], &playerSkelBlend[i], player[i]->animBlend);
+    }
+
+
+    if(syncPoint)rspq_syncpoint_wait(syncPoint);
+
+    // Now recalc. the matrices, this will cause any model referencing them to use the new pose
+    for (int i = 0; i < numPlayers; ++i) {
+      t3d_skeleton_update(&playerSkel[i]);
+    }
+
+    for (int np = 0; np < numPlayers; ++np) {
+      // Update players matrices
+      t3d_mat4fp_from_srt_euler(playerMatFP[np],
+          player[np]->scale.v,
+          (float[3]){player[np]->rot.v[0], -player[np]->rot.v[1], player[np]->rot.v[2]},
+          player[np]->pos.v
+        );
     }
 
     // Update player's extra matrices separately
@@ -122,32 +148,11 @@ int main()
       );
 
     }
-    
-    for (int i = 0; i < numPlayers; ++i) {
-      // We now blend the walk animation with the idle/attack one
-      t3d_skeleton_blend(&playerSkel[i], &playerSkel[i], &playerSkelBlend[i], player[i]->animBlend);
-    }
-
-
-    if(syncPoint)rspq_syncpoint_wait(syncPoint);
-
-    // Now recalc. the matrices, this will cause any model referencing them to use the new pose
-    for (int i = 0; i < numPlayers; ++i) {
-      t3d_skeleton_update(&playerSkel[i]);
-    }
-
-    for (int np = 0; np < numPlayers; ++np) {
-      // Update players matrices
-      t3d_mat4fp_from_srt_euler(playerMatFP[np],
-          player[np]->scale.v,
-          (float[3]){player[np]->rot.v[0], -player[np]->rot.v[1], player[np]->rot.v[2]},
-          player[np]->pos.v
-        );
-    }
 
 
     // ======== Draw (3D) ======== //
     rdpq_attach(display_get(), &depthBuffer);
+    rdpq_sync_pipe();
     t3d_frame_start();
 
     color_t fogColor = INDIGO;
@@ -171,6 +176,7 @@ int main()
     float near = 32.0f;
     float far = 512.0f;
     for (int i = 0; i < numPlayers; ++i) {
+      rdpq_sync_pipe();
       t3d_frame_start();
       rdpq_set_prim_color(INDIGO);
       rdpq_mode_fog(RDPQ_FOG_STANDARD);

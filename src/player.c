@@ -153,6 +153,7 @@ void player_init(void){
     dplPlayerHitBox[i] = rspq_block_end();
 
     rspq_block_begin();
+      rdpq_sync_pipe();
       t3d_matrix_push_pos(1);
       matCount++;
       t3d_matrix_set(projectileMatFP[i], true);
@@ -178,12 +179,15 @@ void player_init(void){
     dplProjectileHitBox[i] = rspq_block_end();
 
     rspq_block_begin();
-      rdpq_sync_pipe();
+      rdpq_mode_begin();
+        rdpq_sync_pipe();
+        rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+      rdpq_mode_end();
       t3d_matrix_push_pos(1);
       matCount++;
       t3d_matrix_set(shadowMatFP[i], true);
       rdpq_set_prim_color(TRANSPARENT);
-      t3d_matrix_set(shadowMatFP[i], false);
+      t3d_matrix_set(shadowMatFP[i], true);
       t3d_model_draw(modelShadow);
       t3d_matrix_pop(1);
     dplShadow[i] = rspq_block_end();
