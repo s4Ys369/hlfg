@@ -222,7 +222,7 @@ int main()
         rspq_block_run(dplPlayer[p]);
 
         // Lose shadows after 2 players for performance
-        if(numPlayers <= 2){
+        if(numPlayers < 3){
           rspq_block_run(dplShadow[p]);
         }
       }

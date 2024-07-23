@@ -963,6 +963,7 @@ void player_update(void){
 
 
   // update shadow
+  if(numPlayers < 3){
   player[i]->shadowPos.v[0] = player[i]->pos.v[0];
   player[i]->shadowPos.v[2] = player[i]->pos.v[2];
   player[i]->shadowRot = player[i]->rot;
@@ -1005,6 +1006,7 @@ void player_update(void){
     }
   } else {
     player[i]->shadowPos.v[1] = player[i]->pos.v[1];
+  }
   }
 
   //reset projectile
