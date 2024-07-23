@@ -248,7 +248,6 @@ int main()
 
     int sizeX = display_get_width();
     int sizeY = display_get_height();
-    rdpq_sync_pipe();
     rdpq_set_scissor(0, 0, sizeX, sizeY);
     rdpq_set_mode_standard();
     rdpq_set_mode_fill(BLACK);

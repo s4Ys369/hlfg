@@ -144,16 +144,15 @@ void draw_debug_ui(void){
   if(!dplDebugText){
     rspq_block_begin();
     
-    rdpq_sync_pipe();
     rdpq_sync_tile();
-    
-    rdpq_set_mode_standard();
-    rdpq_mode_combiner(RDPQ_COMBINER1((0,0,0,PRIM), (PRIM,0,TEX0,0)));
-    rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+    rdpq_mode_begin();
+      rdpq_set_mode_standard();
+      rdpq_mode_combiner(RDPQ_COMBINER1((0,0,0,PRIM), (PRIM,0,TEX0,0)));
+      rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+    rdpq_mode_end();
     
     rdpq_set_prim_color(T_BLACK);
     rdpq_sprite_upload(TILE1, spriteTextWindow, &textWindowParams);
-    rdpq_sync_load(); //?
     
     // unhardcode?
     rdpq_texture_rectangle(TILE1, 10, 10, 80, 190, 0, 0);
@@ -289,8 +288,14 @@ text_debug = 1;
 
       if(!dplFloorTri) {
         rspq_block_begin();
-          rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
-          t3d_state_set_drawflags(T3D_FLAG_SHADED | T3D_FLAG_DEPTH);
+
+          rdpq_mode_begin();
+            rdpq_set_mode_standard();
+            rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
+            t3d_state_set_drawflags(T3D_FLAG_SHADED | T3D_FLAG_DEPTH);
+            rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+          rdpq_mode_end();
+
           t3d_matrix_push(triangleMatFP);
           t3d_vert_load(triVerts, 0, 12);
           t3d_matrix_pop(1);
@@ -318,12 +323,12 @@ text_debug = 1;
       if(!dplSlopeTri) {
         rspq_block_begin();
 
-          rdpq_sync_pipe();
-
-          rdpq_set_mode_standard();
-          rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
-          t3d_state_set_drawflags(T3D_FLAG_SHADED | T3D_FLAG_DEPTH);
-          rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+          rdpq_mode_begin();
+            rdpq_set_mode_standard();
+            rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
+            t3d_state_set_drawflags(T3D_FLAG_SHADED | T3D_FLAG_DEPTH);
+            rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+          rdpq_mode_end();
 
           t3d_matrix_push(triangleMatFP);
           t3d_vert_load(triVerts, 0, 12);
@@ -354,12 +359,12 @@ text_debug = 1;
       if(!dplWallTri) {
         rspq_block_begin();
 
-          rdpq_sync_pipe();
-
-          rdpq_set_mode_standard();
-          rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
-          t3d_state_set_drawflags(T3D_FLAG_SHADED | T3D_FLAG_DEPTH);
-          rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+          rdpq_mode_begin();
+            rdpq_set_mode_standard();
+            rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
+            t3d_state_set_drawflags(T3D_FLAG_SHADED | T3D_FLAG_DEPTH);
+            rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+          rdpq_mode_end();
 
           t3d_matrix_push(triangleMatFP);
           t3d_vert_load(triVerts, 0, 12);
