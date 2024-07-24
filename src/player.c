@@ -590,9 +590,6 @@ void player_update(void){
   if(btn[i].b) {
     sound_attack();
     playerState[i] = PLAYER_ATTACK_START;
-    if(!rumbleLong[i] && !rumbleShort[i] && !rumbleWave[i]){
-      rumbleShort[i] = true;
-    }
   }
 
   // Player movement
@@ -756,6 +753,9 @@ void player_update(void){
       player[i]->projectile.speed = 80.0f;
       player[i]->projectile.isActive = true;
       playerState[i] = PLAYER_ATTACK;
+      if(!rumbleLong[i] && !rumbleShort[i] && !rumbleWave[i]){
+        rumbleShort[i] = true;
+      }
     } else {
       playerState[i] = PLAYER_FALL;
     }
