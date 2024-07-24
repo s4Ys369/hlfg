@@ -239,6 +239,7 @@ void player_init(void){
         player[p]->pos = playerStartPos;
         if(!rumbleLong[p] && !rumbleShort[p] && !rumbleWave[p]){
           rumbleShort[p] = true;
+          pd_set_rumble(p, 0.1f, 2, 4);
         }
       }
     }
@@ -354,6 +355,7 @@ void player_bounced(PlayerParams *player[], int playerCount) {
 
   if(!rumbleLong[playerCount] && !rumbleShort[playerCount] && !rumbleWave[playerCount]){
     rumbleLong[playerCount] = true;
+    pd_set_rumble(playerCount, 0.2f, 2, 4);
   }
 
   player[playerCount]->vel.v[1] += (player[playerCount]->jumpForce * bounceMultiplier) + GRAVITY * jumpFixedTime;
@@ -582,6 +584,7 @@ void player_update(void){
       playerState[i] = PLAYER_JUMP_START;
       if(!rumbleLong[i] && !rumbleShort[i] && !rumbleWave[i]){
         rumbleShort[i] = true;
+        pd_set_rumble(i, 0.1f, 2, 4);
       }
     }
   }
@@ -592,6 +595,7 @@ void player_update(void){
     playerState[i] = PLAYER_ATTACK_START;
     if(!rumbleLong[i] && !rumbleShort[i] && !rumbleWave[i]){
       rumbleShort[i] = true;
+      pd_set_rumble(i, 0.1f, 2, 4);
     }
   }
 
@@ -729,6 +733,7 @@ void player_update(void){
     playerState[i] = PLAYER_IDLE;
     if(!rumbleLong[i] && !rumbleShort[i] && !rumbleWave[i]){
         rumbleLong[i] = true;
+        pd_set_rumble(i, 0.2f, 2, 4);
       }
     break;
   }

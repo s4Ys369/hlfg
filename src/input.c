@@ -95,6 +95,125 @@ void rumble_wave(int numPlayer) {
 
 }
 
+
+// PERFECT DARK RUMBLE TEST
+enum RUMBLE_STATE {
+    RUMBLESTATE_0,
+    RUMBLESTATE_1,
+    RUMBLESTATE_ENABLED_STOPPED,  
+    RUMBLESTATE_ENABLED_STARTING,  
+    RUMBLESTATE_ENABLED_RUMBLING,  
+    RUMBLESTATE_ENABLED_STOPPING, 
+    RUMBLESTATE_DISABLED_STOPPING,
+    RUMBLESTATE_DISABLED_STOPPED, 
+    RUMBLESTATE_ENABLING          
+};
+
+struct pakParams {
+	uint32_t rumblestate;
+	int32_t rumblepulsestopat;
+	uint32_t rumblepulselen;
+	uint32_t rumblepulsetimer; 
+    float rumblettl;
+};
+
+struct pakParams g_Paks[MAX_PLAYERS];
+
+const char* rumbleStateStrings[9] = {
+    "0",
+    "1",
+    "ENABLED STOPPED",  
+    "ENABLED STARTING",  
+    "ENABLED RUMBLING",  
+    "ENABLED STOPPING", 
+    "DISABLED STOPPING",
+    "DISABLED STOPPED", 
+    "ENABLING" 
+};
+
+void pd_rumble_update(void){
+
+	for (int i = 0; i < numPlayers; i++) {
+		switch (g_Paks[i].rumblestate) {
+			case RUMBLESTATE_ENABLED_STARTING:
+				g_Paks[i].rumblestate = RUMBLESTATE_ENABLED_RUMBLING;
+				joypad_set_rumble_active(i, true);
+                rumble_active[i] = true;
+				break;
+			case RUMBLESTATE_ENABLED_RUMBLING:
+				if (g_Paks[i].rumblepulsestopat != -1) {
+					if (g_Paks[i].rumblepulsetimer == 0) {
+						joypad_set_rumble_active(i, true);
+                        rumble_active[i] = true;
+					} else if (g_Paks[i].rumblepulsestopat == g_Paks[i].rumblepulsetimer) {
+						joypad_set_rumble_active(i, false);
+                        rumble_active[i] = false;
+					}
+
+					g_Paks[i].rumblepulsetimer++;
+
+					if (g_Paks[i].rumblepulselen == g_Paks[i].rumblepulsetimer) {
+						g_Paks[i].rumblepulsetimer = 0;
+					}
+				}
+
+				g_Paks[i].rumblettl--;
+
+				if (g_Paks[i].rumblettl < 0) {
+					g_Paks[i].rumblestate = RUMBLESTATE_ENABLED_STOPPING;
+				}
+				break;
+			case RUMBLESTATE_ENABLED_STOPPING:
+				g_Paks[i].rumblestate = RUMBLESTATE_ENABLED_STOPPED;
+				joypad_set_rumble_active(i, false);
+                rumble_active[i] = false;
+                rumbleLong[i] = false;
+                rumbleShort[i] = false;
+				break;
+			case RUMBLESTATE_DISABLED_STOPPING:
+				joypad_set_rumble_active(i, false);
+                rumble_active[i] = false;
+                rumbleLong[i] = false;
+                rumbleShort[i] = false;
+				g_Paks[i].rumblestate = RUMBLESTATE_DISABLED_STOPPED;
+				break;
+			case RUMBLESTATE_ENABLING:
+				g_Paks[i].rumblestate = RUMBLESTATE_ENABLED_STOPPED;
+				g_Paks[i].rumblettl = -1;
+				break;
+			}
+		}
+}
+
+void pd_stop_rumble(int device) {
+
+    if(rumble_active[device]){
+        joypad_set_rumble_active(device, false);
+        rumble_active[device] = false;
+    }
+
+
+    if (g_Paks[device].rumblestate != RUMBLESTATE_DISABLED_STOPPING
+            && g_Paks[device].rumblestate != RUMBLESTATE_DISABLED_STOPPED) {
+        g_Paks[device].rumblestate = RUMBLESTATE_ENABLED_STOPPING;
+    }
+
+    g_Paks[device].rumblettl = -1;
+}
+
+void pd_set_rumble(int device, float numsecs, int32_t onduration, int32_t offduration){
+
+	if (g_Paks[device].rumblestate != RUMBLESTATE_DISABLED_STOPPING
+			&& g_Paks[device].rumblestate != RUMBLESTATE_DISABLED_STOPPED
+			&& g_Paks[device].rumblettl < 60 * numsecs) {
+		g_Paks[device].rumblestate = RUMBLESTATE_ENABLED_STARTING;
+		g_Paks[device].rumblettl = 60 * numsecs;
+		g_Paks[device].rumblepulsestopat = onduration;
+		g_Paks[device].rumblepulselen = onduration + offduration;
+		g_Paks[device].rumblepulsetimer = 0;
+	}
+}
+
 // Poll joypads based on number of players
 void input_update(void){
     joypad_poll();
@@ -141,21 +260,24 @@ void input_update(void){
             break;
     }
 
+
     for(int np = 0; np < numPlayers; ++np){
         rumble_supported[np] = joypad_get_rumble_supported(np);
-        if(rumbleLong[np]) {
-            rumble_long(np);
-        }
-        if(rumbleShort[np]){
-            rumble_short(np);
-        }
+        //if(rumbleLong[np]) {
+        //    pd_set_rumble(np, 0.2f, 2, 4);
+        //}
+        //if(rumbleShort[np]){
+        //    pd_set_rumble(np, 0.1f, 1, 2);
+        //}
         if(rumbleWave[np]){
             rumble_wave(np);
         }
         if(btn[np].l){
-            joypad_set_rumble_active(np, false);
-            rumble_active[np] = false;
+            pd_stop_rumble(np);
         }
+        pd_rumble_update();
+        //debugf("%u %s ", np, rumbleStateStrings[g_Paks[np].rumblestate]);
+        //debugf("%lu %lu %lu %f\n", g_Paks[np].rumblepulsestopat, g_Paks[np].rumblepulselen, g_Paks[np].rumblepulsetimer, g_Paks[np].rumblettl);
     }
 
 }
