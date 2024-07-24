@@ -98,8 +98,8 @@ void rumble_wave(int numPlayer) {
 
 // PERFECT DARK RUMBLE TEST
 enum RUMBLE_STATE {
-    RUMBLESTATE_0,
-    RUMBLESTATE_1,
+    RUMBLESTATE_NONE,
+    RUMBLESTATE_DETECTED,
     RUMBLESTATE_ENABLED_STOPPED,  
     RUMBLESTATE_ENABLED_STARTING,  
     RUMBLESTATE_ENABLED_RUMBLING,  
@@ -120,8 +120,8 @@ struct pakParams {
 struct pakParams g_Paks[MAX_PLAYERS];
 
 const char* rumbleStateStrings[9] = {
-    "0",
-    "1",
+    "NOT DETECTED",
+    "DETECTED",
     "ENABLED STOPPED",  
     "ENABLED STARTING",  
     "ENABLED RUMBLING",  
@@ -150,7 +150,7 @@ void pd_rumble_update(void){
                         rumble_active[i] = false;
 					}
 
-					g_Paks[i].rumblepulsetimer++;
+                g_Paks[i].rumblepulsetimer++;
 
 					if (g_Paks[i].rumblepulselen == g_Paks[i].rumblepulsetimer) {
 						g_Paks[i].rumblepulsetimer = 0;
@@ -185,33 +185,50 @@ void pd_rumble_update(void){
 		}
 }
 
-void pd_stop_rumble(int device) {
+void pd_stop_rumble(int numPlayer) {
 
-    if(rumble_active[device]){
-        joypad_set_rumble_active(device, false);
-        rumble_active[device] = false;
+    if(rumble_active[numPlayer]){
+        joypad_set_rumble_active(numPlayer, false);
+        rumble_active[numPlayer] = false;
     }
 
 
-    if (g_Paks[device].rumblestate != RUMBLESTATE_DISABLED_STOPPING
-            && g_Paks[device].rumblestate != RUMBLESTATE_DISABLED_STOPPED) {
-        g_Paks[device].rumblestate = RUMBLESTATE_ENABLED_STOPPING;
+    if (g_Paks[numPlayer].rumblestate != RUMBLESTATE_DISABLED_STOPPING
+            && g_Paks[numPlayer].rumblestate != RUMBLESTATE_DISABLED_STOPPED) {
+        g_Paks[numPlayer].rumblestate = RUMBLESTATE_ENABLED_STOPPING;
     }
 
-    g_Paks[device].rumblettl = -1;
+    g_Paks[numPlayer].rumblettl = -1;
 }
 
-void pd_set_rumble(int device, float numsecs, int32_t onduration, int32_t offduration){
+void pd_set_rumble(int numPlayer, float numsecs, int32_t onduration, int32_t offduration){
 
-	if (g_Paks[device].rumblestate != RUMBLESTATE_DISABLED_STOPPING
-			&& g_Paks[device].rumblestate != RUMBLESTATE_DISABLED_STOPPED
-			&& g_Paks[device].rumblettl < 60 * numsecs) {
-		g_Paks[device].rumblestate = RUMBLESTATE_ENABLED_STARTING;
-		g_Paks[device].rumblettl = 60 * numsecs;
-		g_Paks[device].rumblepulsestopat = onduration;
-		g_Paks[device].rumblepulselen = onduration + offduration;
-		g_Paks[device].rumblepulsetimer = 0;
+	if (g_Paks[numPlayer].rumblestate != RUMBLESTATE_DISABLED_STOPPING
+			&& g_Paks[numPlayer].rumblestate != RUMBLESTATE_DISABLED_STOPPED
+			&& g_Paks[numPlayer].rumblettl < 60 * numsecs) {
+		g_Paks[numPlayer].rumblestate = RUMBLESTATE_ENABLED_STARTING;
+		g_Paks[numPlayer].rumblettl = 60 * numsecs;
+		g_Paks[numPlayer].rumblepulsestopat = onduration;
+		g_Paks[numPlayer].rumblepulselen = onduration + offduration;
+		g_Paks[numPlayer].rumblepulsetimer = 0;
 	}
+}
+
+void pd_rumble_param_clear(int numPlayer){
+    g_Paks[numPlayer].rumblettl = 0;
+    g_Paks[numPlayer].rumblepulsestopat = 0;
+    g_Paks[numPlayer].rumblepulselen = 0;
+    g_Paks[numPlayer].rumblepulsetimer = 0;
+}
+
+void pd_rumble_disabled(int numPlayer){
+    g_Paks[numPlayer].rumblestate = RUMBLESTATE_DISABLED_STOPPED;
+    pd_rumble_param_clear(numPlayer);
+}
+
+void pd_rumble_kill(int numPlayer){
+    g_Paks[numPlayer].rumblestate = RUMBLESTATE_DISABLED_STOPPING;
+    pd_rumble_disabled(numPlayer);
 }
 
 // Poll joypads based on number of players
@@ -263,21 +280,17 @@ void input_update(void){
 
     for(int np = 0; np < numPlayers; ++np){
         rumble_supported[np] = joypad_get_rumble_supported(np);
-        //if(rumbleLong[np]) {
-        //    pd_set_rumble(np, 0.2f, 2, 4);
-        //}
-        //if(rumbleShort[np]){
-        //    pd_set_rumble(np, 0.1f, 1, 2);
-        //}
+        pd_rumble_update();
         if(rumbleWave[np]){
             rumble_wave(np);
         }
         if(btn[np].l){
             pd_stop_rumble(np);
+            pd_rumble_param_clear(np);
         }
-        pd_rumble_update();
+        
         //debugf("%u %s ", np, rumbleStateStrings[g_Paks[np].rumblestate]);
-        //debugf("%lu %lu %lu %f\n", g_Paks[np].rumblepulsestopat, g_Paks[np].rumblepulselen, g_Paks[np].rumblepulsetimer, g_Paks[np].rumblettl);
+        //debugf("%lu %lu %lu %.1f\n", g_Paks[np].rumblepulsestopat, g_Paks[np].rumblepulselen, g_Paks[np].rumblepulsetimer, g_Paks[np].rumblettl);
     }
 
 }

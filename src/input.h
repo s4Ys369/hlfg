@@ -21,7 +21,7 @@ void input_init(void);
 void rumble_short(int numPlayer);
 void rumble_long(int numPlayer);
 void rumble_wave(int numPlayer);
-void pd_set_rumble(int device, float numsecs, int32_t onduration, int32_t offduration);
+void pd_set_rumble(int numPlayer, float numsecs, int32_t onduration, int32_t offduration);
 void input_update(void);
 
 #endif // INPUT_H
