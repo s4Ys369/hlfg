@@ -8,7 +8,7 @@
 #define SEED 15724
 
 // See src/input.c
-#define FORCE_PLAYERS 1
+#define FORCE_PLAYERS 4
 
 // Always print instead of just when R trigger is held
 //#define FORCE_DEBUG_PRINT

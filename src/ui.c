@@ -167,25 +167,32 @@ void print_score(int fontIdx){
     // Run text window block
     rspq_block_run(dplScore); 
 
+    // Cap score at 999 to fit with %03d prints
+    for(int p = 0; p < numPlayers; ++p){
+        if(player[p]->score > 999){
+            player[p]->score = 999;
+        }
+    }
+
 
     if(numPlayers > 1) {
         if(numPlayers == 2) {
-            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
-            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[1]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %03d", player[0]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY-18, "FPS\nSCORE %03d", player[1]->score);
         }
         if(numPlayers == 3) {
-            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
-            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[1]->score);
-            rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4,  textY, "SCORE %d", player[2]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %03d", player[0]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY-18, "FPS\nSCORE %03d", player[1]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4,  textY, "SCORE %03d", player[2]->score);
         }
         if(numPlayers == 4) {
-            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %d", player[0]->score);
-            rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4,  textY/2, "SCORE %d", player[1]->score);
-            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY, "SCORE %d", player[2]->score);
-            rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4, textY, "SCORE %d", player[3]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY/2, "SCORE %03d", player[0]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4,  textY/2, "SCORE %03d", player[1]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY-18, "FPS\nSCORE %03d", player[2]->score);
+            rdpq_text_printf(&scoreTextParams, fontIdx, (textX*14)+4, textY, "SCORE %03d", player[3]->score);
         }
     } else {
-        rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY-18, "FPS\n""SCORE %d", player[0]->score);
+        rdpq_text_printf(&scoreTextParams, fontIdx, textX, textY-18, "FPS\n""SCORE %03d", player[0]->score);
     }
 
 }
