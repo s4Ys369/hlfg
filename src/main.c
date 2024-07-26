@@ -10,6 +10,7 @@
 #include "debug.h"
 #include "input.h"
 #include "levels.h"
+#include "lvl1.h"
 #include "map.h"
 #include "player.h"
 #include "sound.h"
@@ -77,7 +78,7 @@ int main()
     }
     if(numPlayers <= 2)sound_update_buffer();
 
-    t3d_mat4fp_from_srt_euler(testLevelMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
+    t3d_mat4fp_from_srt_euler(lvl1MatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
     // Update actor matrices
     for (int c = 0; c < numCrates; ++c) {
@@ -210,7 +211,7 @@ int main()
         // Run levels block
         for (int l = 0; l < numLevels; ++l) {
           //t3d_segment_set(SEGMENT_LEVELS, &testLevelMatFP);
-          rspq_block_run(dplTestLevel);
+          rspq_block_run(dplLvl1);
         }
       }
 

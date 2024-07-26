@@ -12,10 +12,10 @@
 #include "actors.h"
 #include "collision.h"
 #include "debug.h"
+#include "levels.h"
 #include "map.h"
 #include "octree_test.h"
 #include "player.h"
-#include "test_level.h"
 #include "sound.h"
 #include "utils.h"
 
@@ -390,7 +390,7 @@ void balls_update(void){
 
     
     // Check for the ball is on or below floor
-    Surface findFloor = find_closest_surface(balls[b]->hitbox.shape.sphere.center, testLevelFloor, testLevelFloorCount);
+    Surface findFloor = find_closest_surface(balls[b]->hitbox.shape.sphere.center, levels[currLevel].floors, levels[currLevel].floorCount);
     if (balls[b]->hitbox.shape.sphere.center.v[1] <= findFloor.center.v[1] + balls[b]->hitbox.shape.sphere.radius) {
 
       
@@ -514,9 +514,9 @@ void crates_update(void){
 
     crates[c]->pos.v[1] += GRAVITY * jumpFixedTime;
     
-    Surface findFloor = find_closest_surface(crates[c]->hitbox.shape.aabb.min, testLevelFloor, testLevelFloorCount);
-    Surface findWallMin = find_closest_surface(crates[c]->hitbox.shape.aabb.min, testLevelWall, testLevelWallCount);
-    Surface findWallMax = find_closest_surface(crates[c]->hitbox.shape.aabb.max, testLevelWall, testLevelWallCount);
+    Surface findFloor = find_closest_surface(crates[c]->hitbox.shape.aabb.min, levels[currLevel].floors, levels[currLevel].floorCount);
+    Surface findWallMin = find_closest_surface(crates[c]->hitbox.shape.aabb.min, levels[currLevel].walls, levels[currLevel].wallCount);
+    Surface findWallMax = find_closest_surface(crates[c]->hitbox.shape.aabb.max, levels[currLevel].walls, levels[currLevel].wallCount);
     if (crates[c]->pos.v[1] < findFloor.center.v[1] + crates[c]->hitbox.shape.aabb.min.v[1]) {
       crates[c]->pos.v[1] = findFloor.center.v[1];
     }

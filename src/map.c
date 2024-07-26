@@ -384,5 +384,6 @@ void map_init(void){
 
     //mesh_init();
     //mesh2_init();
-    test_level_init();
+    //test_level_init();
+    lvl1_init();
 }

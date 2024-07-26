@@ -9,6 +9,7 @@
 #include "../include/types.h"
 #include "collision.h"
 #include "debug.h"
+#include "lvl1.h"
 #include "map.h"
 #include "utils.h"
 #include "test_level.h"

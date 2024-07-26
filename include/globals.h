@@ -21,7 +21,7 @@
 #define MAX_BALLS 3
 #define MAX_ACTORS (MAX_CRATES + MAX_BALLS)
 
-#define MAX_LEVELS 1
+#define MAX_LEVELS 2
 
 extern uint8_t segmentID;
 

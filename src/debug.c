@@ -9,10 +9,11 @@
 #include "collision.h"
 #include "debug.h"
 #include "input.h"
+#include "levels.h"
+#include "map.h"
 #include "player.h"
 #include "ui.h"
 #include "utils.h"
-#include "test_level.h"
 
 T3DModel *modelDebugBox;
 T3DModel *modelDebugSphere;
@@ -233,9 +234,9 @@ void draw_debug_ui(void){
     posY+=140;
 
     // Surfaces
-    Surface dWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);
-    Surface dFloor = find_closest_surface(player[0]->hitbox.center, testLevelFloor, testLevelFloorCount);
-    Surface dSlope = find_closest_surface(player[0]->hitbox.center, testLevelSlope, testLevelSlopeCount);
+    Surface dWall = find_closest_surface(player[0]->hitbox.center, levels[currLevel].walls, levels[currLevel].wallCount);
+    Surface dFloor = find_closest_surface(player[0]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
+    Surface dSlope = find_closest_surface(player[0]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
     rdpq_text_printf(
       &textParams, 
       nextFont,
@@ -295,9 +296,9 @@ text_debug = 1;
 
   if(btnheld[0].l && numPlayers == 1){
     col_debug = 1;
-    Surface cFloor = find_closest_surface(player[0]->hitbox.center, testLevelFloor, testLevelFloorCount);
-    Surface cWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);
-    Surface cSlope = find_closest_surface(player[0]->hitbox.center, testLevelSlope, testLevelSlopeCount);
+    Surface cFloor = find_closest_surface(player[0]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
+    Surface cWall = find_closest_surface(player[0]->hitbox.center, levels[currLevel].walls, levels[currLevel].wallCount);
+    Surface cSlope = find_closest_surface(player[0]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
     if(check_sphere_surface_collision(player[0]->hitbox, cFloor)){
       col_floor = 1;
       triVerts[0].posA[0] = (int16_t)(cFloor.posA.v[0]);
