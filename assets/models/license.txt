@@ -1,0 +1,11 @@
+Model Information:
+* title:	LowPoly Character-free/Rigged-
+* source:	https://sketchfab.com/3d-models/lowpoly-character-freerigged-2a0bd3f2cb604e6ab8858e701e33642f
+* author:	Tyronic_Games (https://sketchfab.com/Tyronic_Games)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "LowPoly Character-free/Rigged-" (https://sketchfab.com/3d-models/lowpoly-character-freerigged-2a0bd3f2cb604e6ab8858e701e33642f) by Tyronic_Games (https://sketchfab.com/Tyronic_Games) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
