@@ -47,6 +47,7 @@ int airAttackCount = 0;
 Surface lastSurface;
 Surface lastFloor;
 Surface lastSlope;
+float newScale = 0.06f;
 
 
 // Check for PvP interaction, delcared first because used in init function
@@ -76,7 +77,7 @@ void check_player_collisions(PlayerParams *players[], int numPlayers) {
 void player_init(void){
 
   // Load T3D Models
-  modelPlayer = t3d_model_load("rom:/models/player.t3dm");
+  modelPlayer = t3d_model_load("rom:/models/player_revised.t3dm");
   modelProjectile = t3d_model_load("rom:/models/projectile.t3dm");
   modelShadow = t3d_model_load("rom:/models/shadow.t3dm");
 
@@ -100,7 +101,7 @@ void player_init(void){
     t3d_anim_attach(&animWalk[i], &playerSkelBlend[i]);
 
     animJump[i] = t3d_anim_create(modelPlayer, "jump");
-    t3d_anim_set_speed(&animAttack[i], 2.5f);
+    t3d_anim_set_speed(&animJump[i], 2.5f);
     t3d_anim_set_looping(&animJump[i], false);
     t3d_anim_set_playing(&animJump[i], false);
     t3d_anim_attach(&animJump[i], &playerSkel[i]);
@@ -112,7 +113,8 @@ void player_init(void){
     t3d_anim_attach(&animAttack[i], &playerSkel[i]);
 
     animFall[i] = t3d_anim_create(modelPlayer, "fall");
-    t3d_anim_attach(&animFall[i], &playerSkelBlend[i]);
+    t3d_anim_set_playing(&animFall[i], false);
+    t3d_anim_attach(&animFall[i], &playerSkel[i]);
 
     int hack2p = 0;
     if (numPlayers == 2){
@@ -196,7 +198,7 @@ void player_init(void){
     player[i] = malloc(sizeof(PlayerParams));
     player[i]->moveDir = (T3DVec3){{0,0,0}};
     player[i]->rot = (T3DVec3){{0,0,0}};
-    player[i]->scale = (T3DVec3){{1,1,1}};
+    player[i]->scale = (T3DVec3){{newScale,newScale,newScale}};
     player[i]->pos = playerStartPos;
     player[i]->shadowPos = player[i]->pos;
     player[i]->shadowRot = player[i]->rot;
@@ -623,6 +625,9 @@ void player_update(void){
   // use blend based on speed for smooth transitions
   player[i]->animBlend = player[i]->currSpeed / 0.51f;
   if(player[i]->animBlend > 1.0f)player[i]->animBlend = 1.0f;
+  if(!player[i]->isGrounded){
+    player[i]->animBlend = 0;
+  }
 
   // move player...
   player[i]->pos.v[0] += player[i]->moveDir.v[0] * player[i]->currSpeed;
@@ -640,10 +645,38 @@ void player_update(void){
   if(player[i]->pos.v[2] >  FloorBox.max.v[2])player[i]->pos.v[2] = FloorBox.max.v[2];
 
   // Update the animation and modify the skeleton, this will however NOT recalculate the matrices
-  t3d_anim_update(&animIdle[i], deltaTime);
-  if (playerState[i] == PLAYER_IDLE || playerState[i] == PLAYER_WALK){
-    t3d_anim_set_speed(&animWalk[i], player[i]->animBlend);
-    t3d_anim_update(&animWalk[i], deltaTime);
+  switch(playerState[i]){
+    case PLAYER_IDLE:
+    case PLAYER_WALK:
+    case PLAYER_SLIDE:
+    case PLAYER_SLIDE_DOWN:
+      t3d_anim_set_playing(&animIdle[i], true);
+      t3d_anim_set_playing(&animWalk[i], true);
+      t3d_anim_update(&animIdle[i], deltaTime);
+      t3d_anim_set_speed(&animWalk[i], player[i]->animBlend);
+      t3d_anim_update(&animWalk[i], deltaTime);
+      break;
+    case PLAYER_JUMP_START:
+    case PLAYER_JUMP:
+      t3d_anim_set_playing(&animIdle[i], false);
+      t3d_anim_set_playing(&animWalk[i], false);
+      t3d_anim_update(&animJump[i], deltaTime);
+      break;
+    case PLAYER_FALL:
+      t3d_anim_set_playing(&animIdle[i], false);
+      t3d_anim_set_playing(&animWalk[i], false);
+      t3d_anim_update(&animFall[i], deltaTime);
+      break;
+    case PLAYER_ATTACK:
+    case PLAYER_ATTACK_START:
+      t3d_anim_set_playing(&animIdle[i], false);
+      t3d_anim_set_playing(&animWalk[i], false);
+      t3d_anim_update(&animAttack[i], deltaTime);
+      break;
+    case PLAYER_LAND:
+      t3d_anim_set_playing(&animJump[i], false);
+      t3d_anim_set_playing(&animFall[i], false);
+      break;
   }
   
   // do walk
@@ -705,12 +738,12 @@ void player_update(void){
           player[i]->pos.v[1] = t3d_lerp(player[i]->pos.v[1],player[i]->vel.v[1], jumpFixedTime);
           player[i]->hitbox.center.v[1] = t3d_lerp(player[i]->hitbox.center.v[1],player[i]->pos.v[1], jumpFixedTime);
         }
-        player[i]->scale.v[1] = t3d_lerp(player[i]->scale.v[1], 1.4f, fixedTime);
+        player[i]->scale.v[1] = t3d_lerp(player[i]->scale.v[1], newScale * 1.4f, fixedTime);
 
       } else if (player[i]->pos.v[1] <= groundLevel) {
         player[i]->pos = playerStartPos;
         player[i]->vel.v[1] = 0.0f;
-        player[i]->scale.v[1] = 1.0f;
+        player[i]->scale.v[1] = newScale;
         if(numPlayers > 2){
           player[i]->jumpForce = 650.0f;
         } else {
@@ -722,7 +755,7 @@ void player_update(void){
 
   // do land
   while(playerState[i] == PLAYER_LAND){
-    player[i]->scale.v[1] = 1.0f;
+    player[i]->scale.v[1] = newScale;
     playerState[i] = PLAYER_IDLE;
     if(!rumbleLong[i] && !rumbleShort[i] && !rumbleWave[i]){
         rumbleLong[i] = true;
@@ -732,7 +765,7 @@ void player_update(void){
 
   // do slide/slope interaction
   if(playerState[i] == PLAYER_SLIDE){
-    player[i]->scale.v[1] = 1.0f;
+    player[i]->scale.v[1] = newScale;
     player[i]->cam.camPos.v[1] = player[i]->hitbox.center.v[1];
     player[i]->cam.camTarget.v[1] = player[i]->hitbox.center.v[1];
     if(!rumbleLong[i] && !rumbleShort[i] && !rumbleWave[i]){
@@ -747,7 +780,7 @@ void player_update(void){
     if(airAttackCount == 0){
       t3d_anim_set_playing(&animAttack[i], true);
       t3d_anim_set_time(&animAttack[i], 0.0f);
-      player[i]->scale.v[1] = 1.0f;
+      player[i]->scale.v[1] = newScale;
       player[i]->currSpeed *= 0.5f;
       player[i]->projectile.pos = player[i]->hitbox.center;
       player[i]->projectile.speed = 80.0f;
@@ -763,7 +796,7 @@ void player_update(void){
 
   if(playerState[i] == PLAYER_ATTACK){
   
-    t3d_anim_update(&animAttack[i], deltaTime);
+    //t3d_anim_update(&animAttack[i], deltaTime);
     player[i]->currSpeed = 0;
     player[i]->projectile.pos.v[0] += player[i]->projectile.dir.v[0] * player[i]->projectile.speed * fixedTime;
     player[i]->projectile.pos.v[1] += player[i]->projectile.dir.v[1] * player[i]->projectile.speed * fixedTime;
@@ -856,12 +889,13 @@ void player_update(void){
 
   if(playerState[i] == PLAYER_JUMP){
 
-    t3d_anim_update(&animJump[i], jumpTime);
-    player[i]->scale.v[1] = t3d_lerp(player[i]->scale.v[1], 1.4f, fixedTime);
+    //t3d_anim_update(&animJump[i], jumpTime);
+    player[i]->scale.v[1] = t3d_lerp(player[i]->scale.v[1], newScale * 1.4f, fixedTime);
 
     if (!animJump[i].isPlaying){
       playerState[i] = PLAYER_FALL;
-      t3d_anim_set_time(&animFall[i], player[i]->animBlend);
+      t3d_anim_set_playing(&animFall[i], true);
+      t3d_anim_set_time(&animFall[i], 0.0f);
     }
 
     // Apply gravity

@@ -180,26 +180,51 @@ void draw_debug_ui(void){
     }
 
     // Player
+    //rdpq_text_printf(
+    //  &textParams, 
+    //  nextFont,
+    //  posX, posY, 
+    //  "X %.2f\n"
+    //  "Y %.2f\n"
+    //  "Z %.2f\n"
+    //  "State %s\n"
+    //  "Grounded %d\n"
+    //  "Speed %.2f\n"
+    //  "%s\n"
+    //  "Rumble\n"
+    //  "Detected %d\n"
+    //  "Active %d", 
+    //  player[0]->pos.v[0],
+    //  player[0]->pos.v[1],
+    //  player[0]->pos.v[2],
+    //  playerStateStrings[playerState[0]],
+    //  player[0]->isGrounded,
+    //  player[0]->currSpeed,
+    //  debugModeStrings[debug_mode],
+    //  rumble_supported[0],
+    //  rumble_active[0]
+    //);
+
     rdpq_text_printf(
       &textParams, 
       nextFont,
       posX, posY, 
-      "X %.2f\n"
-      "Y %.2f\n"
-      "Z %.2f\n"
-      "State %s\n"
-      "Grounded %d\n"
-      "Speed %.2f\n"
+      "Idle %d\n"
+      "Walk %d\n"
+      "Jump %d\n"
+      "Fall %d\n"
+      "Attack %d\n"
+      "blend %.2f\n"
       "%s\n"
       "Rumble\n"
       "Detected %d\n"
       "Active %d", 
-      player[0]->pos.v[0],
-      player[0]->pos.v[1],
-      player[0]->pos.v[2],
-      playerStateStrings[playerState[0]],
-      player[0]->isGrounded,
-      player[0]->currSpeed,
+      animIdle[0].isPlaying,
+      animWalk[0].isPlaying,
+      animJump[0].isPlaying,
+      animFall[0].isPlaying,
+      animAttack[0].isPlaying,
+      player[0]->animBlend,
       debugModeStrings[debug_mode],
       rumble_supported[0],
       rumble_active[0]
