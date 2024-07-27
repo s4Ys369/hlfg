@@ -1,6 +1,7 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include <t3d/t3dmath.h>
+#include <malloc.h>
 #include "../include/config.h"
 #include "../include/enums.h"
 #include "../include/globals.h"
@@ -166,6 +167,11 @@ void draw_debug_ui(void){
   if(text_debug){
     posY=12;
     rspq_block_run(dplDebugText);
+
+    // Fazana's Puppyprint RAM used
+    struct mallinfo mem_info = mallinfo();
+    int ramUsed = mem_info.uordblks - (size_t) (((display_get_width() * display_get_height()) * 2) - ((unsigned int) HEAP_START_ADDR - 0x80000000) - 0x10000);
+    rdpq_text_printf(NULL, nextFont, posX+ 100, posY + 20, "RAM %dKB/%dKB", (ramUsed / 1024), get_memory_size() / 1024);
 
     if(!isPaused){
       if(btn[0].d_left){

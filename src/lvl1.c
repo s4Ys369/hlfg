@@ -238,18 +238,24 @@ T3DVec3 lvl1Verts[220] =
 
 
 int lvl1FloorCount = 175;
-Surface lvl1Floor[175];
+Surface* lvl1Floor;
 
 int lvl1WallCount = 209;
-Surface lvl1Wall[209];
+Surface* lvl1Wall;
 
 int lvl1SlopeCount = 12;
-Surface lvl1Slope[12];
+Surface* lvl1Slope;
 
 int lvl1SurfacesCount = 0;
-Surface lvl1Surfaces[396];
+Surface* lvl1Surfaces;
 
 void lvl1_init(void){
+
+    lvl1Wall = malloc(lvl1WallCount * sizeof(Surface));
+    lvl1Slope = malloc(lvl1SlopeCount * sizeof(Surface));
+    lvl1Floor = malloc(lvl1FloorCount * sizeof(Surface));
+    lvl1Surfaces = malloc((lvl1WallCount + lvl1SlopeCount + lvl1FloorCount) * sizeof(Surface));
+
     lvl1Floor[0].posA = lvl1Verts[0]; lvl1Floor[0].posB = lvl1Verts[1]; lvl1Floor[0].posC = lvl1Verts[2];
     lvl1Floor[1].posA = lvl1Verts[3]; lvl1Floor[1].posB = lvl1Verts[4]; lvl1Floor[1].posC = lvl1Verts[5];
     lvl1Floor[2].posA = lvl1Verts[6]; lvl1Floor[2].posB = lvl1Verts[7]; lvl1Floor[2].posC = lvl1Verts[8];

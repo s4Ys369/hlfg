@@ -294,12 +294,16 @@ void ui_update(void){
             if(currLevel > 0){
                 prevLevel = currLevel;
                 currLevel = 0;
+                level_free(&levels[prevLevel]);
+                level_load(currLevel);
             }
         }
         if(btn[0].c_up){
             if(currLevel < 1){
                 prevLevel = currLevel;
                 currLevel = 1;
+                level_free(&levels[prevLevel]);
+                level_load(currLevel);
             }
         }
         print_controls(nextFont);

@@ -18,6 +18,8 @@ extern Level levels[MAX_LEVELS];
 extern int currLevel;
 extern int prevLevel;
 
-void levels_init(void);
+void level_init(Level* level);
+void level_load(int currLevel);
+void level_free(Level* level);
 
 #endif // LEVELS_H

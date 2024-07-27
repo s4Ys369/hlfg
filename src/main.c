@@ -47,7 +47,10 @@ int main()
   debug_models_init();
 
   map_init();
-  levels_init();
+  for (int i = 0; i < MAX_LEVELS; i++) {
+    level_init(&levels[i]);
+  }
+  level_load(currLevel);
   actors_init();
   player_init();
   cam_init();
