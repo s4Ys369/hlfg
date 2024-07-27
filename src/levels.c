@@ -87,5 +87,9 @@ void level_free(Level* level) {
         t3d_model_free(level->model);
         level->model = NULL;
     }
+    if (level->dpl) {
+        block_free_safe(level->dpl);
+        level->dpl = NULL;
+    }
     level_init(level);
 }
