@@ -10,9 +10,6 @@
 #include "utils.h"
 #include "test_level.h"
 
-T3DMat4FP* levelsMatFP;
-int numLevels = 1;
-
 T3DMat4FP* mapMatFP;
 T3DModel *modelMap;
 rspq_block_t *dplMap;
@@ -384,6 +381,4 @@ void map_init(void){
 
     //mesh_init();
     //mesh2_init();
-    //test_level_init();
-    lvl1_init();
 }

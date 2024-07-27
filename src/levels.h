@@ -14,8 +14,9 @@
 #include "utils.h"
 #include "test_level.h"
 
-extern LevelSurfaces levels[MAX_LEVELS];
+extern Level levels[MAX_LEVELS];
 extern int currLevel;
+extern int prevLevel;
 
 void levels_init(void);
 

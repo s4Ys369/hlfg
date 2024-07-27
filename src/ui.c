@@ -5,6 +5,7 @@
 #include "../include/types.h"
 #include "debug.h"
 #include "input.h"
+#include "levels.h"
 #include "player.h"
 #include "sound.h"
 #include "ui.h"
@@ -287,6 +288,18 @@ void ui_update(void){
             if(xmID < 4){
                 xmID++;
                 switch_xm(xmID);
+            }
+        }
+        if(btn[0].c_down){
+            if(currLevel > 0){
+                prevLevel = currLevel;
+                currLevel = 0;
+            }
+        }
+        if(btn[0].c_up){
+            if(currLevel < 1){
+                prevLevel = currLevel;
+                currLevel = 1;
             }
         }
         print_controls(nextFont);

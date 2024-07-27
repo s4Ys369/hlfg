@@ -78,7 +78,7 @@ int main()
     }
     if(numPlayers <= 2)sound_update_buffer();
 
-    t3d_mat4fp_from_srt_euler(lvl1MatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
+    t3d_mat4fp_from_srt_euler(levels[currLevel].matFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
     // Update actor matrices
     for (int c = 0; c < numCrates; ++c) {
@@ -209,10 +209,8 @@ int main()
       // debug render toggle
       if(debug_mode == DEBUG_RENDER_ALL || debug_mode == DEBUG_HIDE_OBJECTS){
         // Run levels block
-        for (int l = 0; l < numLevels; ++l) {
-          //t3d_segment_set(SEGMENT_LEVELS, &testLevelMatFP);
-          rspq_block_run(dplLvl1);
-        }
+        //t3d_segment_set(SEGMENT_LEVELS, &testLevelMatFP);
+        rspq_block_run(levels[currLevel].dpl);
       }
 
       if(debug_mode == DEBUG_RENDER_ALL || debug_mode == DEBUG_HIDE_LEVEL){

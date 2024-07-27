@@ -3,6 +3,7 @@
 
 #include <libdragon.h>
 #include <t3d/t3d.h>
+#include <t3d/t3dmodel.h>
 #include "enums.h"
 
 // CAMERA
@@ -102,7 +103,10 @@ typedef struct {
     Surface* walls;
     int totalSurfaceCount;
     Surface* surfaces;
-} LevelSurfaces;
+    T3DMat4FP* matFP;
+    T3DModel *model;
+    rspq_block_t *dpl;
+} Level;
 
 // PLAYER
 typedef struct {
