@@ -186,37 +186,37 @@ void draw_debug_ui(void){
       }
     }
 
-    // Player
-    //rdpq_text_printf(
-    //  &textParams, 
-    //  nextFont,
-    //  posX, posY, 
-    //  "X %.2f\n"
-    //  "Y %.2f\n"
-    //  "Z %.2f\n"
-    //  "State %s\n"
-    //  "Grounded %d\n"
-    //  "Speed %.2f\n"
-    //  "%s\n"
-    //  "Rumble\n"
-    //  "Detected %d\n"
-    //  "Active %d", 
-    //  player[0]->pos.v[0],
-    //  player[0]->pos.v[1],
-    //  player[0]->pos.v[2],
-    //  playerStateStrings[playerState[0]],
-    //  player[0]->isGrounded,
-    //  player[0]->currSpeed,
-    //  debugModeStrings[debug_mode],
-    //  rumble_supported[0],
-    //  rumble_active[0]
-    //);
+    /* Player
+    rdpq_text_printf(
+      &textParams, 
+      nextFont,
+      posX, posY, 
+      "X %.2f\n"
+      "Y %.2f\n"
+      "Z %.2f\n"
+      "State %s\n"
+      "Grounded %d\n"
+      "Speed %.2f\n"
+      "%s\n"
+      "Rumble\n"
+      "Detected %d\n"
+      "Active %d", 
+      player[0]->pos.v[0],
+      player[0]->pos.v[1],
+      player[0]->pos.v[2],
+      playerStateStrings[playerState[0]],
+      player[0]->isGrounded,
+      player[0]->currSpeed,
+      debugModeStrings[debug_mode],
+      rumble_supported[0],
+      rumble_active[0]
+    );
+    */
 
-    //posY+=140;
 
     // Surfaces
-    //Surface dWall = find_closest_surface(player[0]->hitbox.center, levels[currLevel].walls, levels[currLevel].wallCount);
-    //Surface dFloor = find_closest_surface(player[0]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
+    Surface dWall = find_closest_surface(player[0]->hitbox.center, levels[currLevel].walls, levels[currLevel].wallCount);
+    Surface dFloor = find_closest_surface(player[0]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
     Surface dSlope = find_closest_surface(player[0]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
     T3DVec3 dSlopeNormal = calc_surface_norm(dSlope);
     T3DVec3 forward = player[0]->forward;
@@ -241,10 +241,10 @@ void draw_debug_ui(void){
       "NormX %.2f\n"
       "NormY %.2f\n"
       "NormZ %.2f\n"
-      "n %.2f\n"
-      "s %.2f\n"
-      "e %.2f\n"
-      "w %.2f",  
+      "N %.2f\n"
+      "S %.2f\n"
+      "E %.2f\n"
+      "W %.2f",  
       player[0]->pos.v[0],
       player[0]->pos.v[2],
       player[0]->rot.v[0],
@@ -260,8 +260,6 @@ void draw_debug_ui(void){
       dotEast,
       dotWest
     );
-
-    posY+=45;
 
     /* Actors
     int dBall = find_closest(player[0]->hitbox.center, balls, numBalls);

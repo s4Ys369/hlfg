@@ -449,7 +449,21 @@ void player_to_quad(int playerCount){
 
 // wall surface collisions
 void player_to_wall(Surface currWall, int playerCount){
-  resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, &currWall); 
+  float newRadius = player[playerCount]->hitbox.radius * 4.0f;
+  Sphere dummy = {player[playerCount]->hitbox.center, newRadius};
+  if(!player[playerCount]->isGrounded){
+    if(currWall.center.v[1] >= dummy.center.v[1]){
+      resolve_sphere_surface_collision(&dummy, &player[playerCount]->pos, &player[playerCount]->vel, &currWall);
+      player[playerCount]->rot.v[1] *= -1.0f;
+      player[playerCount]->currSpeed *= -1.0f;
+    }
+  } else {
+    if(currWall.center.v[1] >= player[playerCount]->hitbox.center.v[1]){
+      resolve_sphere_surface_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, &currWall);
+    }
+  }
+  player[playerCount]->moveDir.v[0] *= -1.0f;
+  player[playerCount]->moveDir.v[2] *= -1.0f;
 }
 
 // slope surface collisions
@@ -486,7 +500,7 @@ RaycastResult nextFloor;
 Surface currSlope;
 
 Surface currWall;
-Surface closestWalls[4];
+Surface closestWalls[8];
 int closestWallsCount;
 
 Surface closestSurfaces[3];
