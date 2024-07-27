@@ -13,16 +13,16 @@
 extern T3DVec3 colVerts[25];
 
 extern int colWallCount;
-extern Surface colWall[8];
+extern Surface* colWall;
 
 extern int colSlopeCount;
-extern Surface colSlope[13];
+extern Surface* colSlope;
 
 extern int colFloorCount;
-extern Surface colFloor[11];
+extern Surface* colFloor;
 
 extern int colSurfacesCount;
-extern Surface colSurfaces[32];
+extern Surface* colSurfaces;
 
 extern T3DMat4FP* colMatFP;
 extern T3DModel *modelCol;
