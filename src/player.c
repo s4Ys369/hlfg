@@ -980,27 +980,34 @@ void player_update(void){
 
   // Handle surface rotations
   float pitch = 0;
-  //float roll = 0;
-  if(lastSurface.type == SURFACE_FLOOR){
-    pitch = 0;
-    //roll = 0;
-  } else {
-    T3DVec3 lastSurfaceNormal = lastSurface.normal;
-    t3d_vec3_norm(&lastSurfaceNormal);
-    pitch = atan2f(lastSurfaceNormal.v[2], lastSurfaceNormal.v[1]);
-    pitch = pitch * 180.0f / T3D_PI;
-    pitch = clamp(pitch, 0.6f, -0.6f);
-    //roll = atan2f(lastSurfaceNormal.v[1], lastSurfaceNormal.v[0]);
-    //roll = roll * 180.0f / T3D_PI;
-    //roll = clamp(roll, 0.3f, -0.3f);
+  float roll = 0;
+  T3DVec3 lastSurfaceNormal = lastSurface.normal;
+  t3d_vec3_norm(&lastSurfaceNormal);
+
+  if (lastSurface.type == SURFACE_SLOPE) {
+    // Calculate the pitch and roll separately
+    float newPitch = atan2f(lastSurfaceNormal.v[2], lastSurfaceNormal.v[1]) * 180.0f / T3D_PI;
+    newPitch = clamp(newPitch, -0.5f, 0.5f);
+
+    float newRoll = atan2f(lastSurfaceNormal.v[1], lastSurfaceNormal.v[0]) * 180.0f / T3D_PI;
+    newRoll = clamp(newRoll, -0.5f, 0.5f);
+
+    pitch = fabsf(newPitch);
+    if(lastSurfaceNormal.v[0] > 0){
+      roll = -newRoll;
+    }
+    if(lastSurfaceNormal.v[0] < 0){
+      roll = fabsf(newRoll);
+    }
+
   }
-  
-  if(!player[i]->isGrounded){
+
+  if (!player[i]->isGrounded) {
     player[i]->rot.v[0] = t3d_lerp_angle(player[i]->rot.v[0], 0, 0.6f);
-    //player[i]->rot.v[2] = t3d_lerp_angle(player[i]->rot.v[2], 0, 0.6f);
+    player[i]->rot.v[2] = t3d_lerp_angle(player[i]->rot.v[2], 0, 0.6f);
   } else {
     player[i]->rot.v[0] = t3d_lerp_angle(player[i]->rot.v[0], pitch, 0.2f);
-    //player[i]->rot.v[2] = t3d_lerp_angle(player[i]->rot.v[2], roll, 0.1f);
+    player[i]->rot.v[2] = t3d_lerp_angle(player[i]->rot.v[2], roll, 0.2f);
   }
 
 

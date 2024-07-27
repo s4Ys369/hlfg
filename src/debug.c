@@ -126,7 +126,7 @@ void draw_debug_ui(void){
 
   rdpq_textparms_t textParams = {
     .width = 100,
-    .height = 140,
+    .height = 200,
     .disable_aa_fix = true,
     .style_id = STYLE_DEBUG,
   };
@@ -206,47 +206,53 @@ void draw_debug_ui(void){
     //  rumble_active[0]
     //);
 
-    rdpq_text_printf(
-      &textParams, 
-      nextFont,
-      posX, posY, 
-      "Idle %d\n"
-      "Walk %d\n"
-      "Jump %d\n"
-      "Fall %d\n"
-      "Attack %d\n"
-      "blend %.2f\n"
-      "%s\n"
-      "Rumble\n"
-      "Detected %d\n"
-      "Active %d", 
-      animIdle[0].isPlaying,
-      animWalk[0].isPlaying,
-      animJump[0].isPlaying,
-      animFall[0].isPlaying,
-      animAttack[0].isPlaying,
-      player[0]->animBlend,
-      debugModeStrings[debug_mode],
-      rumble_supported[0],
-      rumble_active[0]
-    );
-
-    posY+=140;
+    //posY+=140;
 
     // Surfaces
-    Surface dWall = find_closest_surface(player[0]->hitbox.center, levels[currLevel].walls, levels[currLevel].wallCount);
-    Surface dFloor = find_closest_surface(player[0]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
+    //Surface dWall = find_closest_surface(player[0]->hitbox.center, levels[currLevel].walls, levels[currLevel].wallCount);
+    //Surface dFloor = find_closest_surface(player[0]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
     Surface dSlope = find_closest_surface(player[0]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
+    T3DVec3 dSlopeNormal = calc_surface_norm(dSlope);
+    T3DVec3 forward = player[0]->forward;
+
+    // Dot products with constant directions
+    float dotNorth = t3d_vec3_dot(&forward, &nearer);
+    float dotSouth = t3d_vec3_dot(&forward, &farther);
+    float dotEast = t3d_vec3_dot(&forward, &right);
+    float dotWest = t3d_vec3_dot(&forward, &left);
+    t3d_vec3_norm(&dSlopeNormal);
     rdpq_text_printf(
       &textParams, 
       nextFont,
       posX, posY, 
-      "Wall %d\n"
-      "Floor %d\n"
-      "Slope %d", 
-      check_sphere_surface_collision(player[0]->hitbox, dWall),
-      check_sphere_surface_collision(player[0]->hitbox, dFloor),
-      check_sphere_surface_collision(player[0]->hitbox, dSlope)
+      "X %.2f\n"
+      "Z %.2f\n"
+      "Pitch %.2f\n"
+      "Roll %.2f\n"
+      "ForwX %.2f\n"
+      "ForwY %.2f\n"
+      "ForwZ %.2f\n"
+      "NormX %.2f\n"
+      "NormY %.2f\n"
+      "NormZ %.2f\n"
+      "n %.2f\n"
+      "s %.2f\n"
+      "e %.2f\n"
+      "w %.2f",  
+      player[0]->pos.v[0],
+      player[0]->pos.v[2],
+      player[0]->rot.v[0],
+      player[0]->rot.v[2],
+      player[0]->forward.v[0],
+      player[0]->forward.v[1],
+      player[0]->forward.v[2],
+      dSlopeNormal.v[0],
+      dSlopeNormal.v[1],
+      dSlopeNormal.v[2],
+      dotNorth,
+      dotSouth,
+      dotEast,
+      dotWest
     );
 
     posY+=45;

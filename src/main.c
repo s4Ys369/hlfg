@@ -114,7 +114,7 @@ int main()
       // Update players matrices
       t3d_mat4fp_from_srt_euler(playerMatFP[np],
           player[np]->scale.v,
-          (float[3]){player[np]->rot.v[0], -player[np]->rot.v[1], player[np]->rot.v[2]},
+          (float[3]){player[np]->rot.v[0], -player[np]->rot.v[1], -player[np]->rot.v[2]},
           player[np]->pos.v
         );
     }
@@ -130,7 +130,7 @@ int main()
 
       t3d_mat4fp_from_srt_euler(shadowMatFP[p],
         (float[3]){0.25f, 0.25f, 0.25f},
-        (float[3]){player[p]->shadowRot.v[0], 0.0f, player[p]->shadowRot.v[2]},
+        (float[3]){player[p]->shadowRot.v[0], 0.0f, -player[p]->shadowRot.v[2]},
         player[p]->shadowPos.v
       );
 
