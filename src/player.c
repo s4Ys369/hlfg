@@ -999,30 +999,11 @@ void player_update(void){
   t3d_vec3_norm(&lastSurfaceNormal);
 
   if (lastSurface.type == SURFACE_SLOPE) {
-    // Calculate the pitch and roll separately
     float newPitch = atan2f(lastSurfaceNormal.v[2], lastSurfaceNormal.v[1]) * 180.0f / T3D_PI;
     newPitch = clamp(newPitch, -0.5f, 0.5f);
 
-    /* 
-    // Arc tangent
     float newRoll = atan2f(lastSurfaceNormal.v[1], lastSurfaceNormal.v[2]) * 180.0f / T3D_PI;
     newRoll = clamp(newRoll, -0.5f, 0.5f);
-    */
-
-
-    // Cross product with camera forward vector
-    T3DVec3 crossProduct;
-    t3d_vec3_cross(&crossProduct, &player[i]->cam.camForward, &lastSurfaceNormal);
-    float newRoll = atan2f(crossProduct.v[1], crossProduct.v[0]) * 180.0f / T3D_PI;
-    newRoll = clamp(newRoll, -0.5f, 0.5f);
-
-
-    /* 
-    // Dot product with camera right vector
-    float dotProduct = t3d_vec3_dot(&player[i]->cam.camRight, &lastSurfaceNormal);
-    float newRoll = acosf(dotProduct) * 180.0f / T3D_PI;
-    newRoll = clamp(newRoll, -.05f, 0.5f);
-    */
 
     pitch = fabsf(newPitch);
     if(lastSurfaceNormal.v[0] > 0){
@@ -1034,14 +1015,8 @@ void player_update(void){
 
   }
 
-  if (!player[i]->isGrounded) {
-    player[i]->rot.v[0] = t3d_lerp_angle(player[i]->rot.v[0], 0, 0.6f);
-    player[i]->rot.v[2] = t3d_lerp_angle(player[i]->rot.v[2], 0, 0.6f);
-  } else {
-    player[i]->rot.v[0] = t3d_lerp_angle(player[i]->rot.v[0], pitch, 0.2f);
-    player[i]->rot.v[2] = t3d_lerp_angle(player[i]->rot.v[2], roll, 0.2f);
-  }
-
+  player[i]->rot.v[0] = t3d_lerp_angle(player[i]->rot.v[0], pitch, 0.2f);
+  player[i]->rot.v[2] = t3d_lerp_angle(player[i]->rot.v[2], roll, 0.2f);
 
   // update shadow
   if(numPlayers < 3){

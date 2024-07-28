@@ -186,7 +186,7 @@ void draw_debug_ui(void){
       }
     }
 
-    /* Player
+    // Player
     rdpq_text_printf(
       &textParams, 
       nextFont,
@@ -211,10 +211,10 @@ void draw_debug_ui(void){
       rumble_supported[0],
       rumble_active[0]
     );
-    */
+    
 
 
-    // Surfaces
+    /* Surfaces
     Surface dWall = find_closest_surface(player[0]->hitbox.center, levels[currLevel].walls, levels[currLevel].wallCount);
     Surface dFloor = find_closest_surface(player[0]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
     Surface dSlope = find_closest_surface(player[0]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
@@ -237,6 +237,7 @@ void draw_debug_ui(void){
       "X %.2f\n"
       "Z %.2f\n"
       "Pitch %.2f\n"
+      "Yaw %.2f\n"
       "Roll %.2f\n"
       "SP %.2f\n"
       "SR %.2f\n"
@@ -245,11 +246,12 @@ void draw_debug_ui(void){
       "Slope Normal\n"
       " %.2f,\n %.2f,\n %.2f",
       player[0]->pos.v[0], player[0]->pos.v[2],
-      player[0]->rot.v[0], player[0]->rot.v[2],
+      player[0]->rot.v[0], player[0]->rot.v[1], player[0]->rot.v[2],
       player[0]->shadowRot.v[0], player[0]->shadowRot.v[2],
       forward.v[0], forward.v[1], forward.v[2],
       dSlopeNormal.v[0], dSlopeNormal.v[1], dSlopeNormal.v[2]
     );
+    */
 
     /* Actors
     int dBall = find_closest(player[0]->hitbox.center, balls, numBalls);
