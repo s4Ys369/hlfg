@@ -95,6 +95,12 @@ typedef void (*CollisionCallback)(Actor*, int);
 
 // LEVELS
 typedef struct {
+    T3DVec3 pos;
+    float radius;
+    ActorHitBox hitbox;
+} Warp;
+
+typedef struct {
     int floorCount;
     Surface* floors;
     int slopeCount;
@@ -106,6 +112,7 @@ typedef struct {
     T3DMat4FP* matFP;
     T3DModel *model;
     rspq_block_t *dpl;
+    Warp warp;
 } Level;
 
 // PLAYER

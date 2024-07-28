@@ -45,6 +45,13 @@ void level_load(int currLevel) {
         levels[currLevel].matFP = testLevelMatFP;
         levels[currLevel].model = modelTestLevel;
         levels[currLevel].dpl = dplTestLevel;
+        levels[currLevel].warp.pos = (T3DVec3){{226.0f,600.0f,-226.0f}};
+        T3DVec3 warpPos = levels[currLevel].warp.pos;
+        levels[currLevel].warp.radius = 64.0f;
+        float warpRadius = levels[currLevel].warp.radius;
+        levels[currLevel].warp.hitbox.shape.type = SHAPE_BOX;
+        levels[currLevel].warp.hitbox.shape.aabb = (AABB){{{warpPos.v[0] - warpRadius, warpPos.v[1] - warpRadius, warpPos.v[2] - warpRadius}},
+                                                        {{warpPos.v[0] + warpRadius, warpPos.v[1] + warpRadius, warpPos.v[2] + warpRadius}}};
     }
     if(currLevel == 1){
         lvl1_init();
@@ -59,6 +66,10 @@ void level_load(int currLevel) {
         levels[currLevel].matFP = lvl1MatFP;
         levels[currLevel].model = modelLvl1;
         levels[currLevel].dpl = dplLvl1;
+        levels[currLevel].warp.pos = (T3DVec3){{5.0f,525.0f,460.0f}};
+        levels[currLevel].warp.radius = 64.0f;
+        levels[currLevel].warp.hitbox.shape.type = SHAPE_SPHERE;
+        levels[currLevel].warp.hitbox.shape.sphere = (Sphere){levels[currLevel].warp.pos,levels[currLevel].warp.radius};
     }
 }
 

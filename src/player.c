@@ -247,6 +247,33 @@ void player_init(void){
   }
 }
 
+void check_warp(Warp warp, int playerCount){
+  if(warp.hitbox.shape.type == SHAPE_BOX){
+    if (check_sphere_box_collision(player[playerCount]->hitbox, warp.hitbox.shape.aabb)) {
+      prevLevel = currLevel;
+      if(prevLevel == 1){
+        currLevel = 0;
+      } else {
+        currLevel = 1;
+      }
+      level_free(&levels[prevLevel]);
+      level_load(currLevel);
+    }
+  }
+  if(warp.hitbox.shape.type == SHAPE_SPHERE){
+    if (check_sphere_collision(player[playerCount]->hitbox, warp.hitbox.shape.sphere)) {
+      prevLevel = currLevel;
+      if(prevLevel == 1){
+        currLevel = 0;
+      } else {
+        currLevel = 1;
+      }
+      level_free(&levels[prevLevel]);
+      level_load(currLevel);
+    }
+  }
+}
+
 // General actor interaction
 void check_actor_collisions(Actor **actor, int actorCount, int playerCount) {
 
@@ -719,8 +746,7 @@ void player_update(void){
 
     player_surface_collider(i);
     
-    //check_actor_collisions(crates, numCrates, i);
-    //check_actor_collisions(balls, numBalls, i);
+    check_warp(levels[currLevel].warp, i);
     handle_actor_octree_collisions(ballOctree, balls, numBalls, i);
     handle_actor_octree_collisions(boxOctree, crates, numCrates, i);
 
@@ -737,7 +763,7 @@ void player_update(void){
     player_surface_collider(i);
 
     check_midair_actor_collisions(crates, numCrates, i);
-    //check_actor_collisions(balls, numBalls, i);
+    check_warp(levels[currLevel].warp, i);
     handle_actor_octree_collisions(ballOctree, balls, numBalls, i);
 
     if(!player[i]->isGrounded){
@@ -930,7 +956,7 @@ void player_update(void){
     player_surface_collider(i);
 
     check_midair_actor_collisions(crates, numCrates, i);
-    //check_actor_collisions(balls, numBalls, i);
+    check_warp(levels[currLevel].warp, i);
     handle_actor_octree_collisions(ballOctree, balls, numBalls, i);
   }
 
