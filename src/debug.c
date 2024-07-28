@@ -169,9 +169,9 @@ void draw_debug_ui(void){
     rspq_block_run(dplDebugText);
 
     // Fazana's Puppyprint RAM used
-    struct mallinfo mem_info = mallinfo();
-    int ramUsed = mem_info.uordblks - (size_t) (((display_get_width() * display_get_height()) * 2) - ((unsigned int) HEAP_START_ADDR - 0x80000000) - 0x10000);
-    rdpq_text_printf(NULL, nextFont, posX+ 100, posY + 20, "RAM %dKB/%dKB", (ramUsed / 1024), get_memory_size() / 1024);
+    //struct mallinfo mem_info = mallinfo();
+    //int ramUsed = mem_info.uordblks - (size_t) (((display_get_width() * display_get_height()) * 2) - ((unsigned int) HEAP_START_ADDR - 0x80000000) - 0x10000);
+    //rdpq_text_printf(NULL, nextFont, posX+ 100, posY + 20, "RAM %dKB/%dKB", (ramUsed / 1024), get_memory_size() / 1024);
 
     if(!isPaused){
       if(btn[0].d_left){
@@ -219,14 +219,17 @@ void draw_debug_ui(void){
     Surface dFloor = find_closest_surface(player[0]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
     Surface dSlope = find_closest_surface(player[0]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
     T3DVec3 dSlopeNormal = calc_surface_norm(dSlope);
-    T3DVec3 forward = player[0]->forward;
-
-    // Dot products with constant directions
-    float dotNorth = t3d_vec3_dot(&forward, &nearer);
-    float dotSouth = t3d_vec3_dot(&forward, &farther);
-    float dotEast = t3d_vec3_dot(&forward, &right);
-    float dotWest = t3d_vec3_dot(&forward, &left);
+    T3DVec3 dFloorNormal = calc_surface_norm(dFloor);
+    T3DVec3 dWallNormal = calc_surface_norm(dWall);
     t3d_vec3_norm(&dSlopeNormal);
+    t3d_vec3_norm(&dFloorNormal);
+    t3d_vec3_norm(&dWallNormal);
+
+    T3DVec3 forward = player[0]->forward;
+    //float dotNorth = t3d_vec3_dot(&forward, &nearer);
+    //float dotSouth = t3d_vec3_dot(&forward, &farther);
+    //float dotEast = t3d_vec3_dot(&forward, &right);
+    //float dotWest = t3d_vec3_dot(&forward, &left);
     rdpq_text_printf(
       &textParams, 
       nextFont,
@@ -235,30 +238,17 @@ void draw_debug_ui(void){
       "Z %.2f\n"
       "Pitch %.2f\n"
       "Roll %.2f\n"
-      "ForwX %.2f\n"
-      "ForwY %.2f\n"
-      "ForwZ %.2f\n"
-      "NormX %.2f\n"
-      "NormY %.2f\n"
-      "NormZ %.2f\n"
-      "N %.2f\n"
-      "S %.2f\n"
-      "E %.2f\n"
-      "W %.2f",  
-      player[0]->pos.v[0],
-      player[0]->pos.v[2],
-      player[0]->rot.v[0],
-      player[0]->rot.v[2],
-      player[0]->forward.v[0],
-      player[0]->forward.v[1],
-      player[0]->forward.v[2],
-      dSlopeNormal.v[0],
-      dSlopeNormal.v[1],
-      dSlopeNormal.v[2],
-      dotNorth,
-      dotSouth,
-      dotEast,
-      dotWest
+      "SP %.2f\n"
+      "SR %.2f\n"
+      "Forward\n" 
+      " %.2f,\n %.2f,\n %.2f\n"
+      "Slope Normal\n"
+      " %.2f,\n %.2f,\n %.2f",
+      player[0]->pos.v[0], player[0]->pos.v[2],
+      player[0]->rot.v[0], player[0]->rot.v[2],
+      player[0]->shadowRot.v[0], player[0]->shadowRot.v[2],
+      forward.v[0], forward.v[1], forward.v[2],
+      dSlopeNormal.v[0], dSlopeNormal.v[1], dSlopeNormal.v[2]
     );
 
     /* Actors
