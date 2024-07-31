@@ -43,18 +43,23 @@ T3DVec3 colVerts[25] =
 
 
 int colWallCount = 8;
-Surface colWall[8];
+Surface* colWall;
 
 int colSlopeCount = 13;
-Surface colSlope[13];
+Surface* colSlope;
 
 int colFloorCount = 11;
-Surface colFloor[11];
+Surface* colFloor;
 
 int colSurfacesCount = 0;
-Surface colSurfaces[32];
+Surface* colSurfaces;
 
 void col_init(void){
+    colWall = malloc(colWallCount * sizeof(Surface));
+    colSlope = malloc(colSlopeCount * sizeof(Surface));
+    colFloor = malloc(colFloorCount * sizeof(Surface));
+    colSurfaces = malloc((colWallCount + colSlopeCount + colFloorCount) * sizeof(Surface));
+
     colWall[0].posA = colVerts[0]; colWall[0].posB = colVerts[1]; colWall[0].posC = colVerts[2];
     colWall[1].posA = colVerts[3]; colWall[1].posB = colVerts[4]; colWall[1].posC = colVerts[5];
     colWall[2].posA = colVerts[6]; colWall[2].posB = colVerts[5]; colWall[2].posC = colVerts[7];
@@ -117,7 +122,7 @@ void col_init(void){
        colSurfaces, &colSurfacesCount,
        colWall, colWallCount,
        colSlope, colSlopeCount,
-       colFloor, colFloorCount,
+       colFloor, colFloorCount
     );
 
     // Allocate map's matrix and construct

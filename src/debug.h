@@ -11,10 +11,11 @@
 #include "camera.h"
 #include "collision.h"
 #include "input.h"
+#include "levels.h"
+#include "map.h"
 #include "player.h"
 #include "ui.h"
 #include "utils.h"
-#include "test_level.h"
 
 extern T3DModel *modelDebugBox;
 extern T3DModel *modelDebugSphere;

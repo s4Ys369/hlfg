@@ -15,16 +15,16 @@
 extern T3DVec3 testLevelVerts[196];
 
 extern int testLevelFloorCount;
-extern Surface testLevelFloor[130];
+extern Surface* testLevelFloor;
 
 extern int testLevelSlopeCount;
-extern Surface testLevelSlope[36];
+extern Surface* testLevelSlope;
 
 extern int testLevelWallCount;
-extern Surface testLevelWall[184];
+extern Surface* testLevelWall;
 
 extern int testLevelSurfacesCount;
-extern Surface testLevelSurfaces[350];
+extern Surface* testLevelSurfaces;
 
 extern T3DMat4FP* testLevelMatFP;
 extern T3DModel *modelTestLevel;

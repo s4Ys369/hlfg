@@ -213,15 +213,20 @@ T3DVec3 testLevelVerts[196] =
 };
 
 int testLevelFloorCount = 130;
-Surface testLevelFloor[130];
+Surface* testLevelFloor;
 int testLevelSlopeCount = 36;
-Surface testLevelSlope[36];
+Surface* testLevelSlope;
 int testLevelWallCount = 184;
-Surface testLevelWall[184];
+Surface* testLevelWall;
 int testLevelSurfacesCount = 0;
-Surface testLevelSurfaces[350];
+Surface* testLevelSurfaces;
 
 void test_level_init(void){
+
+    testLevelWall = malloc(testLevelWallCount * sizeof(Surface));
+    testLevelSlope = malloc(testLevelSlopeCount * sizeof(Surface));
+    testLevelFloor = malloc(testLevelFloorCount * sizeof(Surface));
+    testLevelSurfaces = malloc((testLevelWallCount + testLevelSlopeCount + testLevelFloorCount) * sizeof(Surface));
 
     testLevelFloor[0].posA = testLevelVerts[0]; testLevelFloor[0].posB = testLevelVerts[1]; testLevelFloor[0].posC = testLevelVerts[2];
     testLevelFloor[1].posA = testLevelVerts[3]; testLevelFloor[1].posB = testLevelVerts[4]; testLevelFloor[1].posC = testLevelVerts[5];

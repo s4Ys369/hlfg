@@ -60,17 +60,19 @@ def generate_c_file(name, vertices, surfaces, output_file):
             file.write(f'    {{{{{v[0]}, {v[1]}, {v[2]}}}}},\n')
         file.write('};\n\n')
 
-        # Calculate total number of tris
-        total_tris = sum(len(tris) for tris in surfaces.values())
-
         for surface_type, tris in surfaces.items():
             file.write(f'\nint {name}{surface_type.capitalize()}Count = {len(tris)};\n')
-            file.write(f'Surface {name}{surface_type.capitalize()}[{len(tris)}];\n')
+            file.write(f'Surface* {name}{surface_type.capitalize()};\n')
 
         file.write(f'\nint {name}SurfacesCount = 0;\n')
-        file.write(f'Surface {name}Surfaces[{total_tris}];\n')
+        file.write(f'Surface* {name}Surfaces;\n')
 
         file.write(f'\nvoid {name}_init(void){{\n')
+
+        for surface_type, tris in surfaces.items():
+            file.write(f'    {name}{surface_type.capitalize()} = malloc({name}{surface_type.capitalize()}Count * sizeof(Surface));\n') 
+
+        file.write(f'    {name}Surfaces = malloc(({name}WallCount + {name}SlopeCount + {name}FloorCount) * sizeof(Surface));\n\n')
 
         for surface_type, tris in surfaces.items():
             for i, tri in enumerate(tris):
@@ -88,9 +90,14 @@ def generate_c_file(name, vertices, surfaces, output_file):
         file.write('\n    // Combine the surfaces for collision detection\n')
         file.write('    combine_surfaces(\n')
         file.write(f'       {name}Surfaces, &{name}SurfacesCount,\n')
-        for surface_type, tris in surfaces.items():
-            file.write(f'       {name}{surface_type.capitalize()}, {name}{surface_type.capitalize()}Count,\n')
-        file.write('    );\n')
+        # Get the items as a list to know the total count for loop
+        surface_items = list(surfaces.items())
+        total_items = len(surface_items)
+        for i, (surface_type, tris) in enumerate(surface_items):
+            file.write(f'       {name}{surface_type.capitalize()}, {name}{surface_type.capitalize()}Count')
+            if i < total_items - 1:
+                file.write(',\n')  # Add comma and newline except for the last item
+        file.write('\n    );\n')
 
         file.write('\n    // Allocate map\'s matrix and construct\n')
         file.write(f'    {name}MatFP = malloc_uncached(sizeof(T3DMat4FP));\n')
@@ -125,14 +132,11 @@ def generate_h_file(name, vertices, surfaces, output_file):
 
         file.write(f'extern T3DVec3 {name}Verts[{len(vertices)}];\n')
 
-        # Calculate total number of tris
-        total_tris = sum(len(tris) for tris in surfaces.values())
-
         for surface_type, tris in surfaces.items():
             file.write(f'\nextern int {name}{surface_type.capitalize()}Count;\n')
-            file.write(f'extern Surface {name}{surface_type.capitalize()}[{len(tris)}];\n')
+            file.write(f'extern Surface* {name}{surface_type.capitalize()};\n')
         file.write(f'\nextern int {name}SurfacesCount;\n')
-        file.write(f'extern Surface {name}Surfaces[{total_tris}];\n')
+        file.write(f'extern Surface* {name}Surfaces;\n')
         file.write(f'\nextern T3DMat4FP* {name}MatFP;\n')
         file.write(f'extern T3DModel *model{name.capitalize()};\n')
         file.write(f'extern rspq_block_t *dpl{name.capitalize()};\n\n')
