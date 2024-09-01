@@ -1,0 +1,4 @@
+filesystem/
+build/
+*.z64
+assets/blends/*.blend1
