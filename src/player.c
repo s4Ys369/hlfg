@@ -548,10 +548,10 @@ void get_batched_surfaces(int playerCount){
   currSlope = find_closest_surface(player[playerCount]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
 }
 
+bool hitFloor = false, hitWall = false, hitSlope = false;
+Surface* collidedWall1 = NULL;
 void player_surface_collider(int playerCount){
 
-  bool hitFloor = false, hitWall = false, hitSlope = false;
-  Surface* collidedWall1 = NULL;
   Surface* collidedWall2 = NULL;
 
   // Check collisions with floors
@@ -595,7 +595,48 @@ void player_surface_collider(int playerCount){
     resolve_corner_collision(&player[playerCount]->hitbox, &player[playerCount]->pos, &player[playerCount]->vel, collidedWall1, collidedWall2, closestFloors);
   }
 
-  hitSlope = hitWall = hitFloor = false;
+  hitSlope = hitFloor = false;
+}
+
+
+// Function to detect collisions and apply X and Z velocity in quarter steps 
+void player_surface_collider_quarter_step(int playerCount) {
+  T3DVec3 storedPos = player[playerCount]->pos;     // Store initial position
+  T3DVec3 stepVel = player[playerCount]->vel;       // Get player velocity
+  t3d_vec3_scale(&stepVel, &stepVel, 0.25f);        // Scale velocity for quarter steps
+
+  for (uint8_t step = 0; step < 4; ++step) {
+    player_surface_collider(playerCount);         // Perform collision check
+
+    if (hitWall) {
+      T3DVec3 wallNormal = calc_surface_norm(*collidedWall1);
+            
+      // Push player out of the wall along the wall normal
+      T3DVec3 pushOut;
+      t3d_vec3_scale(&pushOut, &wallNormal, 10.0f);
+
+      // Move player out of the wall
+      t3d_vec3_add(&player[playerCount]->pos, &player[playerCount]->pos, &pushOut);
+
+      // Reflect or nullify the velocity along the wall normal
+      float velocityAlongWall = t3d_vec3_dot(&player[playerCount]->vel, &wallNormal);  // Get component of velocity along wall
+      T3DVec3 projectedVel;
+      t3d_vec3_scale(&projectedVel, &wallNormal, velocityAlongWall);  // Project velocity onto wall normal
+      t3d_vec3_diff(&player[playerCount]->vel, &player[playerCount]->vel, &projectedVel);  // Subtract normal component from velocity
+
+      break;  // Exit loop after handling wall collision
+    } else {
+      // No collision, move player by quarter step
+      player[playerCount]->pos.v[0] = player[playerCount]->pos.v[0] + stepVel.v[0];
+      player[playerCount]->pos.v[2] = player[playerCount]->pos.v[2] + stepVel.v[2];
+    }
+  }
+
+  // If no wall was hit, apply the full velocity to the position
+  if (!hitWall) {
+    player[playerCount]->pos.v[0] = storedPos.v[0] + player[playerCount]->vel.v[0];
+    player[playerCount]->pos.v[2] = storedPos.v[2] + player[playerCount]->vel.v[2];
+  }
 }
 
 
@@ -744,7 +785,7 @@ void player_update(void){
       check_player_collisions(player, numPlayers);
     }
 
-    player_surface_collider(i);
+    player_surface_collider_quarter_step(i);
     
     check_warp(levels[currLevel].warp, i);
     handle_actor_octree_collisions(ballOctree, balls, numBalls, i);
@@ -760,7 +801,7 @@ void player_update(void){
       check_player_collisions(player, numPlayers);
     }
     
-    player_surface_collider(i);
+    player_surface_collider_quarter_step(i);
 
     check_midair_actor_collisions(crates, numCrates, i);
     check_warp(levels[currLevel].warp, i);
@@ -910,7 +951,7 @@ void player_update(void){
     
     handle_actor_octree_collisions(ballOctree, balls, numBalls, i);
     handle_actor_octree_collisions(boxOctree, crates, numCrates, i);
-    player_surface_collider(i);
+    player_surface_collider_quarter_step(i);
 
     Surface currSlope = find_closest_surface(player[i]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
     if (check_sphere_surface_collision(player[i]->hitbox, currSlope)){
@@ -953,7 +994,7 @@ void player_update(void){
       check_player_collisions(player, numPlayers);
     }
 
-    player_surface_collider(i);
+    player_surface_collider_quarter_step(i);
 
     check_midair_actor_collisions(crates, numCrates, i);
     check_warp(levels[currLevel].warp, i);
@@ -1099,6 +1140,8 @@ void player_update(void){
     player[i]->projectile.hitbox.center =  player[i]->projectile.pos;
     player[i]->projectile.hitbox.radius = 8.0f;
   }
+
+  hitWall = false;
 
   }
 
