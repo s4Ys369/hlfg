@@ -550,6 +550,7 @@ void get_batched_surfaces(int playerCount){
 
 bool hitFloor = false, hitWall = false, hitSlope = false;
 Surface* collidedWall1 = NULL;
+Surface* collidedSlope = NULL;
 void player_surface_collider(int playerCount){
 
   Surface* collidedWall2 = NULL;
@@ -577,7 +578,8 @@ void player_surface_collider(int playerCount){
 
   // Check collisions with slopes
   if (check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)) {
-      hitSlope = true;
+    hitSlope = true;
+    collidedSlope = &currSlope;
   }
 
   // Resolve collisions
@@ -625,6 +627,18 @@ void player_surface_collider_quarter_step(int playerCount) {
       t3d_vec3_diff(&player[playerCount]->vel, &player[playerCount]->vel, &projectedVel);  // Subtract normal component from velocity
 
       break;  // Exit loop after handling wall collision
+    } if(hitSlope) {
+      // Same as before but now with the slope normal
+      T3DVec3 slopeNormal = calc_surface_norm(*collidedSlope);
+      T3DVec3 pushUp;
+      t3d_vec3_scale(&pushUp, &slopeNormal, 5.0f); // Reduce scale to account for moving down slope
+      t3d_vec3_add(&player[playerCount]->pos, &player[playerCount]->pos, &pushUp);
+
+      float velocityAlongSlope = t3d_vec3_dot(&player[playerCount]->vel, &slopeNormal);
+      T3DVec3 projectedVel;
+      t3d_vec3_scale(&projectedVel, &slopeNormal, velocityAlongSlope/2.0f);// Reduce scale to account for moving down slope
+      t3d_vec3_diff(&player[playerCount]->vel, &player[playerCount]->vel, &projectedVel);
+      break;
     } else {
       // No collision, move player by quarter step
       player[playerCount]->pos.v[0] = player[playerCount]->pos.v[0] + stepVel.v[0];
