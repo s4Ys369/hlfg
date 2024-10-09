@@ -10,6 +10,7 @@
 #include "debug.h"
 #include "input.h"
 #include "levels.h"
+#include "lighting.h"
 #include "lvl1.h"
 #include "map.h"
 #include "player.h"
@@ -171,7 +172,6 @@ int main()
     t3d_fog_set_enabled(true);
     
     t3d_light_set_ambient(colorAmbient);
-    t3d_light_set_count(1);
 
     // Draw viewports
     float fov = T3D_DEG_TO_RAD(75.0f);
@@ -208,6 +208,7 @@ int main()
       t3d_viewport_look_at(vp, &CP, &CT, &up);
       t3d_viewport_attach(vp);
       t3d_light_set_directional(0, colorDir, &lightDirVec);
+      set_point_lights(point_lights, MAX_LIGHTS);
       
       // debug render toggle
       if(debug_mode == DEBUG_RENDER_ALL || debug_mode == DEBUG_HIDE_OBJECTS){

@@ -88,7 +88,8 @@
         "sound.h": "c",
         "t3dskeleton.h": "c",
         "levels.h": "c",
-        "test_level.h": "c"
+        "test_level.h": "c",
+        "lvl1.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

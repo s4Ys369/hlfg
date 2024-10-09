@@ -51,7 +51,6 @@ void shuffle_array(float arr[], int size);
 float clamp(float value, float min, float max);
 int find_closest(T3DVec3 origin, Actor **target, int numObjects);
 void t3d_vert_unpack_normal(uint16_t packed, T3DVec3 *normal);
-void t3d_vec3_scale(T3DVec3 *result, const T3DVec3 *vec, float scalar);
 void block_free_safe(rspq_block_t *block);
 
 #endif // UTILS_H

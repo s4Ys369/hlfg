@@ -144,4 +144,11 @@ typedef struct {
     int score;
 } PlayerParams;
 
+// POINT LIGHTS
+typedef struct {
+    T3DVec3 pos;
+    float strength;
+    color_t color;
+} PointLight;
+
 #endif // TYPES_H
