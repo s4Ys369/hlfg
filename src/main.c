@@ -32,12 +32,10 @@ int main()
   surface_t depthBuffer = surface_alloc(FMT_RGBA16, display_get_width(), display_get_height());
 
   rdpq_init();
-#ifdef FORCE_PLAYERS
-  if(FORCE_PLAYERS > 1) {
-    rdpq_debug_start(); // Multiplayer only works while RDPQ Debug is enabled, probably auto sync related
-    //rdpq_debug_log(true);
-  }
-#endif // FORCE_PLAYERS
+#ifdef DEBUG_RDP
+  rdpq_debug_start();
+  rdpq_debug_log(true);
+#endif // DEBUG_RDP
   input_init();
 
   // Default stack size is 8, but lower or raiser the size produces undesired results
