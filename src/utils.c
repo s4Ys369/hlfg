@@ -116,8 +116,16 @@ void t3d_vert_unpack_normal(uint16_t packed, T3DVec3 *normal) {
     t3d_vec3_norm(normal);
 }
 
-void t3d_vec3_scale(T3DVec3 *result, const T3DVec3 *vec, float scalar) {
-    result->v[0] = vec->v[0] * scalar;
-    result->v[1] = vec->v[1] * scalar;
-    result->v[2] = vec->v[2] * scalar;
+#define EMPTY_LIST ((rspq_block_t*)1)
+
+inline bool is_non_empty_list(rspq_block_t *block)
+{
+    return block != NULL && block != EMPTY_LIST;
+}
+
+void block_free_safe(rspq_block_t *block)
+{
+    // Silently ignore NULL and EMPTY_LIST
+    if (!is_non_empty_list(block)) return;
+    rdpq_call_deferred((void (*)(void*))rspq_block_free, block);
 }

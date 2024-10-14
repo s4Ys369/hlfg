@@ -8,6 +8,7 @@
 #include "../include/types.h"
 #include "debug.h"
 #include "input.h"
+#include "levels.h"
 #include "player.h"
 #include "utils.h"
 

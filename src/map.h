@@ -12,9 +12,6 @@
 #include "utils.h"
 #include "test_level.h"
 
-extern T3DMat4FP* levelsMatFP;
-extern int numLevels;
-
 extern T3DMat4FP* mapMatFP;
 extern T3DModel *modelMap;
 extern rspq_block_t *dplMap;

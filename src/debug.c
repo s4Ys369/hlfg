@@ -1,6 +1,7 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include <t3d/t3dmath.h>
+#include <malloc.h>
 #include "../include/config.h"
 #include "../include/enums.h"
 #include "../include/globals.h"
@@ -9,10 +10,11 @@
 #include "collision.h"
 #include "debug.h"
 #include "input.h"
+#include "levels.h"
+#include "map.h"
 #include "player.h"
 #include "ui.h"
 #include "utils.h"
-#include "test_level.h"
 
 T3DModel *modelDebugBox;
 T3DModel *modelDebugSphere;
@@ -125,7 +127,7 @@ void draw_debug_ui(void){
 
   rdpq_textparms_t textParams = {
     .width = 100,
-    .height = 140,
+    .height = 200,
     .disable_aa_fix = true,
     .style_id = STYLE_DEBUG,
   };
@@ -166,6 +168,11 @@ void draw_debug_ui(void){
     posY=12;
     rspq_block_run(dplDebugText);
 
+    // Fazana's Puppyprint RAM used
+    //struct mallinfo mem_info = mallinfo();
+    //int ramUsed = mem_info.uordblks - (size_t) (((display_get_width() * display_get_height()) * 2) - ((unsigned int) HEAP_START_ADDR - 0x80000000) - 0x10000);
+    //rdpq_text_printf(NULL, nextFont, posX+ 100, posY + 20, "RAM %dKB/%dKB", (ramUsed / 1024), get_memory_size() / 1024);
+
     if(!isPaused){
       if(btn[0].d_left){
         if(debug_mode > DEBUG_RENDER_ALL){
@@ -204,26 +211,47 @@ void draw_debug_ui(void){
       rumble_supported[0],
       rumble_active[0]
     );
+    
 
-    posY+=140;
 
-    // Surfaces
-    Surface dWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);
-    Surface dFloor = find_closest_surface(player[0]->hitbox.center, testLevelFloor, testLevelFloorCount);
-    Surface dSlope = find_closest_surface(player[0]->hitbox.center, testLevelSlope, testLevelSlopeCount);
+    /* Surfaces
+    Surface dWall = find_closest_surface(player[0]->hitbox.center, levels[currLevel].walls, levels[currLevel].wallCount);
+    Surface dFloor = find_closest_surface(player[0]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
+    Surface dSlope = find_closest_surface(player[0]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
+    T3DVec3 dSlopeNormal = calc_surface_norm(dSlope);
+    T3DVec3 dFloorNormal = calc_surface_norm(dFloor);
+    T3DVec3 dWallNormal = calc_surface_norm(dWall);
+    t3d_vec3_norm(&dSlopeNormal);
+    t3d_vec3_norm(&dFloorNormal);
+    t3d_vec3_norm(&dWallNormal);
+
+    T3DVec3 forward = player[0]->forward;
+    //float dotNorth = t3d_vec3_dot(&forward, &nearer);
+    //float dotSouth = t3d_vec3_dot(&forward, &farther);
+    //float dotEast = t3d_vec3_dot(&forward, &right);
+    //float dotWest = t3d_vec3_dot(&forward, &left);
     rdpq_text_printf(
       &textParams, 
       nextFont,
       posX, posY, 
-      "Wall %d\n"
-      "Floor %d\n"
-      "Slope %d", 
-      check_sphere_surface_collision(player[0]->hitbox, dWall),
-      check_sphere_surface_collision(player[0]->hitbox, dFloor),
-      check_sphere_surface_collision(player[0]->hitbox, dSlope)
+      "X %.2f\n"
+      "Z %.2f\n"
+      "Pitch %.2f\n"
+      "Yaw %.2f\n"
+      "Roll %.2f\n"
+      "SP %.2f\n"
+      "SR %.2f\n"
+      "Forward\n" 
+      " %.2f,\n %.2f,\n %.2f\n"
+      "Slope Normal\n"
+      " %.2f,\n %.2f,\n %.2f",
+      player[0]->pos.v[0], player[0]->pos.v[2],
+      player[0]->rot.v[0], player[0]->rot.v[1], player[0]->rot.v[2],
+      player[0]->shadowRot.v[0], player[0]->shadowRot.v[2],
+      forward.v[0], forward.v[1], forward.v[2],
+      dSlopeNormal.v[0], dSlopeNormal.v[1], dSlopeNormal.v[2]
     );
-
-    posY+=45;
+    */
 
     /* Actors
     int dBall = find_closest(player[0]->hitbox.center, balls, numBalls);
@@ -270,9 +298,9 @@ text_debug = 1;
 
   if(btnheld[0].l && numPlayers == 1){
     col_debug = 1;
-    Surface cFloor = find_closest_surface(player[0]->hitbox.center, testLevelFloor, testLevelFloorCount);
-    Surface cWall = find_closest_surface(player[0]->hitbox.center, testLevelWall, testLevelWallCount);
-    Surface cSlope = find_closest_surface(player[0]->hitbox.center, testLevelSlope, testLevelSlopeCount);
+    Surface cFloor = find_closest_surface(player[0]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
+    Surface cWall = find_closest_surface(player[0]->hitbox.center, levels[currLevel].walls, levels[currLevel].wallCount);
+    Surface cSlope = find_closest_surface(player[0]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
     if(check_sphere_surface_collision(player[0]->hitbox, cFloor)){
       col_floor = 1;
       triVerts[0].posA[0] = (int16_t)(cFloor.posA.v[0]);

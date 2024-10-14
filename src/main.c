@@ -10,6 +10,7 @@
 #include "debug.h"
 #include "input.h"
 #include "levels.h"
+#include "lvl1.h"
 #include "map.h"
 #include "player.h"
 #include "sound.h"
@@ -31,12 +32,10 @@ int main()
   surface_t depthBuffer = surface_alloc(FMT_RGBA16, display_get_width(), display_get_height());
 
   rdpq_init();
-#ifdef FORCE_PLAYERS
-  if(FORCE_PLAYERS > 1) {
-    rdpq_debug_start(); // Multiplayer only works while RDPQ Debug is enabled, probably auto sync related
-    //rdpq_debug_log(true);
-  }
-#endif // FORCE_PLAYERS
+#ifdef DEBUG_RDP
+  rdpq_debug_start();
+  rdpq_debug_log(true);
+#endif // DEBUG_RDP
   input_init();
 
   // Default stack size is 8, but lower or raiser the size produces undesired results
@@ -46,7 +45,10 @@ int main()
   debug_models_init();
 
   map_init();
-  levels_init();
+  for (int i = 0; i < MAX_LEVELS; i++) {
+    level_init(&levels[i]);
+  }
+  level_load(currLevel);
   actors_init();
   player_init();
   cam_init();
@@ -77,7 +79,7 @@ int main()
     }
     if(numPlayers <= 2)sound_update_buffer();
 
-    t3d_mat4fp_from_srt_euler(testLevelMatFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
+    t3d_mat4fp_from_srt_euler(levels[currLevel].matFP, (float[3]){1.0f, 1.0f, 1.0f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 
     // Update actor matrices
     for (int c = 0; c < numCrates; ++c) {
@@ -113,7 +115,7 @@ int main()
       // Update players matrices
       t3d_mat4fp_from_srt_euler(playerMatFP[np],
           player[np]->scale.v,
-          (float[3]){player[np]->rot.v[0], -player[np]->rot.v[1], player[np]->rot.v[2]},
+          (float[3]){0, -player[np]->rot.v[1], 0},
           player[np]->pos.v
         );
     }
@@ -129,7 +131,7 @@ int main()
 
       t3d_mat4fp_from_srt_euler(shadowMatFP[p],
         (float[3]){0.25f, 0.25f, 0.25f},
-        (float[3]){player[p]->shadowRot.v[0], 0.0f, player[p]->shadowRot.v[2]},
+        (float[3]){player[p]->shadowRot.v[0], 0.0f, -player[p]->shadowRot.v[2]},
         player[p]->shadowPos.v
       );
 
@@ -208,10 +210,8 @@ int main()
       // debug render toggle
       if(debug_mode == DEBUG_RENDER_ALL || debug_mode == DEBUG_HIDE_OBJECTS){
         // Run levels block
-        for (int l = 0; l < numLevels; ++l) {
-          //t3d_segment_set(SEGMENT_LEVELS, &testLevelMatFP);
-          rspq_block_run(dplTestLevel);
-        }
+        //t3d_segment_set(SEGMENT_LEVELS, &testLevelMatFP);
+        rspq_block_run(levels[currLevel].dpl);
       }
 
       if(debug_mode == DEBUG_RENDER_ALL || debug_mode == DEBUG_HIDE_LEVEL){

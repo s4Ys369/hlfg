@@ -581,7 +581,7 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
 
     // Check distances per surface
     if(surf.type == SURFACE_SLOPE) {
-        if (dist <= sphere.radius*1.3f) {
+        if (dist <= sphere.radius*1.2f) {
             if (dist2 <= sphere.radius*5.0f) {
                 return true;
             } else {
@@ -592,18 +592,14 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
             return false;
         }
     } else if(surf.type == SURFACE_WALL) {
-        if (dist <= sphere.radius*1.1f) {
-            if (surf.center.v[1] >= sphere.center.v[1]) {
-                return true;
-            } else {
-               return false; 
-            }
+        if (dist < sphere.radius) {
+            return true;
         } else {
             return false;
         }
     } else if(surf.type == SURFACE_FLOOR) {
-        if (dist <= sphere.radius*1.5f) {
-            if (dist2 <= sphere.radius*4.0f) {
+        if (dist <= sphere.radius*1.7f) {
+            if (dist2 <= sphere.radius*5.0f) {
                 return true;
             } else {
                return false; 

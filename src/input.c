@@ -36,12 +36,12 @@ void input_init(void){
 
 
 int shortTimer = 0;
-// Simple 10 frame rumble
+// Simple 5 frame rumble
 void rumble_short(int numPlayer){
     joypad_set_rumble_active(numPlayer, true);
     rumble_active[numPlayer] = true;
     shortTimer++;
-    if(shortTimer >= 10){
+    if(shortTimer >= 5){
         joypad_set_rumble_active(numPlayer, false);
         rumbleShort[numPlayer] = false;
         rumble_active[numPlayer] = false;
@@ -50,12 +50,12 @@ void rumble_short(int numPlayer){
 }
 
 int longTimer = 0;
-// Simple 13 frame rumble
+// Simple 7 frame rumble
 void rumble_long(int numPlayer){
     joypad_set_rumble_active(numPlayer, true);
     rumble_active[numPlayer] = true;
     longTimer++;
-    if(longTimer >= 13){
+    if(longTimer >= 7){
         joypad_set_rumble_active(numPlayer, false);
         rumble_active[numPlayer] = false;
         rumbleLong[numPlayer] = false;
@@ -65,8 +65,7 @@ void rumble_long(int numPlayer){
 
 
 int sineTimer = 0;
-const float freq = 0.2f;
-const float amplitude = 15.0f;
+const float freq = 0.8f;
 const float threshold = 0.0f;
 // Rumble that has a sine wave pulse
 void rumble_wave(int numPlayer) {
