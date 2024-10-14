@@ -209,6 +209,7 @@ int main()
       t3d_viewport_attach(vp);
       t3d_light_set_directional(0, colorDir, &lightDirVec);
       set_point_lights(point_lights, MAX_LIGHTS);
+      t3d_light_set_count(MAX_LIGHTS+2); // TODO: unhardcoded adding the ambient and directional
       
       // debug render toggle
       if(debug_mode == DEBUG_RENDER_ALL || debug_mode == DEBUG_HIDE_OBJECTS){

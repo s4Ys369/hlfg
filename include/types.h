@@ -147,7 +147,8 @@ typedef struct {
 // POINT LIGHTS
 typedef struct {
     T3DVec3 pos;
-    float strength;
+    float size;
+    bool ignoreNormals;
     color_t color;
 } PointLight;
 
