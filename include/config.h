@@ -13,4 +13,7 @@
 // Always print instead of just when R trigger is held
 //#define FORCE_DEBUG_PRINT
 
+// Activate LibDragon's internal RDPQ debugger/validator
+//#define DEBUG_RDP
+
 #endif // CONFIG_H
