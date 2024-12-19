@@ -1107,6 +1107,7 @@ void player_update(void){
   RaycastResult raySlope = closest_surface_below_raycast(player[i]->pos, levels[currLevel].slopes, levels[currLevel].slopeCount);
   Surface shadowSlope = find_closest_surface(player[i]->pos, levels[currLevel].slopes, levels[currLevel].slopeCount);
   
+  currFloor = find_closest_surface(player[i]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
   float dist_player_next_floor = distance_to_surface(player[i]->hitbox.center, currFloor);
   float dist_player_next_slope = distance_to_surface(player[i]->hitbox.center, shadowSlope);
   
