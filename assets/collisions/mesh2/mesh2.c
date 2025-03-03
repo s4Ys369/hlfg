@@ -3,7 +3,7 @@
 #include <t3d/t3dmodel.h>
 #include "../include/enums.h"
 #include "../include/types.h"
-#include "debug.h"
+#include "utils/debug.h"
 #include "collision.h"
 #include "mesh2.h"
 #include "utils.h"

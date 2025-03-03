@@ -5,10 +5,10 @@
 #include "../include/globals.h"
 #include "../include/types.h"
 #include "collision.h"
-#include "debug.h"
+#include "utils/debug.h"
 #include "map.h"
-#include "utils.h"
-#include "test_level.h"
+#include "utils/utils.h"
+#include "levels/test_level.h"
 
 T3DMat4FP* mapMatFP;
 T3DModel *modelMap;
@@ -381,4 +381,8 @@ void map_init(void){
 
     //mesh_init();
     //mesh2_init();
+}
+
+void map_free(void){
+    free(mapMatFP);
 }

@@ -5,12 +5,14 @@
 #include "../include/globals.h"
 #include "../include/types.h"
 #include "collision.h"
-#include "debug.h"
+#include "utils/debug.h"
+#include "utils/utils.h"
 #include "levels.h"
-#include "lvl1.h"
+#include "levels/lvl1.h"
+#include "levels/test_level.h"
 #include "map.h"
-#include "utils.h"
-#include "test_level.h"
+#include "actors.h"
+#include "player.h"
 
 Level levels[MAX_LEVELS];
 int currLevel = 0;
@@ -31,7 +33,6 @@ void level_init(Level* level) {
 }
 
 void level_load(int currLevel) {
-    level_free(&levels[currLevel]);
     if(currLevel == 0){
         test_level_init();
         levels[currLevel].floorCount = testLevelFloorCount;
@@ -71,6 +72,7 @@ void level_load(int currLevel) {
         levels[currLevel].warp.hitbox.shape.type = SHAPE_SPHERE;
         levels[currLevel].warp.hitbox.shape.sphere = (Sphere){levels[currLevel].warp.pos,levels[currLevel].warp.radius};
     }
+    actors_init();
 }
 
 void level_free(Level* level) {
@@ -102,5 +104,6 @@ void level_free(Level* level) {
         block_free_safe(level->dpl);
         level->dpl = NULL;
     }
+    actors_free();
     level_init(level);
 }

@@ -2,18 +2,18 @@
 #include <t3d/t3d.h>
 #include <t3d/t3dmath.h>
 #include <malloc.h>
-#include "../include/config.h"
-#include "../include/enums.h"
-#include "../include/globals.h"
-#include "../include/types.h"
-#include "camera.h"
-#include "collision.h"
-#include "debug.h"
-#include "input.h"
-#include "levels.h"
-#include "map.h"
-#include "player.h"
-#include "ui.h"
+#include "../../include/config.h"
+#include "../../include/enums.h"
+#include "../../include/globals.h"
+#include "../../include/types.h"
+#include "../camera.h"
+#include "../collision.h"
+#include "../debug.h"
+#include "../input.h"
+#include "../levels.h"
+#include "../map.h"
+#include "../player.h"
+#include "../ui.h"
 #include "utils.h"
 
 T3DModel *modelDebugBox;
@@ -168,10 +168,8 @@ void draw_debug_ui(void){
     posY=12;
     rspq_block_run(dplDebugText);
 
-    // Fazana's Puppyprint RAM used
-    //struct mallinfo mem_info = mallinfo();
-    //int ramUsed = mem_info.uordblks - (size_t) (((display_get_width() * display_get_height()) * 2) - ((unsigned int) HEAP_START_ADDR - 0x80000000) - 0x10000);
-    //rdpq_text_printf(NULL, nextFont, posX+ 100, posY + 20, "RAM %dKB/%dKB", (ramUsed / 1024), get_memory_size() / 1024);
+    static heap_stats_t heap_stats;
+    sys_get_heap_stats(&heap_stats);
 
     if(!isPaused){
       if(btn[0].d_left){
@@ -200,7 +198,8 @@ void draw_debug_ui(void){
       "%s\n"
       "Rumble\n"
       "Detected %d\n"
-      "Active %d", 
+      "Active %d\n"
+      "Mem: %d KiB",
       player[0]->pos.v[0],
       player[0]->pos.v[1],
       player[0]->pos.v[2],
@@ -209,7 +208,8 @@ void draw_debug_ui(void){
       player[0]->currSpeed,
       debugModeStrings[debug_mode],
       rumble_supported[0],
-      rumble_active[0]
+      rumble_active[0],
+      heap_stats.used/1024
     );
     
 
@@ -301,7 +301,7 @@ text_debug = 1;
     Surface cFloor = find_closest_surface(player[0]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
     Surface cWall = find_closest_surface(player[0]->hitbox.center, levels[currLevel].walls, levels[currLevel].wallCount);
     Surface cSlope = find_closest_surface(player[0]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
-    if(check_sphere_surface_collision(player[0]->hitbox, cFloor)){
+    if(check_sphere_surface_collision(player[0]->hitbox, &cFloor)){
       col_floor = 1;
       triVerts[0].posA[0] = (int16_t)(cFloor.posA.v[0]);
       triVerts[0].posA[1] = (int16_t)(cFloor.posA.v[1]);
@@ -335,7 +335,7 @@ text_debug = 1;
     } else {
       col_floor = 0;
     }
-    if(check_sphere_surface_collision(player[0]->hitbox, cSlope)){
+    if(check_sphere_surface_collision(player[0]->hitbox, &cSlope)){
       col_slope = 1;
       triVerts[2].posA[0] = (int16_t)(cSlope.posA.v[0]);
       triVerts[2].posA[1] = (int16_t)(cSlope.posA.v[1]);
@@ -370,7 +370,7 @@ text_debug = 1;
     } else {
       col_slope = 0;
     }
-    if(check_sphere_surface_collision(player[0]->hitbox, cWall)){
+    if(check_sphere_surface_collision(player[0]->hitbox, &cWall)){
       col_wall = 1;
 
       triVerts[4].posA[0] = (int16_t)(cWall.posA.v[0]);
@@ -413,4 +413,9 @@ text_debug = 1;
     col_wall = 0;
   }
 
+}
+
+void debug_models_free(void){
+  free(triVerts);
+  free(triangleMatFP);
 }

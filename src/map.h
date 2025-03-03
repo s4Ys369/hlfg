@@ -8,9 +8,9 @@
 #include "../include/globals.h"
 #include "../include/types.h"
 #include "collision.h"
-#include "debug.h"
-#include "utils.h"
-#include "test_level.h"
+#include "utils/debug.h"
+#include "utils/utils.h"
+#include "levels/test_level.h"
 
 extern T3DMat4FP* mapMatFP;
 extern T3DModel *modelMap;
@@ -41,5 +41,6 @@ extern int mesh2WallCount;
 extern Surface mesh2Wall[64];
 
 void map_init(void);
+void map_free(void);
 
 #endif // MAP_H

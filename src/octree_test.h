@@ -11,11 +11,11 @@
 #include "../include/types.h"
 #include "actors.h"
 #include "collision.h"
-#include "debug.h"
+#include "utils/debug.h"
 #include "map.h"
 #include "player.h"
-#include "test_level.h"
-#include "utils.h"
+#include "levels/test_level.h"
+#include "utils/utils.h"
 
 extern T3DVec3 octreeCenter;
 extern float octreeHalfSize;

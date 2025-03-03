@@ -3,13 +3,13 @@
 #include "../include/enums.h"
 #include "../include/globals.h"
 #include "../include/types.h"
-#include "debug.h"
+#include "utils/debug.h"
 #include "input.h"
 #include "levels.h"
 #include "player.h"
 #include "sound.h"
 #include "ui.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 
 rspq_block_t *dplScore;

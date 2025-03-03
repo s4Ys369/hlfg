@@ -9,7 +9,7 @@
 #include "input.h"
 #include "map.h"
 #include "player.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 extern T3DVec3 lightDirVec;
 extern uint8_t colorAmbient[4];

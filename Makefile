@@ -31,17 +31,17 @@ src =   src/main.c \
 		src/actors.c \
 		src/camera.c \
 		src/collision.c \
-		src/debug.c \
 		src/input.c \
 		src/levels.c \
-		src/lvl1.c \
+		src/levels/lvl1.c \
+		src/levels/test_level.c \
 		src/map.c \
 		src/octree_test.c \
 		src/player.c \
 		src/sound.c \
-		src/test_level.c \
 		src/ui.c \
-		src/utils.c
+		src/utils/debug.c \
+		src/utils/utils.c
 assets_debug_font = $(wildcard assets/*.png)
 assets_png = $(wildcard assets/models/*.png)
 assets_gltf = $(wildcard assets/models/*.glb)
@@ -101,6 +101,6 @@ clean:
 	rm -rf $(BUILD_DIR) *.z64
 	rm -rf filesystem
 
--include $(wildcard $(BUILD_DIR)/src/*.d) $(wildcard $(BUILD_DIR)/include/*.d)
+-include $(wildcard $(BUILD_DIR)/src/*.d)  $(wildcard $(BUILD_DIR)/src/*/*.d) $(wildcard $(BUILD_DIR)/include/*.d)
 
 .PHONY: all clean

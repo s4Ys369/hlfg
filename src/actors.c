@@ -11,13 +11,13 @@
 #include "../include/types.h"
 #include "actors.h"
 #include "collision.h"
-#include "debug.h"
+#include "utils/debug.h"
 #include "levels.h"
 #include "map.h"
 #include "octree_test.h"
 #include "player.h"
 #include "sound.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 // Crates
 T3DMat4FP* crateMatFP[MAX_CRATES];
@@ -314,9 +314,9 @@ void ball_surface_collider(int ballCount){
   bool hitSlope = false;
   bool hitFloor = false;
   bool hitWall = false;
-  if (check_sphere_surface_collision(balls[ballCount]->hitbox.shape.sphere, currSlope)){hitSlope = true;}
-  if (check_sphere_surface_collision(balls[ballCount]->hitbox.shape.sphere, currFloor)){hitFloor = true;}
-  if (check_sphere_surface_collision(balls[ballCount]->hitbox.shape.sphere, currWall)){hitWall = true;}
+  if (check_sphere_surface_collision(balls[ballCount]->hitbox.shape.sphere, &currSlope)){hitSlope = true;}
+  if (check_sphere_surface_collision(balls[ballCount]->hitbox.shape.sphere, &currFloor)){hitFloor = true;}
+  if (check_sphere_surface_collision(balls[ballCount]->hitbox.shape.sphere, &currWall)){hitWall = true;}
 
 
   // Determine the which collisions and in which order to handle
@@ -528,10 +528,10 @@ void crates_update(void){
         crates[c]->pos.v[0] = cratesStartingPos[c].v[0];
         crates[c]->pos.v[2] = cratesStartingPos[c].v[2];
       }
-      if(check_box_surface_collision(crates[c]->hitbox.shape.aabb, findWallMin)) {
+      if(check_box_surface_collision(crates[c]->hitbox.shape.aabb, &findWallMin)) {
         crates[c]->pos = cratesStartingPos[c];
       }
-      if(check_box_surface_collision(crates[c]->hitbox.shape.aabb, findWallMax)) {
+      if(check_box_surface_collision(crates[c]->hitbox.shape.aabb, &findWallMax)) {
         crates[c]->pos = cratesStartingPos[c];
       }
     }
@@ -564,5 +564,18 @@ void actors_update(void){
   balls_update();
   crates_update();
   check_ball_crate_collisions(balls, numBalls, crates, numCrates);
+}
+
+void actors_free(void){
+  for (int c = 0; c <= numCrates; ++c) {
+    free_uncached(crateMatFP[c]);
+    free(crates[c]);
+  }
+  for (int b = 0; b <= numBalls; ++b) {
+    free_uncached(crateMatFP[b]);
+    free(crates[b]);
+  }
+  free_octree(ballOctree, false);
+  free_octree(boxOctree, false);
 }
 

@@ -3,10 +3,10 @@
 #include <t3d/t3dmodel.h>
 #include "../include/enums.h"
 #include "../include/types.h"
-#include "debug.h"
+#include "utils/debug.h"
 #include "collision.h"
 #include "col.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 T3DMat4FP* colMatFP;
 T3DModel *modelCol;

@@ -8,13 +8,13 @@
 #include "../include/enums.h"
 #include "../include/types.h"
 #include "collision.h"
-#include "debug.h"
+#include "utils/debug.h"
 #include "levels.h"
 #include "map.h"
 #include "octree_test.h"
 #include "player.h"
 #include "sound.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 // Crates
 extern T3DMat4FP* crateMatFP[MAX_CRATES];
@@ -47,6 +47,7 @@ void actors_init(void);
 void balls_update(void);
 void crates_update(void);
 void actors_update(void);
+void actors_free(void);
 
 
 #endif // ACTORS_H

@@ -3,10 +3,10 @@
 #include <t3d/t3dmodel.h>
 #include "../include/enums.h"
 #include "../include/types.h"
-#include "debug.h"
+#include "utils/debug.h"
 #include "collision.h"
-#include "lvl1.h"
-#include "utils.h"
+#include "levels/lvl1.h"
+#include "utils/utils.h"
 
 T3DMat4FP* lvl1MatFP;
 T3DModel *modelLvl1;

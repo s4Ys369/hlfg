@@ -13,14 +13,14 @@
 #include "actors.h"
 #include "camera.h"
 #include "collision.h"
-#include "debug.h"
+#include "utils/debug.h"
 #include "input.h"
 #include "levels.h"
 #include "map.h"
 #include "octree_test.h"
 #include "sound.h"
-#include "utils.h"
-#include "test_level.h"
+#include "utils/utils.h"
+#include "levels/test_level.h"
 
 extern T3DMat4FP* playerMatFP[MAX_PLAYERS];
 extern T3DMat4FP* shadowMatFP[MAX_PLAYERS];
@@ -53,6 +53,7 @@ void check_attack_collisions(Actor **actor, int actorCount, int playerCount);
 void player_bounced(PlayerParams *player[], int playerCount) ;
 void check_midair_actor_collisions(Actor **actor, int actorCount, int playerCount);
 void player_update(void);
+void player_free(void);
 
 
 #endif // PLAYER_H

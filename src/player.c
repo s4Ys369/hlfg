@@ -9,15 +9,15 @@
 #include "actors.h"
 #include "camera.h"
 #include "collision.h"
-#include "debug.h"
+#include "utils/debug.h"
 #include "input.h"
 #include "levels.h"
 #include "map.h"
 #include "octree_test.h"
 #include "player.h"
 #include "sound.h"
-#include "utils.h"
-#include "test_level.h"
+#include "utils/utils.h"
+#include "levels/test_level.h"
 
 
 T3DMat4FP* playerMatFP[MAX_PLAYERS];
@@ -557,7 +557,7 @@ void player_surface_collider(int playerCount){
 
   // Check collisions with floors
   for (int i = 0; i < closestFloorsCount; ++i) {
-      if (check_sphere_surface_collision(player[playerCount]->hitbox, closestFloors[i])) {
+      if (check_sphere_surface_collision(player[playerCount]->hitbox, &closestFloors[i])) {
           hitFloor = true;
           currFloor = closestFloors[i];
           break; // Stop after finding the first collision
@@ -566,7 +566,7 @@ void player_surface_collider(int playerCount){
 
   // Check collisions with walls
   for (int w = 0; w < closestWallsCount; ++w) {
-    if (check_sphere_surface_collision(player[playerCount]->hitbox, closestWalls[w])) {
+    if (check_sphere_surface_collision(player[playerCount]->hitbox, &closestWalls[w])) {
       if (!hitWall) {
         collidedWall1 = &closestWalls[w];
       } else {
@@ -577,7 +577,7 @@ void player_surface_collider(int playerCount){
   }
 
   // Check collisions with slopes
-  if (check_sphere_surface_collision(player[playerCount]->hitbox, currSlope)) {
+  if (check_sphere_surface_collision(player[playerCount]->hitbox, &currSlope)) {
     hitSlope = true;
     collidedSlope = &currSlope;
   }
@@ -968,11 +968,11 @@ void player_update(void){
     player_surface_collider_quarter_step(i);
 
     Surface currSlope = find_closest_surface(player[i]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
-    if (check_sphere_surface_collision(player[i]->hitbox, currSlope)){
+    if (check_sphere_surface_collision(player[i]->hitbox, &currSlope)){
       player[i]->pos.v[1] += player[i]->hitbox.radius * 2.5f;
     }
     Surface currFloor = find_closest_surface(player[i]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
-    if (check_sphere_surface_collision(player[i]->hitbox, currFloor)){
+    if (check_sphere_surface_collision(player[i]->hitbox, &currFloor)){
       player[i]->pos.v[1] += player[i]->hitbox.radius;
     }
 
@@ -1047,9 +1047,9 @@ void player_update(void){
     
     if(player[i]->pos.v[1] > groundLevel){
       Surface currSlope = find_closest_surface(player[i]->hitbox.center, levels[currLevel].slopes, levels[currLevel].slopeCount);
-      if (!check_sphere_surface_collision(player[i]->hitbox, currSlope)){
+      if (!check_sphere_surface_collision(player[i]->hitbox, &currSlope)){
         Surface currFloor = find_closest_surface(player[i]->hitbox.center, levels[currLevel].floors, levels[currLevel].floorCount);
-        if (!check_sphere_surface_collision(player[i]->hitbox, currFloor)){
+        if (!check_sphere_surface_collision(player[i]->hitbox, &currFloor)){
           for (int c = 0; c < numCrates; ++c) {
             int closestCrate = find_closest(player[i]->pos, crates, numCrates);
             if(!check_sphere_box_collision(player[i]->hitbox, crates[closestCrate]->hitbox.shape.aabb)){

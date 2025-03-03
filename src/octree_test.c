@@ -8,12 +8,12 @@
 #include "../include/types.h"
 #include "actors.h"
 #include "collision.h"
-#include "debug.h"
+#include "utils/debug.h"
 #include "map.h"
 #include "octree_test.h"
 #include "player.h"
-#include "test_level.h"
-#include "utils.h"
+#include "levels/test_level.h"
+#include "utils/utils.h"
 
 T3DVec3 octreeCenter = {{0.0f, 0.0f, 0.0f}};  // Center of your game world
 float octreeHalfSize = 600.0f;              // Half the size of your game world

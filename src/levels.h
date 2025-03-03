@@ -8,11 +8,11 @@
 #include "../include/globals.h"
 #include "../include/types.h"
 #include "collision.h"
-#include "debug.h"
-#include "lvl1.h"
+#include "utils/debug.h"
+#include "levels/lvl1.h"
 #include "map.h"
-#include "utils.h"
-#include "test_level.h"
+#include "utils/utils.h"
+#include "levels/test_level.h"
 
 extern Level levels[MAX_LEVELS];
 extern int currLevel;

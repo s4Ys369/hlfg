@@ -6,7 +6,7 @@
 #include "../include/globals.h"
 #include "../include/types.h"
 #include "collision.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 T3DVec3 center = {{0,0,0}};
 T3DVec3 norm = {{0,1,0}};
@@ -422,6 +422,9 @@ float calc_dist_to_quad(T3DVec3 point, T3DQuad quad) {
         }
     }
 
+    free_uncached(current);
+    free_uncached(next);
+
     return sqrtf(minDistance);
 }
 
@@ -573,14 +576,17 @@ float distance_to_surface(T3DVec3 position, Surface surf) {
 }
 
 // Function to check sphere collision with a surface
-bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
+bool check_sphere_surface_collision(Sphere sphere, Surface *surf) {
+
+    if(surf == NULL) return false;
+
     // Calculate distance from sphere center to the surface
-    float dist = distance_to_surface(sphere.center, surf);
-    float dist2 = t3d_vec3_distance(&sphere.center, &surf.center);
+    float dist = distance_to_surface(sphere.center, *surf);
+    float dist2 = t3d_vec3_distance(&sphere.center, &surf->center);
     //float dist3 = t3d_vec3_distance(&sphere.center, &surf.normal);
 
     // Check distances per surface
-    if(surf.type == SURFACE_SLOPE) {
+    if(surf->type == SURFACE_SLOPE) {
         if (dist <= sphere.radius*1.2f) {
             if (dist2 <= sphere.radius*5.0f) {
                 return true;
@@ -591,13 +597,13 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
             // No collision
             return false;
         }
-    } else if(surf.type == SURFACE_WALL) {
+    } else if(surf->type == SURFACE_WALL) {
         if (dist < sphere.radius) {
             return true;
         } else {
             return false;
         }
-    } else if(surf.type == SURFACE_FLOOR) {
+    } else if(surf->type == SURFACE_FLOOR) {
         if (dist <= sphere.radius*1.7f) {
             if (dist2 <= sphere.radius*5.0f) {
                 return true;
@@ -621,13 +627,16 @@ bool check_sphere_surface_collision(Sphere sphere, Surface surf) {
     }
 }
 
-bool check_box_surface_collision(AABB a, Surface surf) {
-// Check for overlap along the X axis
-    bool overlapX = (a.min.v[0] <= surf.center.v[0] && a.max.v[0] >= surf.center.v[0]);
+bool check_box_surface_collision(AABB a, Surface *surf) {
+
+    if(surf == NULL) return false;
+
+    // Check for overlap along the X axis
+    bool overlapX = (a.min.v[0] <= surf->center.v[0] && a.max.v[0] >= surf->center.v[0]);
     // Check for overlap along the Y axis
-    bool overlapY = (a.min.v[1] <= surf.center.v[1] && a.max.v[1] >= surf.center.v[1]);
+    bool overlapY = (a.min.v[1] <= surf->center.v[1] && a.max.v[1] >= surf->center.v[1]);
     // Check for overlap along the Z axis
-    bool overlapZ = (a.min.v[2] <= surf.center.v[2] && a.max.v[2] >= surf.center.v[2]);
+    bool overlapZ = (a.min.v[2] <= surf->center.v[2] && a.max.v[2] >= surf->center.v[2]);
 
     // A collision occurs if there is overlap along all three axes
     return overlapX && overlapY && overlapZ;
@@ -900,7 +909,7 @@ void handle_multi_collisions(Sphere* sphere, T3DVec3* position, T3DVec3* velocit
 
     for (int i = 0; i < numSurfaces; ++i) {
         Surface* surf = &surfaces[i];
-        if (check_sphere_surface_collision(*sphere, *surf)) {
+        if (check_sphere_surface_collision(*sphere, surf)) {
             T3DVec3 normal = calc_surface_norm(*surf);
             normals[collisionCount] = normal;
             // Compute penetration depth

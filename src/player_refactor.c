@@ -9,13 +9,13 @@
 #include "actors.h"
 #include "camera.h"
 #include "collision.h"
-#include "debug.h"
+#include "utils/debug.h"
 #include "input.h"
 #include "map.h"
 #include "player.h"
 #include "sound.h"
-#include "utils.h"
-#include "test_level.h"
+#include "utils/utils.h"
+#include "levels/test_level.h"
 
 
 T3DMat4FP* playerMatFP[MAX_PLAYERS];
@@ -1114,4 +1114,15 @@ void player_update(void){
 
   }
 
+}
+
+void player_free(void){
+  for(int i = 0; i < numPlayers; i++){
+    free(playerMatFP[i]);
+    free(shadowMatFP[i]);
+    free(projectileMatFP[i]);
+    free(playerhitboxMatFP[i]);
+    free(projectilehitboxMatFP[i]);
+    free(player[i]);
+  }
 }

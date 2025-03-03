@@ -1,12 +1,12 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include <t3d/t3dmodel.h>
-#include "../include/enums.h"
-#include "../include/types.h"
-#include "debug.h"
-#include "collision.h"
+#include "../../include/enums.h"
+#include "../../include/types.h"
+#include "../utils/debug.h"
+#include "../collision.h"
 #include "test_level.h"
-#include "utils.h"
+#include "../utils/utils.h"
 
 T3DMat4FP* testLevelMatFP;
 T3DModel *modelTestLevel;

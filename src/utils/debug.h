@@ -4,17 +4,17 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include <t3d/t3dmath.h>
-#include "../include/config.h"
-#include "../include/enums.h"
-#include "../include/globals.h"
-#include "../include/types.h"
-#include "camera.h"
-#include "collision.h"
-#include "input.h"
-#include "levels.h"
-#include "map.h"
-#include "player.h"
-#include "ui.h"
+#include "../../include/config.h"
+#include "../../include/enums.h"
+#include "../../include/globals.h"
+#include "../../include/types.h"
+#include "../camera.h"
+#include "../collision.h"
+#include "../input.h"
+#include "../levels.h"
+#include "../map.h"
+#include "../player.h"
+#include "../ui.h"
 #include "utils.h"
 
 extern T3DModel *modelDebugBox;
@@ -36,6 +36,7 @@ extern int matCount;
 extern rspq_syncpoint_t syncPoint;
 
 void debug_models_init(void);
+void debug_models_free(void);
 void draw_debug_ui(void);
 
 

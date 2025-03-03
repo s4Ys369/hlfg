@@ -7,7 +7,7 @@
 #include "input.h"
 #include "map.h"
 #include "player.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 T3DVec3 lightDirVec;
 uint8_t colorAmbient[4] = {51, 0, 68, 255};

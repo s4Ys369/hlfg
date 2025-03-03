@@ -7,16 +7,16 @@
 #include "actors.h"
 #include "camera.h"
 #include "collision.h"
-#include "debug.h"
+#include "utils/debug.h"
 #include "input.h"
 #include "levels.h"
-#include "lvl1.h"
+#include "levels/lvl1.h"
 #include "map.h"
 #include "player.h"
 #include "sound.h"
 #include "ui.h"
-#include "utils.h"
-#include "test_level.h"
+#include "utils/utils.h"
+#include "levels/test_level.h"
 
 // IBE : Itty Bitty Engine, a 3D Game Engine for Tiny3D
 
@@ -49,7 +49,6 @@ int main()
     level_init(&levels[i]);
   }
   level_load(currLevel);
-  actors_init();
   player_init();
   cam_init();
   sound_init();

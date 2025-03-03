@@ -8,7 +8,7 @@
 #include "../include/enums.h"
 #include "../include/globals.h"
 #include "../include/types.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 extern T3DVec3 center;
 extern T3DVec3 norm;
@@ -55,8 +55,8 @@ void resolve_sphere_quad_collision(T3DVec3* sphereCenter, float sphereRadius, T3
 T3DVec3 calc_surface_center(Surface surf);
 T3DVec3 calc_surface_norm(Surface surf);
 float distance_to_surface(T3DVec3 position, Surface surf);
-bool check_sphere_surface_collision(Sphere sphere, Surface surf);
-bool check_box_surface_collision(AABB a, Surface surf);
+bool check_sphere_surface_collision(Sphere sphere, Surface *surf);
+bool check_box_surface_collision(AABB a, Surface *surf);
 Surface find_closest_surface(T3DVec3 position, Surface* surfaces, int numSurfaces);
 void resolve_sphere_surface_collision(Sphere *sphere, T3DVec3 *position, T3DVec3 *direction, Surface *surf);
 bool ray_intersects_surface(T3DVec3 rayOrigin, T3DVec3 rayDir, Surface surface, float* intersectionAngle);
