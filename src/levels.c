@@ -74,6 +74,7 @@ void level_load(int currLevel) {
     }
     actors_init();
     player_init();
+    cam_init();
 }
 
 void level_free(Level* level) {
@@ -107,5 +108,6 @@ void level_free(Level* level) {
     }
     actors_free();
     player_free(numPlayers);
+    cam_free();
     level_init(level);
 }

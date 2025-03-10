@@ -23,5 +23,6 @@ void top_down_view(T3DVec3 *camTarget, T3DVec3 *camPos, T3DVec3 camForward, T3DV
 void update_player_forward(T3DVec3 *playerForward, float playerYaw);
 void cam_follow_player_lag(T3DVec3 *camTarget, T3DVec3 *camPos, T3DVec3 *camForward, float *camYaw, T3DVec3 *playerPos, float playerYaw, float lagFactor);
 void cam_update(void);
+void cam_free(void);
 
 #endif // CAMERA_H

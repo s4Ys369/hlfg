@@ -658,9 +658,9 @@ void player_update(void){
   
   // Transform input direction to camera's coordinate system
   T3DVec3 newDir = {{
-    (float)joypad[i].stick_x * 0.05f * player[i]->cam.camResults.right.v[0] + -(float)joypad[i].stick_y * 0.05f * player[i]->cam.camResults.forward.v[0],
+    (float)joypad[i].stick_x * 0.05f * player[i]->cam->camResults.right.v[0] + -(float)joypad[i].stick_y * 0.05f * player[i]->cam->camResults.forward.v[0],
     0, // :.[
-    (float)joypad[i].stick_x * 0.05f * player[i]->cam.camResults.right.v[2] + -(float)joypad[i].stick_y * 0.05f * player[i]->cam.camResults.forward.v[2]
+    (float)joypad[i].stick_x * 0.05f * player[i]->cam->camResults.right.v[2] + -(float)joypad[i].stick_y * 0.05f * player[i]->cam->camResults.forward.v[2]
   }};
   float speed = sqrtf(t3d_vec3_len2(&newDir));
 
@@ -853,8 +853,8 @@ void player_update(void){
   // do slide/slope interaction
   if(playerState[i] == PLAYER_SLIDE){
     player[i]->scale.v[1] = newScale;
-    player[i]->cam.camPos.v[1] = player[i]->hitbox.center.v[1];
-    player[i]->cam.camTarget.v[1] = player[i]->hitbox.center.v[1];
+    player[i]->cam->pos.v[1] = player[i]->hitbox.center.v[1];
+    player[i]->cam->target.v[1] = player[i]->hitbox.center.v[1];
     if(!rumbleLong[i] && !rumbleShort[i] && !rumbleWave[i]){
       rumbleWave[i] = true;
     }

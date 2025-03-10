@@ -49,7 +49,6 @@ int main()
     level_init(&levels[i]);
   }
   level_load(currLevel);
-  cam_init();
   sound_init();
   ui_init();
 
@@ -184,17 +183,17 @@ int main()
       t3d_screen_clear_depth();
       t3d_fog_set_range(32.0f, 384.0f);
       t3d_fog_set_enabled(true);
-      T3DViewport *vp = &player[i]->cam.viewport;
-      T3DVec3 CP = player[i]->cam.camPos;
-      T3DVec3 CT = player[i]->cam.camTarget;
+      T3DViewport *vp = &player[i]->cam->viewport;
+      T3DVec3 CP = player[i]->cam->pos;
+      T3DVec3 CT = player[i]->cam->target;
 
       // FOV looks off at different window sizes, so adjust
       if (numPlayers == 2){
         t3d_viewport_set_projection(vp, fov2p, near, far);
       }else if (numPlayers == 3){
-        t3d_viewport_set_projection(&player[0]->cam.viewport, fov2p, near, far);
-        t3d_viewport_set_projection(&player[1]->cam.viewport, fov4p, near, far);
-        t3d_viewport_set_projection(&player[2]->cam.viewport, fov4p, near, far);
+        t3d_viewport_set_projection(&player[0]->cam->viewport, fov2p, near, far);
+        t3d_viewport_set_projection(&player[1]->cam->viewport, fov4p, near, far);
+        t3d_viewport_set_projection(&player[2]->cam->viewport, fov4p, near, far);
       } else if (numPlayers == 4){
         t3d_viewport_set_projection(vp, fov4p, near, far);
       } else {

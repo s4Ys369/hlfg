@@ -16,14 +16,14 @@ typedef struct {
 
 typedef struct {
     T3DViewport viewport;
-    T3DVec3 camPos;
-    T3DVec3 camTarget;
-    T3DVec3 camForward;
-    T3DVec3 camRight;
+    T3DVec3 pos;
+    T3DVec3 target;
+    T3DVec3 forward;
+    T3DVec3 right;
     T3DVec3Pair camResults;
-    float camYaw;
+    float yaw;
     int cam_mode;
-} CameraParams;
+} Camera;
 
 
 // COLLISIONS
@@ -161,7 +161,7 @@ typedef struct {
     Sphere hitbox;
     Shadow* shadow;
     Projectile* projectile;
-    CameraParams cam;
+    Camera* cam;
     float currSpeed;
     float animBlend;
     bool isGrounded;
