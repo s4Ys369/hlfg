@@ -49,7 +49,6 @@ int main()
     level_init(&levels[i]);
   }
   level_load(currLevel);
-  player_init();
   cam_init();
   sound_init();
   ui_init();
@@ -82,7 +81,7 @@ int main()
 
     // Update actor matrices
     for (int c = 0; c < numCrates; ++c) {
-      t3d_mat4fp_from_srt_euler(crateMatFP[c],
+      t3d_mat4fp_from_srt_euler(crates[c]->mtxFP,
         (float[3]){2.0f, 2.0f, 2.0f},
         (float[3]){0, 0, 0},
         crates[c]->pos.v
@@ -90,7 +89,7 @@ int main()
     }
 
     for (int b = 0; b < numBalls; ++b) {
-      t3d_mat4fp_from_srt_euler(ballMatFP[b],
+      t3d_mat4fp_from_srt_euler(balls[b]->mtxFP,
         (float[3]){1.0f, 1.0f, 1.0f},
         balls[b]->rot.v,
         balls[b]->pos.v
@@ -99,7 +98,7 @@ int main()
     
     for (int i = 0; i < numPlayers; ++i) {
       // We now blend the walk animation with the idle/attack one
-      t3d_skeleton_blend(&playerSkel[i], &playerSkel[i], &playerSkelBlend[i], player[i]->animBlend);
+      t3d_skeleton_blend(&player[i]->skeleton, &player[i]->skeleton, &player[i]->skelBlend, player[i]->animBlend);
     }
 
 
@@ -107,12 +106,12 @@ int main()
 
     // Now recalc. the matrices, this will cause any model referencing them to use the new pose
     for (int i = 0; i < numPlayers; ++i) {
-      t3d_skeleton_update(&playerSkel[i]);
+      t3d_skeleton_update(&player[i]->skeleton);
     }
 
     for (int np = 0; np < numPlayers; ++np) {
       // Update players matrices
-      t3d_mat4fp_from_srt_euler(playerMatFP[np],
+      t3d_mat4fp_from_srt_euler(player[np]->mtxFP,
           player[np]->scale.v,
           (float[3]){0, -player[np]->rot.v[1], 0},
           player[np]->pos.v
@@ -122,30 +121,30 @@ int main()
     // Update player's extra matrices separately
     for (int p = 0; p < numPlayers; ++p) {
 
-      t3d_mat4fp_from_srt_euler(projectileMatFP[p],
+      t3d_mat4fp_from_srt_euler(player[p]->projectile->mtxFP,
         (float[3]){0.5f, 0.5f, 0.5f},
         (float[3]){player[p]->rot.v[0], -player[p]->rot.v[1], player[p]->rot.v[2]},
-        player[p]->projectile.pos.v
+        player[p]->projectile->pos.v
       );
 
-      t3d_mat4fp_from_srt_euler(shadowMatFP[p],
-        (float[3]){0.25f, 0.25f, 0.25f},
-        (float[3]){player[p]->shadowRot.v[0], 0.0f, -player[p]->shadowRot.v[2]},
-        player[p]->shadowPos.v
+      t3d_mat4fp_from_srt_euler(player[p]->shadow->mtxFP,
+        player[p]->shadow->scale.v,
+        (float[3]){player[p]->shadow->rot.v[0], 0.0f, -player[p]->shadow->rot.v[2]},
+        player[p]->shadow->pos.v
       );
 
-      t3d_mat4fp_from_srt_euler(playerhitboxMatFP[p],
+      t3d_mat4fp_from_srt_euler(player[p]->hitboxFP,
         (float[3]){1.0f, 1.0f, 1.0f},
         (float[3]){0.0f, 0.0f, 0.0f},
         player[p]->hitbox.center.v
       );
 
-      t3d_mat4fp_from_srt_euler(projectilehitboxMatFP[p],
-        (float[3]){(0.0625f * player[p]->projectile.hitbox.radius),
-                    (0.0625f * player[p]->projectile.hitbox.radius), 
-                    (0.0625f * player[p]->projectile.hitbox.radius)},
+      t3d_mat4fp_from_srt_euler(player[p]->projectile->hitboxFP,
+        (float[3]){(0.0625f * player[p]->projectile->hitbox.radius),
+                    (0.0625f * player[p]->projectile->hitbox.radius), 
+                    (0.0625f * player[p]->projectile->hitbox.radius)},
         (float[3]){0.0f, 0.0f, 0.0f},
-        player[p]->projectile.hitbox.center.v
+        player[p]->projectile->hitbox.center.v
       );
 
     }
@@ -216,29 +215,29 @@ int main()
       if(debug_mode == DEBUG_RENDER_ALL || debug_mode == DEBUG_HIDE_LEVEL){
         // then actors
         for (int c = 0; c < numCrates; ++c) {
-          rspq_block_run(dplCrate[c]);
+          rspq_block_run(crates[c]->dispL);
         }
     
         rdpq_set_lookup_address(1, sprites[textureIndex]->data);
         for (int b = 0; b < numBalls; ++b) {
-          rspq_block_run(dplBall[b]);
+          rspq_block_run(balls[b]->dispL);
         }
       }
 
       // then the player blocks
       for (int p = 0; p < numPlayers; ++p) {
-        rspq_block_run(dplPlayer[p]);
+        rspq_block_run(player[p]->dispL);
 
         // Lose shadows after 2 players for performance
         if(numPlayers < 3){
-          rspq_block_run(dplShadow[p]);
+          rspq_block_run(player[p]->shadow->dispL);
         }
       }
 
       // then the player's extra blocks
       for (int d = 0; d < numPlayers; ++d) {
-        if(player[d]->projectile.isActive == true) {
-          rspq_block_run(dplProjectile[d]);
+        if(player[d]->projectile->isActive == true) {
+          rspq_block_run(player[d]->projectile->dispL);
         }
         if(col_debug){
           if(dplFloorTri != NULL && col_floor){
@@ -250,8 +249,8 @@ int main()
           if(dplWallTri != NULL && col_wall){
             rspq_block_run(dplWallTri);
           }
-          rspq_block_run(dplPlayerHitBox[d]);
-          rspq_block_run(dplProjectileHitBox[d]);
+          rspq_block_run(player[d]->hitboxDL);
+          rspq_block_run(player[d]->projectile->hitboxDL);
         }
       }
 
@@ -302,48 +301,22 @@ int main()
   t3d_model_free(modelDebugBox);
   t3d_model_free(modelDebugSphere);
 
-  for (int i = 0; i < numPlayers; ++i) {
-    t3d_skeleton_destroy(&playerSkel[i]);
-    t3d_skeleton_destroy(&playerSkelBlend[i]);
-
-    t3d_anim_destroy(&animIdle[i]);
-    t3d_anim_destroy(&animWalk[i]);
-    t3d_anim_destroy(&animJump[i]);
-    t3d_anim_destroy(&animAttack[i]);
-    t3d_anim_destroy(&animFall[i]);
-
-    t3d_model_free(modelPlayer);
-    t3d_model_free(modelShadow);
-    t3d_model_free(modelProjectile);
-  
-    free_uncached(playerMatFP[i]);
-    free_uncached(shadowMatFP[i]);
-    free(player[i]);
-    free_uncached(projectileMatFP[i]);
-    free_uncached(playerhitboxMatFP[i]);
-    free_uncached(projectilehitboxMatFP[i]);
-  
-    rspq_block_free(dplPlayerHitBox[i]);
-    rspq_block_free(dplProjectileHitBox[i]);
-    rspq_block_free(dplShadow[i]);
-    rspq_block_free(dplProjectile[i]);
-    rspq_block_free(dplPlayer[i]);
-  }
+  player_free(numPlayers);
 
   free_octree(ballOctree, true);
   free_octree(boxOctree, true);
 
   for (int i = 0; i < numCrates; ++i) {
-    t3d_model_free(modelCrate);
-    free_uncached(crateMatFP[i]);
-    rspq_block_free(dplCrate[i]);
+    free_uncached(crates[i]->mtxFP);
+    rspq_block_free(crates[i]->dispL);
   }
+  t3d_model_free(modelCrate);
 
   for (int i = 0; i < numBalls; ++i) {
-    t3d_model_free(modelBall);
-    free_uncached(ballMatFP[i]);
-    rspq_block_free(dplBall[i]);
+    free_uncached(balls[i]->mtxFP);
+    rspq_block_free(balls[i]->dispL);
   }
+  t3d_model_free(modelBall);
 
   t3d_destroy();
   return 0;

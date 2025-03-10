@@ -73,6 +73,7 @@ void level_load(int currLevel) {
         levels[currLevel].warp.hitbox.shape.sphere = (Sphere){levels[currLevel].warp.pos,levels[currLevel].warp.radius};
     }
     actors_init();
+    player_init();
 }
 
 void level_free(Level* level) {
@@ -105,5 +106,6 @@ void level_free(Level* level) {
         level->dpl = NULL;
     }
     actors_free();
+    player_free(numPlayers);
     level_init(level);
 }

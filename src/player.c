@@ -19,28 +19,10 @@
 #include "utils/utils.h"
 #include "levels/test_level.h"
 
-
-T3DMat4FP* playerMatFP[MAX_PLAYERS];
-T3DMat4FP* shadowMatFP[MAX_PLAYERS];
-T3DMat4FP* projectileMatFP[MAX_PLAYERS];
-T3DMat4FP* playerhitboxMatFP[MAX_PLAYERS];
-T3DMat4FP* projectilehitboxMatFP[MAX_PLAYERS];
 T3DModel *modelPlayer;
 T3DModel *modelProjectile;
 T3DModel *modelShadow;
-T3DSkeleton playerSkel[MAX_PLAYERS];
-T3DSkeleton playerSkelBlend[MAX_PLAYERS];
-T3DAnim animIdle[MAX_PLAYERS];
-T3DAnim animWalk[MAX_PLAYERS];
-T3DAnim animJump[MAX_PLAYERS];
-T3DAnim animAttack[MAX_PLAYERS];
-T3DAnim animFall[MAX_PLAYERS];
-rspq_block_t *dplPlayerHitBox[MAX_PLAYERS];
-rspq_block_t *dplProjectileHitBox[MAX_PLAYERS];
-rspq_block_t *dplPlayer[MAX_PLAYERS];
-rspq_block_t *dplProjectile[MAX_PLAYERS];
-rspq_block_t *dplShadow[MAX_PLAYERS];
-PlayerParams *player[MAX_PLAYERS];
+Player *player[MAX_PLAYERS];
 int playerState[MAX_PLAYERS];
 T3DVec3 playerStartPos = {{0,128,0}};
 int airAttackCount = 0;
@@ -51,12 +33,12 @@ float newScale = 0.06f;
 
 
 // Check for PvP interaction, delcared first because used in init function
-void check_player_collisions(PlayerParams *players[], int numPlayers) {
+void check_player_collisions(Player *players[], int numPlayers) {
   for (int i = 0; i < numPlayers; i++) {
     for (int j = i + 1; j < numPlayers; j++) {
-      if (check_sphere_collision(player[i]->projectile.hitbox, player[j]->hitbox)) {
-        resolve_sphere_collision_offset(player[i]->projectile.hitbox, &player[j]->pos,0.2f);
-        resolve_sphere_collision_offset(player[j]->hitbox, &player[i]->projectile.pos,.1f);
+      if (check_sphere_collision(player[i]->projectile->hitbox, player[j]->hitbox)) {
+        resolve_sphere_collision_offset(player[i]->projectile->hitbox, &player[j]->pos,0.2f);
+        resolve_sphere_collision_offset(player[j]->hitbox, &player[i]->projectile->pos,.1f);
         player[j]->pos.v[0] += player[i]->forward.v[0] * 5;
         player[j]->pos.v[2] += player[i]->forward.v[2] * 5;
       }
@@ -83,134 +65,72 @@ void player_init(void){
 
   for (int i = 0; i < numPlayers; ++i) {
 
+    player[i] = malloc(sizeof(Player));
+    player[i]->shadow = malloc(sizeof(Shadow));
+    player[i]->projectile = malloc(sizeof(Projectile));
+
     // Allocate player matrices
-    playerMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-    shadowMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-    projectileMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-    playerhitboxMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
-    projectilehitboxMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
+    player[i]->mtxFP = malloc_uncached(sizeof(T3DMat4FP));
+    player[i]->shadow->mtxFP = malloc_uncached(sizeof(T3DMat4FP));
+    player[i]->projectile->mtxFP = malloc_uncached(sizeof(T3DMat4FP));
+
+    // Debug
+    player[i]->hitboxFP = malloc_uncached(sizeof(T3DMat4FP));
+    player[i]->projectile->hitboxFP = malloc_uncached(sizeof(T3DMat4FP));
 
     
     // Create skeleton and anims for each player
-    playerSkel[i] = t3d_skeleton_create(modelPlayer);
-    playerSkelBlend[i] = t3d_skeleton_clone(&playerSkel[i], false);
-    animIdle[i] = t3d_anim_create(modelPlayer, "idle");
-    t3d_anim_attach(&animIdle[i], &playerSkel[i]);
+    player[i]->skeleton = t3d_skeleton_create(modelPlayer);
+    player[i]->skelBlend = t3d_skeleton_clone(&player[i]->skeleton, false);
 
-    animWalk[i] = t3d_anim_create(modelPlayer, "walk");
-    t3d_anim_attach(&animWalk[i], &playerSkelBlend[i]);
+    player[i]->anims[IDLE] = t3d_anim_create(modelPlayer, "idle");
+    t3d_anim_attach(&player[i]->anims[IDLE], &player[i]->skeleton);
 
-    animJump[i] = t3d_anim_create(modelPlayer, "jump");
-    t3d_anim_set_speed(&animJump[i], 2.5f);
-    t3d_anim_set_looping(&animJump[i], false);
-    t3d_anim_set_playing(&animJump[i], false);
-    t3d_anim_attach(&animJump[i], &playerSkel[i]);
+    player[i]->anims[WALK] = t3d_anim_create(modelPlayer, "walk");
+    t3d_anim_attach(&player[i]->anims[WALK], &player[i]->skelBlend);
 
-    animAttack[i] = t3d_anim_create(modelPlayer, "attack");
-    t3d_anim_set_speed(&animAttack[i], 3.5f);
-    t3d_anim_set_looping(&animAttack[i], false);
-    t3d_anim_set_playing(&animAttack[i], false);
-    t3d_anim_attach(&animAttack[i], &playerSkel[i]);
+    player[i]->anims[JUMP] = t3d_anim_create(modelPlayer, "jump");
+    t3d_anim_set_speed(&player[i]->anims[JUMP], 2.5f);
+    t3d_anim_set_looping(&player[i]->anims[JUMP], false);
+    t3d_anim_set_playing(&player[i]->anims[JUMP], false);
+    t3d_anim_attach(&player[i]->anims[JUMP], &player[i]->skeleton);
 
-    animFall[i] = t3d_anim_create(modelPlayer, "fall");
-    t3d_anim_set_playing(&animFall[i], false);
-    t3d_anim_attach(&animFall[i], &playerSkel[i]);
+    player[i]->anims[ATTACK] = t3d_anim_create(modelPlayer, "attack");
+    t3d_anim_set_speed(&player[i]->anims[ATTACK] , 3.5f);
+    t3d_anim_set_looping(&player[i]->anims[ATTACK] , false);
+    t3d_anim_set_playing(&player[i]->anims[ATTACK] , false);
+    t3d_anim_attach(&player[i]->anims[ATTACK] , &player[i]->skeleton);
+
+    player[i]->anims[FALL]  = t3d_anim_create(modelPlayer, "fall");
+    t3d_anim_set_playing(&player[i]->anims[FALL], false);
+    t3d_anim_attach(&player[i]->anims[FALL], &player[i]->skeleton);
 
     int hack2p = 0;
     if (numPlayers == 2){
       hack2p = 1;
     }
 
-
-    // Create player's RSPQ blocks
-    rspq_block_begin();
-      rdpq_sync_pipe(); // threw this in, no effect
-      if(hack2p){
-        rdpq_mode_begin();
-          t3d_frame_start(); // When 2 players, and ONLY 2 players, the second player is rendered inside out
-        rdpq_mode_end();
-      }
-      t3d_matrix_push_pos(1);
-      matCount++; // My debug counter for number for matrices
-      t3d_matrix_set(playerMatFP[i], true); 
-      rdpq_set_prim_color(GREEN);
-      t3d_matrix_set(playerMatFP[i], true);
-      t3d_model_draw_skinned(modelPlayer, &playerSkel[i]);
-      t3d_matrix_pop(1);
-    dplPlayer[i] = rspq_block_end();
-
-    rspq_block_begin();
-      rdpq_mode_begin();
-        rdpq_sync_pipe();
-        rdpq_set_mode_standard();
-        rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
-      rdpq_mode_end();
-      t3d_matrix_push_pos(1);
-      matCount++;
-      t3d_matrix_set(playerhitboxMatFP[i], true);
-      rdpq_set_prim_color(T_RED);
-      t3d_matrix_set(playerhitboxMatFP[i], true);
-      t3d_model_draw(modelDebugSphere);
-      t3d_matrix_pop(1);
-    dplPlayerHitBox[i] = rspq_block_end();
-
-    rspq_block_begin();
-      rdpq_sync_pipe();
-      t3d_matrix_push_pos(1);
-      matCount++;
-      t3d_matrix_set(projectileMatFP[i], true);
-      rdpq_set_prim_color(WHITE);
-      t3d_matrix_set(projectileMatFP[i], true);
-      t3d_model_draw(modelProjectile);
-      t3d_matrix_pop(1);
-    dplProjectile[i] = rspq_block_end();
-
-    rspq_block_begin();
-      rdpq_mode_begin();
-        rdpq_sync_pipe();
-        rdpq_set_mode_standard();
-        rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
-      rdpq_mode_end();
-      t3d_matrix_push_pos(1);
-      matCount++;
-      t3d_matrix_set(projectilehitboxMatFP[i], true);
-      rdpq_set_prim_color(T_BLUE);
-      t3d_matrix_set(projectilehitboxMatFP[i], true);
-      t3d_model_draw(modelDebugSphere);
-      t3d_matrix_pop(1);
-    dplProjectileHitBox[i] = rspq_block_end();
-
-    rspq_block_begin();
-      rdpq_mode_begin();
-        rdpq_sync_pipe();
-        rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
-      rdpq_mode_end();
-      t3d_matrix_push_pos(1);
-      matCount++;
-      t3d_matrix_set(shadowMatFP[i], true);
-      rdpq_set_prim_color(TRANSPARENT);
-      t3d_matrix_set(shadowMatFP[i], true);
-      t3d_model_draw(modelShadow);
-      t3d_matrix_pop(1);
-    dplShadow[i] = rspq_block_end();
-
     // Init player params
-    player[i] = malloc(sizeof(PlayerParams));
     player[i]->moveDir = (T3DVec3){{0,0,0}};
     player[i]->rot = (T3DVec3){{0,0,0}};
     player[i]->scale = (T3DVec3){{newScale,newScale,newScale}};
     player[i]->pos = playerStartPos;
-    player[i]->shadowPos = player[i]->pos;
-    player[i]->shadowRot = player[i]->rot;
     player[i]->forward = (T3DVec3){{0,0,1}};
     player[i]->hitbox = (Sphere){player[i]->pos, 16.0f};
 
-    player[i]->projectile.pos = player[i]->hitbox.center;
-    player[i]->projectile.dir = player[i]->forward;
-    player[i]->projectile.hitbox = (Sphere){player[i]->hitbox.center,8.0f};
-    player[i]->projectile.speed = 0.0f;
-    player[i]->projectile.isActive = false;
-    player[i]->projectile.length = 16.0f;
+    player[i]->projectile->pos = player[i]->hitbox.center;
+    player[i]->projectile->dir = player[i]->forward;
+    player[i]->projectile->hitbox = (Sphere){player[i]->hitbox.center,8.0f};
+    player[i]->projectile->speed = 0.0f;
+    player[i]->projectile->isActive = false;
+    player[i]->projectile->length = 16.0f;
+
+    player[i]->shadow->scale = (T3DVec3){{0.25f,0.25f,0.25f}};
+    player[i]->shadow->pos = player[i]->pos;
+    player[i]->shadow->rot = player[i]->rot;
+    player[i]->shadow->opacity = 127;
+    player[i]->shadow->isActive = true;
+    player[i]->shadow->distance = 0.0f;
 
     player[i]->currSpeed = 0.0f;
 
@@ -227,6 +147,78 @@ void player_init(void){
     }
 
     player[i]->score = 0;
+
+    // Create player's RSPQ blocks
+    rspq_block_begin();
+      rdpq_sync_pipe(); // threw this in, no effect
+      if(hack2p){
+        rdpq_mode_begin();
+          t3d_frame_start(); // When 2 players, and ONLY 2 players, the second player is rendered inside out
+        rdpq_mode_end();
+      }
+      t3d_matrix_push_pos(1);
+      matCount++; // My debug counter for number for matrices
+      t3d_matrix_set(player[i]->mtxFP, true); 
+      rdpq_set_prim_color(GREEN);
+      t3d_matrix_set(player[i]->mtxFP, true);
+      t3d_model_draw_skinned(modelPlayer, &player[i]->skeleton);
+      t3d_matrix_pop(1);
+    player[i]->dispL = rspq_block_end();
+
+    rspq_block_begin();
+      rdpq_mode_begin();
+        rdpq_sync_pipe();
+        rdpq_set_mode_standard();
+        rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+      rdpq_mode_end();
+      t3d_matrix_push_pos(1);
+      matCount++;
+      t3d_matrix_set(player[i]->hitboxFP, true);
+      rdpq_set_prim_color(T_RED);
+      t3d_matrix_set(player[i]->hitboxFP, true);
+      t3d_model_draw(modelDebugSphere);
+      t3d_matrix_pop(1);
+    player[i]->hitboxDL = rspq_block_end();
+
+    rspq_block_begin();
+      rdpq_sync_pipe();
+      t3d_matrix_push_pos(1);
+      matCount++;
+      t3d_matrix_set(player[i]->projectile->mtxFP, true);
+      rdpq_set_prim_color(WHITE);
+      t3d_matrix_set(player[i]->projectile->mtxFP, true);
+      t3d_model_draw(modelProjectile);
+      t3d_matrix_pop(1);
+    player[i]->projectile->dispL = rspq_block_end();
+
+    rspq_block_begin();
+      rdpq_mode_begin();
+        rdpq_sync_pipe();
+        rdpq_set_mode_standard();
+        rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+      rdpq_mode_end();
+      t3d_matrix_push_pos(1);
+      matCount++;
+      t3d_matrix_set(player[i]->projectile->hitboxFP, true);
+      rdpq_set_prim_color(T_BLUE);
+      t3d_matrix_set(player[i]->projectile->hitboxFP, true);
+      t3d_model_draw(modelDebugSphere);
+      t3d_matrix_pop(1);
+      player[i]->projectile->hitboxDL = rspq_block_end();
+
+    rspq_block_begin();
+      rdpq_mode_begin();
+        rdpq_sync_pipe();
+        rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+      rdpq_mode_end();
+      t3d_matrix_push_pos(1);
+      matCount++;
+      t3d_matrix_set(player[i]->shadow->mtxFP, true);
+      rdpq_set_prim_color(RGBA32(0,0,0,player[i]->shadow->opacity));
+      t3d_matrix_set(player[i]->shadow->mtxFP, true);
+      t3d_model_draw(modelShadow);
+      t3d_matrix_pop(1);
+    player[i]->shadow->dispL = rspq_block_end();
 
   }
 
@@ -329,23 +321,23 @@ void check_attack_collisions(Actor **actor, int actorCount, int playerCount) {
 
   // Set the closet actor to current actor 
   Actor *currActor;
-  int closestActor = find_closest(player[playerCount]->projectile.hitbox.center, actor , actorCount);
+  int closestActor = find_closest(player[playerCount]->projectile->hitbox.center, actor , actorCount);
 
   if (closestActor != -1){
     currActor = actor[closestActor];
 
     // Handles if actor has a AABB hitbox
     if(currActor->hitbox.shape.type == SHAPE_BOX){
-      if (check_sphere_box_collision(player[playerCount]->projectile.hitbox, currActor->hitbox.shape.aabb)) {
+      if (check_sphere_box_collision(player[playerCount]->projectile->hitbox, currActor->hitbox.shape.aabb)) {
 
         // If the actor is movable ie. bouncy, player pushes actor
         if(currActor->IsBouncy == true){
-          resolve_sphere_collision_offset_xz(player[playerCount]->projectile.hitbox, &currActor->pos, 2.0f);
+          resolve_sphere_collision_offset_xz(player[playerCount]->projectile->hitbox, &currActor->pos, 2.0f);
           currActor->pos.v[0] += player[playerCount]->forward.v[0] * 2;
           currActor->pos.v[2] += player[playerCount]->forward.v[2] * 2;
         }
 
-        resolve_box_collision_offset_xz(currActor->hitbox.shape.aabb, &player[playerCount]->projectile.pos, 0.02f);
+        resolve_box_collision_offset_xz(currActor->hitbox.shape.aabb, &player[playerCount]->projectile->pos, 0.02f);
 
         player[playerCount]->score++;
 
@@ -358,11 +350,11 @@ void check_attack_collisions(Actor **actor, int actorCount, int playerCount) {
 
         // If the actor is movable ie. bouncy, projectile pushes actor
         if(currActor->IsBouncy == true){
-          resolve_sphere_collision_offset(player[playerCount]->projectile.hitbox, &currActor->hitbox.shape.sphere.center, 2.0f);
+          resolve_sphere_collision_offset(player[playerCount]->projectile->hitbox, &currActor->hitbox.shape.sphere.center, 2.0f);
         }
 
         // Actor pushes projectile
-        resolve_sphere_collision(currActor->hitbox.shape.sphere, &player[playerCount]->projectile.pos);
+        resolve_sphere_collision(currActor->hitbox.shape.sphere, &player[playerCount]->projectile->pos);
 
         player[playerCount]->score++;
 
@@ -376,7 +368,7 @@ void check_attack_collisions(Actor **actor, int actorCount, int playerCount) {
 
 
 // Example interaction: bounce player, not working in multiplayer??
-void player_bounced(PlayerParams *player[], int playerCount) {
+void player_bounced(Player *player[], int playerCount) {
   float bounceMultiplier = 1.8f;
 
   playerState[playerCount] = PLAYER_JUMP_START;
@@ -391,7 +383,7 @@ void player_bounced(PlayerParams *player[], int playerCount) {
 
   player[playerCount]->hitbox.center.v[1] = player[playerCount]->pos.v[1];
 
-  player[playerCount]->projectile.pos.v[1] = player[playerCount]->hitbox.center.v[1];
+  player[playerCount]->projectile->pos.v[1] = player[playerCount]->hitbox.center.v[1];
 }
 
 
@@ -423,7 +415,7 @@ void check_midair_actor_collisions(Actor **actor, int actorCount, int playerCoun
           if (player[playerCount]->hitbox.center.v[1] >= currActor->hitbox.shape.aabb.max.v[1]) {
 
             // Check if not playing an override animations
-            if(!animJump[playerCount].isPlaying && !animAttack[playerCount].isPlaying){
+            if(!player[playerCount]->anims[JUMP].isPlaying && !player[playerCount]->anims[ATTACK].isPlaying){
 
               // Check if the actor is marked as safe...
               if(currActor->isSafe == true){
@@ -746,32 +738,32 @@ void player_update(void){
     case PLAYER_WALK:
     case PLAYER_SLIDE:
     case PLAYER_SLIDE_DOWN:
-      t3d_anim_set_playing(&animIdle[i], true);
-      t3d_anim_set_playing(&animWalk[i], true);
-      t3d_anim_update(&animIdle[i], deltaTime);
-      t3d_anim_set_speed(&animWalk[i], player[i]->animBlend);
-      t3d_anim_update(&animWalk[i], deltaTime);
+      t3d_anim_set_playing(&player[i]->anims[IDLE], true);
+      t3d_anim_set_playing(&player[i]->anims[WALK], true);
+      t3d_anim_update(&player[i]->anims[IDLE], deltaTime);
+      t3d_anim_set_speed(&player[i]->anims[WALK], player[i]->animBlend);
+      t3d_anim_update(&player[i]->anims[WALK], deltaTime);
       break;
     case PLAYER_JUMP_START:
     case PLAYER_JUMP:
-      t3d_anim_set_playing(&animIdle[i], false);
-      t3d_anim_set_playing(&animWalk[i], false);
-      t3d_anim_update(&animJump[i], deltaTime);
+      t3d_anim_set_playing(&player[i]->anims[IDLE], false);
+      t3d_anim_set_playing(&player[i]->anims[WALK], false);
+      t3d_anim_update(&player[i]->anims[JUMP], deltaTime);
       break;
     case PLAYER_FALL:
-      t3d_anim_set_playing(&animIdle[i], false);
-      t3d_anim_set_playing(&animWalk[i], false);
-      t3d_anim_update(&animFall[i], deltaTime);
+      t3d_anim_set_playing(&player[i]->anims[IDLE], false);
+      t3d_anim_set_playing(&player[i]->anims[WALK], false);
+      t3d_anim_update(&player[i]->anims[FALL], deltaTime);
       break;
     case PLAYER_ATTACK:
     case PLAYER_ATTACK_START:
-      t3d_anim_set_playing(&animIdle[i], false);
-      t3d_anim_set_playing(&animWalk[i], false);
-      t3d_anim_update(&animAttack[i], deltaTime);
+      t3d_anim_set_playing(&player[i]->anims[IDLE], false);
+      t3d_anim_set_playing(&player[i]->anims[WALK], false);
+      t3d_anim_update(&player[i]->anims[ATTACK], deltaTime);
       break;
     case PLAYER_LAND:
-      t3d_anim_set_playing(&animJump[i], false);
-      t3d_anim_set_playing(&animFall[i], false);
+      t3d_anim_set_playing(&player[i]->anims[JUMP], false);
+      t3d_anim_set_playing(&player[i]->anims[FALL], false);
       break;
   }
   
@@ -809,7 +801,7 @@ void player_update(void){
 
   // do fall
   if(playerState[i] == PLAYER_FALL) {
-    t3d_anim_update(&animFall[i], deltaTime);
+    t3d_anim_update(&player[i]->anims[FALL], deltaTime);
 
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
@@ -873,13 +865,13 @@ void player_update(void){
   //do attack
   if(playerState[i] == PLAYER_ATTACK_START){
     if(airAttackCount == 0){
-      t3d_anim_set_playing(&animAttack[i], true);
-      t3d_anim_set_time(&animAttack[i], 0.0f);
+      t3d_anim_set_playing(&player[i]->anims[ATTACK], true);
+      t3d_anim_set_time(&player[i]->anims[ATTACK], 0.0f);
       player[i]->scale.v[1] = newScale;
       player[i]->currSpeed *= 0.5f;
-      player[i]->projectile.pos = player[i]->hitbox.center;
-      player[i]->projectile.speed = 80.0f;
-      player[i]->projectile.isActive = true;
+      player[i]->projectile->pos = player[i]->hitbox.center;
+      player[i]->projectile->speed = 80.0f;
+      player[i]->projectile->isActive = true;
       playerState[i] = PLAYER_ATTACK;
       if(!rumbleLong[i] && !rumbleShort[i] && !rumbleWave[i]){
         rumbleShort[i] = true;
@@ -891,46 +883,45 @@ void player_update(void){
 
   if(playerState[i] == PLAYER_ATTACK){
   
-    //t3d_anim_update(&animAttack[i], deltaTime);
     player[i]->currSpeed = 0;
-    player[i]->projectile.pos.v[0] += player[i]->projectile.dir.v[0] * player[i]->projectile.speed * fixedTime;
-    player[i]->projectile.pos.v[1] += player[i]->projectile.dir.v[1] * player[i]->projectile.speed * fixedTime;
-    player[i]->projectile.pos.v[2] += player[i]->projectile.dir.v[2] * player[i]->projectile.speed * fixedTime;
+    player[i]->projectile->pos.v[0] += player[i]->projectile->dir.v[0] * player[i]->projectile->speed * fixedTime;
+    player[i]->projectile->pos.v[1] += player[i]->projectile->dir.v[1] * player[i]->projectile->speed * fixedTime;
+    player[i]->projectile->pos.v[2] += player[i]->projectile->dir.v[2] * player[i]->projectile->speed * fixedTime;
 
     // Calculate the distance traveled by the projectile from its origin
-    float distanceTraveled = t3d_vec3_distance(&player[i]->projectile.pos, &player[i]->hitbox.center);
+    float distanceTraveled = t3d_vec3_distance(&player[i]->projectile->pos, &player[i]->hitbox.center);
 
     // Define the maximum distance the projectile can travel
-    float EndPosMax = player[i]->projectile.length;
+    float EndPosMax = player[i]->projectile->length;
 
     // Reverse direction if the maximum distance is reached
     if (distanceTraveled >= EndPosMax) {
-      player[i]->projectile.speed = 120.0f;
-      player[i]->projectile.dir.v[0] = -player[i]->projectile.dir.v[0];
-      player[i]->projectile.dir.v[1] = -player[i]->projectile.dir.v[1];
-      player[i]->projectile.dir.v[2] = -player[i]->projectile.dir.v[2];
+      player[i]->projectile->speed = 120.0f;
+      player[i]->projectile->dir.v[0] = -player[i]->projectile->dir.v[0];
+      player[i]->projectile->dir.v[1] = -player[i]->projectile->dir.v[1];
+      player[i]->projectile->dir.v[2] = -player[i]->projectile->dir.v[2];
     }
 
     // Calculate the end position based on the projectiles's direction and length
     T3DVec3 EndPos;
-    EndPos.v[0] = player[i]->projectile.pos.v[0] + player[i]->projectile.dir.v[0] * player[i]->projectile.length;
-    EndPos.v[1] = player[i]->projectile.pos.v[1] + player[i]->projectile.dir.v[1] * player[i]->projectile.length;
-    EndPos.v[2] = player[i]->projectile.pos.v[2] + player[i]->projectile.dir.v[2] * player[i]->projectile.length;
+    EndPos.v[0] = player[i]->projectile->pos.v[0] + player[i]->projectile->dir.v[0] * player[i]->projectile->length;
+    EndPos.v[1] = player[i]->projectile->pos.v[1] + player[i]->projectile->dir.v[1] * player[i]->projectile->length;
+    EndPos.v[2] = player[i]->projectile->pos.v[2] + player[i]->projectile->dir.v[2] * player[i]->projectile->length;
     t3d_vec3_norm(&EndPos);
     
 
 
     // Scale hitbox up and down according to position
     if (distanceTraveled <= EndPosMax) { 
-      player[i]->projectile.hitbox.center = player[i]->projectile.pos;
+      player[i]->projectile->hitbox.center = player[i]->projectile->pos;
       if(numPlayers > 3){
-        player[i]->projectile.hitbox.radius += 2.5f;
+        player[i]->projectile->hitbox.radius += 2.5f;
       } else {
-        player[i]->projectile.hitbox.radius += 1.5f;
+        player[i]->projectile->hitbox.radius += 1.5f;
       }
 
-      if(player[i]->projectile.hitbox.radius > 20.0f){
-        player[i]->projectile.hitbox.radius = 20.0f;
+      if(player[i]->projectile->hitbox.radius > 20.0f){
+        player[i]->projectile->hitbox.radius = 20.0f;
       }
     }
 
@@ -940,10 +931,10 @@ void player_update(void){
     check_attack_collisions(crates, numCrates, i);
     check_attack_collisions(balls, numBalls, i);
 
-    if(!animAttack[i].isPlaying){
-      player[i]->projectile.hitbox.center = player[i]->hitbox.center;
-      player[i]->projectile.speed = 0.0f;
-      player[i]->projectile.isActive = false;
+    if(!player[i]->anims[ATTACK].isPlaying){
+      player[i]->projectile->hitbox.center = player[i]->hitbox.center;
+      player[i]->projectile->speed = 0.0f;
+      player[i]->projectile->isActive = false;
       if (player[i]->isGrounded == true) {
         playerState[i] = PLAYER_WALK;
       } else {
@@ -956,8 +947,8 @@ void player_update(void){
   //do jump
   if(playerState[i] == PLAYER_JUMP_START) {
 
-    t3d_anim_set_time(&animJump[i], 0.0f);
-    t3d_anim_set_playing(&animJump[i], true);
+    t3d_anim_set_time(&player[i]->anims[JUMP], 0.0f);
+    t3d_anim_set_playing(&player[i]->anims[JUMP], true);
 
     if(numPlayers > 1){
       check_player_collisions(player, numPlayers);
@@ -984,13 +975,12 @@ void player_update(void){
 
   if(playerState[i] == PLAYER_JUMP){
 
-    //t3d_anim_update(&animJump[i], jumpTime);
     player[i]->scale.v[1] = t3d_lerp(player[i]->scale.v[1], newScale * 1.4f, fixedTime);
 
-    if (!animJump[i].isPlaying){
+    if (!player[i]->anims[JUMP].isPlaying){
       playerState[i] = PLAYER_FALL;
-      t3d_anim_set_playing(&animFall[i], true);
-      t3d_anim_set_time(&animFall[i], 0.0f);
+      t3d_anim_set_playing(&player[i]->anims[FALL], true);
+      t3d_anim_set_time(&player[i]->anims[FALL], 0.0f);
     }
 
     // Apply gravity
@@ -1101,9 +1091,9 @@ void player_update(void){
 
   // update shadow
   if(numPlayers < 3){
-  player[i]->shadowPos.v[0] = player[i]->pos.v[0];
-  player[i]->shadowPos.v[2] = player[i]->pos.v[2];
-  player[i]->shadowRot = player[i]->rot;
+  player[i]->shadow->pos.v[0] = player[i]->pos.v[0];
+  player[i]->shadow->pos.v[2] = player[i]->pos.v[2];
+  player[i]->shadow->rot = player[i]->rot;
   RaycastResult raySlope = closest_surface_below_raycast(player[i]->pos, levels[currLevel].slopes, levels[currLevel].slopeCount);
   Surface shadowSlope = find_closest_surface(player[i]->pos, levels[currLevel].slopes, levels[currLevel].slopeCount);
   
@@ -1124,40 +1114,70 @@ void player_update(void){
     if(shadowOnSlope){
       if(!isnan(dist_player_next_slope) && dist_player_next_slope > player[i]->hitbox.radius*2.0f){
         if(!isnan(raySlope.posY)){
-          player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], raySlope.posY, 0.7f);
+          player[i]->shadow->pos.v[1] = t3d_lerp(player[i]->shadow->pos.v[1], raySlope.posY, 0.7f);
         } else {
-          player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], 0, 0.7f);
+          player[i]->shadow->pos.v[1] = t3d_lerp(player[i]->shadow->pos.v[1], 0, 0.7f);
         }
       } else { 
         if(!isnan(nextFloor.posY)){
-          player[i]->shadowPos.v[1] = nextFloor.posY;
+          player[i]->shadow->pos.v[1] = nextFloor.posY;
         } else {
-          player[i]->shadowPos.v[1] = player[i]->pos.v[1];
+          player[i]->shadow->pos.v[1] = player[i]->pos.v[1];
         }
       }
     } else {
       if(!isnan(nextFloor.posY)){
-        player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], nextFloor.posY, 0.7f);
+        player[i]->shadow->pos.v[1] = t3d_lerp(player[i]->shadow->pos.v[1], nextFloor.posY, 0.7f);
       } else {
-        player[i]->shadowPos.v[1] = t3d_lerp(player[i]->shadowPos.v[1], 0, 0.7f);
+        player[i]->shadow->pos.v[1] = t3d_lerp(player[i]->shadow->pos.v[1], 0, 0.7f);
       }
     }
   } else {
-    player[i]->shadowPos.v[1] = player[i]->pos.v[1];
+    player[i]->shadow->pos.v[1] = player[i]->pos.v[1];
   }
   }
 
   //reset projectile
-  if(player[i]->projectile.speed == 0.0f){
+  if(player[i]->projectile->speed == 0.0f){
     update_player_forward(&player[i]->forward, player[i]->rot.v[1]);
-    player[i]->projectile.pos = player[i]->hitbox.center;
-    player[i]->projectile.dir = player[i]->forward;
-    player[i]->projectile.hitbox.center =  player[i]->projectile.pos;
-    player[i]->projectile.hitbox.radius = 8.0f;
+    player[i]->projectile->pos = player[i]->hitbox.center;
+    player[i]->projectile->dir = player[i]->forward;
+    player[i]->projectile->hitbox.center =  player[i]->projectile->pos;
+    player[i]->projectile->hitbox.radius = 8.0f;
   }
 
   hitWall = false;
 
   }
 
+}
+
+void player_free(int numPlayers)
+{
+  for (int i = 0; i < numPlayers; ++i) {
+    t3d_skeleton_destroy(&player[i]->skeleton);
+    t3d_skeleton_destroy(&player[i]->skelBlend);
+
+    for (int a = 0; a < NUM_PLAYER_ANIMS; ++a) t3d_anim_destroy(&player[i]->anims[a]);
+
+    t3d_model_free(modelPlayer);
+    t3d_model_free(modelShadow);
+    t3d_model_free(modelProjectile);
+  
+    free_uncached(player[i]->mtxFP);
+    free_uncached(player[i]->shadow->mtxFP);
+    free_uncached(player[i]->projectile->mtxFP);
+    free_uncached(player[i]->hitboxFP);
+    free_uncached(player[i]->projectile->hitboxFP);
+  
+    rspq_block_free(player[i]->projectile->hitboxDL);
+    rspq_block_free(player[i]->hitboxDL);
+    rspq_block_free(player[i]->shadow->dispL);
+    rspq_block_free(player[i]->projectile->dispL);
+    rspq_block_free(player[i]->dispL);
+
+    free(player[i]->shadow);
+    free(player[i]->projectile);
+    free(player[i]);
+  }
 }

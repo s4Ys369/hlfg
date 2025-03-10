@@ -17,15 +17,11 @@
 #include "utils/utils.h"
 
 // Crates
-extern T3DMat4FP* crateMatFP[MAX_CRATES];
-extern rspq_block_t *dplCrate[MAX_CRATES];
 extern T3DModel *modelCrate;
 extern Actor *crates[MAX_CRATES];
 extern int numCrates;
 
 // Balls
-extern T3DMat4FP* ballMatFP[MAX_BALLS];
-extern rspq_block_t *dplBall[MAX_BALLS];
 extern T3DModel *modelBall;
 extern Actor *balls[MAX_BALLS];
 extern int numBalls;

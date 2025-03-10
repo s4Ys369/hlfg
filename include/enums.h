@@ -60,6 +60,16 @@ typedef enum {
 } PLAYER_STATE;
 
 typedef enum {
+    IDLE,
+    WALK,
+    JUMP,
+    ATTACK,
+    FALL,
+    NUM_PLAYER_ANIMS
+} PLAYER_ANIM_ID;
+
+// SEGMENTS
+typedef enum {
     SEGMENT_RESERVED,
     SEGMENT_PLAYERS,
     SEGMENT_LEVELS,

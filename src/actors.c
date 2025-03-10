@@ -20,18 +20,14 @@
 #include "utils/utils.h"
 
 // Crates
-T3DMat4FP* crateMatFP[MAX_CRATES];
-rspq_block_t *dplCrate[MAX_CRATES];
-T3DModel *modelCrate;
 Actor *crates[MAX_CRATES];
+T3DModel *modelCrate;
 int numCrates;
 T3DVec3 cratesStartingPos[MAX_CRATES];
 
 // Balls
-T3DMat4FP* ballMatFP[MAX_BALLS];
-rspq_block_t *dplBall[MAX_BALLS];
-T3DModel *modelBall;
 Actor *balls[MAX_BALLS];
+T3DModel *modelBall;
 int numBalls;
 bool ballBounced[MAX_BALLS];
 float ballBounceForce[MAX_BALLS];
@@ -164,13 +160,12 @@ void crates_init(void){
   numCrates = (int)(random_float(1.0f,MAX_CRATES));
 
   for (int i = 0; i <= numCrates; ++i) {
-    crateMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
 
     float X = random_float(-400.0f, 400.0f);
     float Z = random_float(-400.0f, 400.0f);
 
     crates[i] = malloc(sizeof(Actor));
-
+    crates[i]->mtxFP = malloc_uncached(sizeof(T3DMat4FP));
     crates[i]->pos = (T3DVec3){{X, 50.0f, Z}};
     cratesStartingPos[i] = crates[i]->pos;
     crates[i]->moveDir = (T3DVec3){{0, 0, 0}};
@@ -197,12 +192,12 @@ void crates_init(void){
     rspq_block_begin();
       t3d_matrix_push_pos(1);
       matCount++;
-      t3d_matrix_set(crateMatFP[i], true);
+      t3d_matrix_set(crates[i]->mtxFP, true);
       rdpq_set_prim_color(crateColor[i]);
-      t3d_matrix_set(crateMatFP[i], true);
+      t3d_matrix_set(crates[i]->mtxFP, true);
       t3d_model_draw(modelCrate);
       t3d_matrix_pop(1);
-    dplCrate[i] = rspq_block_end();
+    crates[i]->dispL = rspq_block_end();
     
   }
 
@@ -220,13 +215,12 @@ void balls_init(void){
   surface_t placeholder = surface_make_placeholder_linear(1, FMT_RGBA16, 32, 32);
 
   for (int i = 0; i <= numBalls; ++i) {
-   ballMatFP[i] = malloc_uncached(sizeof(T3DMat4FP));
 
     float X = random_float(-400.0f, 400.0f);
     float Z = random_float(-400.0f, 400.0f);
 
     balls[i] = malloc(sizeof(Actor));
-
+    balls[i]->mtxFP = malloc_uncached(sizeof(T3DMat4FP));
     balls[i]->pos = (T3DVec3){{X, ballStartingY, Z}};
     balls[i]->moveDir = (T3DVec3){{0, 0, 0}};
     balls[i]->forward = (T3DVec3){{0, 0, 1}};
@@ -245,15 +239,15 @@ void balls_init(void){
     rspq_block_begin();
       t3d_matrix_push_pos(1);
       matCount++;
-      t3d_matrix_set(ballMatFP[i], true);
+      t3d_matrix_set(balls[i]->mtxFP, true);
       rdpq_set_prim_color(ORANGE);
-      t3d_matrix_set(ballMatFP[i], true);
+      t3d_matrix_set(balls[i]->mtxFP, true);
       t3d_model_draw_custom(modelBall, (T3DModelDrawConf){
         .userData = &placeholder,
         .dynTextureCb = dynamic_tex_cb,
       });
       t3d_matrix_pop(1);
-    dplBall[i] = rspq_block_end();
+    balls[i]->dispL = rspq_block_end();
 
   }
 }
@@ -357,7 +351,6 @@ void actors_init(void){
       resolve_box_collision_offset(FloorBox, &balls[b]->hitbox.shape.sphere.center, balls[b]->hitbox.shape.sphere.radius);
     }
     check_ball_collisions(balls, numBalls);
-    ball_surface_collider(numBalls);
     balls[b]->pos = balls[b]->hitbox.shape.sphere.center;
   }
 
@@ -441,11 +434,11 @@ void balls_update(void){
         ballBounced[b] = true;
 
       // Check for the ball colliding with the player's prjectile
-      } else if(check_sphere_collision(balls[b]->hitbox.shape.sphere, player[p]->projectile.hitbox)){
+      } else if(check_sphere_collision(balls[b]->hitbox.shape.sphere, player[p]->projectile->hitbox)){
         // Add player's current forward to the ball, with a little something
-        balls[b]->vel.v[0] += player[p]->projectile.speed * player[p]->moveDir.v[0];
-        balls[b]->vel.v[1] += player[p]->projectile.speed;
-        balls[b]->vel.v[2] += player[p]->projectile.speed * player[p]->moveDir.v[2];
+        balls[b]->vel.v[0] += player[p]->projectile->speed * player[p]->moveDir.v[0];
+        balls[b]->vel.v[1] += player[p]->projectile->speed;
+        balls[b]->vel.v[2] += player[p]->projectile->speed * player[p]->moveDir.v[2];
 
         // then bounce it
         if (balls[b]->vel.v[1] > 5.0f) {
@@ -568,11 +561,11 @@ void actors_update(void){
 
 void actors_free(void){
   for (int c = 0; c <= numCrates; ++c) {
-    free_uncached(crateMatFP[c]);
+    free_uncached(crates[c]->mtxFP);
     free(crates[c]);
   }
   for (int b = 0; b <= numBalls; ++b) {
-    free_uncached(crateMatFP[b]);
+    free_uncached(balls[b]->mtxFP);
     free(crates[b]);
   }
   free_octree(ballOctree, false);

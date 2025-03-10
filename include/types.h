@@ -4,6 +4,8 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
 #include <t3d/t3dmodel.h>
+#include <t3d/t3danim.h>
+#include <t3d/t3dskeleton.h>
 #include "enums.h"
 
 // CAMERA
@@ -72,6 +74,8 @@ typedef struct {
 } ActorHitBox;
 
 typedef struct {
+    T3DMat4FP* mtxFP;
+    rspq_block_t* dispL;
     T3DVec3 pos;
     T3DVec3 moveDir;
     T3DVec3 forward;
@@ -87,8 +91,8 @@ typedef struct OctreeNode {
     float halfSize;         // Half the size of the bounding box
     struct OctreeNode *children[8];  // Pointers to child nodes
     Actor **actors;         // List of actors in this node
-    int actorCount;         // Number of actors in this node
-    int maxActors;          // Maximum number of actors before splitting
+    uint8_t actorCount;         // Number of actors in this node
+    uint8_t maxActors;          // Maximum number of actors before splitting
 } OctreeNode;
 
 typedef void (*CollisionCallback)(Actor*, int);
@@ -117,31 +121,52 @@ typedef struct {
 
 // PLAYER
 typedef struct {
+    T3DMat4FP* mtxFP;
+    T3DMat4FP* hitboxFP;
+    rspq_block_t* dispL;
+    rspq_block_t* hitboxDL;
     T3DVec3 pos;
     T3DVec3 dir;
     Sphere hitbox;
     float speed;
     bool isActive;
     float length;
-} ProjectileParams;
+} Projectile;
 
 typedef struct {
+    T3DMat4FP* mtxFP;
+    rspq_block_t* dispL;
+    T3DVec3 scale;
+    T3DVec3 pos;
+    T3DVec3 rot;
+    uint8_t opacity;
+    bool isActive;
+    float distance;
+} Shadow;
+
+typedef struct {
+    T3DMat4FP* mtxFP;
+    T3DMat4FP* hitboxFP;
+    rspq_block_t* dispL;
+    rspq_block_t* hitboxDL;
+    T3DSkeleton skeleton;
+    T3DSkeleton skelBlend;
+    T3DAnim anims[NUM_PLAYER_ANIMS];
     T3DVec3 moveDir;
     T3DVec3 pos;
-    T3DVec3 shadowPos;
-    T3DVec3 shadowRot;
     T3DVec3 forward;
     T3DVec3 vel;
     T3DVec3 rot;
     T3DVec3 scale;
     Sphere hitbox;
-    ProjectileParams projectile;
+    Shadow* shadow;
+    Projectile* projectile;
     CameraParams cam;
     float currSpeed;
     float animBlend;
     bool isGrounded;
     float jumpForce;
     int score;
-} PlayerParams;
+} Player;
 
 #endif // TYPES_H
