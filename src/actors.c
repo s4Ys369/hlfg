@@ -14,7 +14,7 @@
 #include "utils/debug.h"
 #include "levels.h"
 #include "map.h"
-#include "octree_test.h"
+#include "actors/octree.h"
 #include "player.h"
 #include "sound.h"
 #include "utils/utils.h"
@@ -331,7 +331,7 @@ void ball_surface_collider(int ballCount){
 
 void actors_init(void){
 
-  modelCrate = t3d_model_load("rom:/models/box.t3dm");
+  modelCrate = t3d_model_load("rom:/models/spring.t3dm");
   crates_init();
   modelBall = t3d_model_load("rom:/models/sphere.t3dm");
   balls_init();
@@ -560,15 +560,8 @@ void actors_update(void){
 }
 
 void actors_free(void){
-  for (int c = 0; c <= numCrates; ++c) {
-    free_uncached(crates[c]->mtxFP);
-    free(crates[c]);
-  }
-  for (int b = 0; b <= numBalls; ++b) {
-    free_uncached(balls[b]->mtxFP);
-    free(crates[b]);
-  }
-  free_octree(ballOctree, false);
-  free_octree(boxOctree, false);
+
+  free_octree(ballOctree, true);
+  free_octree(boxOctree, true);
 }
 

@@ -13,7 +13,7 @@
 #include "input.h"
 #include "levels.h"
 #include "map.h"
-#include "octree_test.h"
+#include "actors/octree.h"
 #include "player.h"
 #include "sound.h"
 #include "utils/utils.h"
@@ -509,7 +509,7 @@ void player_to_floor(Surface currFloor, int playerCount){
 }
 
 
- float searchDiameter = 0;
+float searchDiameter = 0;
 
 Surface closestFloors[8];
 int closestFloorsCount;
@@ -526,7 +526,7 @@ Surface closestSurfaces[3];
 int closestCount;
 
 void get_batched_surfaces(int playerCount){
-  searchDiameter = player[playerCount]->hitbox.radius * 4.0f; // Double the player's hitbox diameter
+  searchDiameter = player[playerCount]->hitbox.radius * 4.0f;
   find_closest_surfaces_any_type(player[playerCount]->hitbox.center, levels[currLevel].surfaces, levels[currLevel].totalSurfaceCount, closestSurfaces, &closestCount, searchDiameter);
   
   find_closest_surfaces(player[playerCount]->pos, levels[currLevel].floors, levels[currLevel].floorCount, closestFloors, &closestFloorsCount, SURFACE_FLOOR, searchDiameter);
@@ -619,7 +619,7 @@ void player_surface_collider_quarter_step(int playerCount) {
       t3d_vec3_diff(&player[playerCount]->vel, &player[playerCount]->vel, &projectedVel);  // Subtract normal component from velocity
 
       break;  // Exit loop after handling wall collision
-    } if(hitSlope) {
+    } else if(hitSlope) {
       // Same as before but now with the slope normal
       T3DVec3 slopeNormal = calc_surface_norm(*collidedSlope);
       T3DVec3 pushUp;

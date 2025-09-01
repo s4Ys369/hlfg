@@ -3,17 +3,17 @@
 #include <time.h>
 #include <libdragon.h>
 #include <t3d/t3d.h>
-#include "../include/globals.h"
-#include "../include/enums.h"
-#include "../include/types.h"
-#include "actors.h"
-#include "collision.h"
-#include "utils/debug.h"
-#include "map.h"
-#include "octree_test.h"
-#include "player.h"
-#include "levels/test_level.h"
-#include "utils/utils.h"
+#include "../../include/globals.h"
+#include "../../include/enums.h"
+#include "../../include/types.h"
+#include "../actors.h"
+#include "../collision.h"
+#include "../map.h"
+#include "../levels/test_level.h"
+#include "../player.h"
+#include "../utils/debug.h"
+#include "../utils/utils.h"
+#include "octree.h"
 
 T3DVec3 octreeCenter = {{0.0f, 0.0f, 0.0f}};  // Center of your game world
 float octreeHalfSize = 600.0f;              // Half the size of your game world
@@ -146,6 +146,8 @@ void free_octree(OctreeNode *node, bool freeActors) {
     if (node->actors) {
         if (freeActors) {
             for (int i = 0; i < node->actorCount; ++i) {
+                free_uncached(node->actors[i]->mtxFP);
+                rspq_block_free(node->actors[i]->dispL);
                 free(node->actors[i]);
             }
         }

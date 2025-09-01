@@ -71,28 +71,28 @@ void debug_models_init(void){
   
   uint16_t norm = t3d_vert_pack_normal(&(T3DVec3){{ 0, 0, 1}});
   triVerts[0] = (T3DVertPacked){
-    .posA = {0,0,0}, .rgbaA = 0xFF0000'7F, .normA = norm,
-    .posB = {32,0,32}, .rgbaB = 0x00FF00'7F, .normB = norm,
+    .posA = {0,0,0}, .rgbaA = 0xFF00007F, .normA = norm,
+    .posB = {32,0,32}, .rgbaB = 0x00FF007F, .normB = norm,
   };
   triVerts[1] = (T3DVertPacked){
-    .posA = {64,0,64}, .rgbaA = 0x0000FF'99, .normA = norm,
-    .posB = {0,0,0}, .rgbaB = 0xFF00FF'99, .normB = norm,
+    .posA = {64,0,64}, .rgbaA = 0x0000FF99, .normA = norm,
+    .posB = {0,0,0}, .rgbaB = 0xFF00FF99, .normB = norm,
   };
   triVerts[2] = (T3DVertPacked){
-    .posA = {0,0,0}, .rgbaA = 0xFF0000'7F, .normA = norm,
-    .posB = {32,0,32}, .rgbaB = 0x00FF00'7F, .normB = norm,
+    .posA = {0,0,0}, .rgbaA = 0xFF00007F, .normA = norm,
+    .posB = {32,0,32}, .rgbaB = 0x00FF007F, .normB = norm,
   };
   triVerts[3] = (T3DVertPacked){
-    .posA = {64,0,64}, .rgbaA = 0x0000FF'99, .normA = norm,
-    .posB = {0,0,0}, .rgbaB = 0xFF00FF'99, .normB = norm,
+    .posA = {64,0,64}, .rgbaA = 0x0000FF99, .normA = norm,
+    .posB = {0,0,0}, .rgbaB = 0xFF00FF99, .normB = norm,
   };
   triVerts[4] = (T3DVertPacked){
-    .posA = {0,0,0}, .rgbaA = 0xFF0000'7F, .normA = norm,
-    .posB = {32,0,32}, .rgbaB = 0x00FF00'7F, .normB = norm,
+    .posA = {0,0,0}, .rgbaA = 0xFF00007F, .normA = norm,
+    .posB = {32,0,32}, .rgbaB = 0x00FF007F, .normB = norm,
   };
   triVerts[5] = (T3DVertPacked){
-    .posA = {64,0,64}, .rgbaA = 0x0000FF'99, .normA = norm,
-    .posB = {0,0,0}, .rgbaB = 0xFF00FF'99, .normB = norm,
+    .posA = {64,0,64}, .rgbaA = 0x0000FF99, .normA = norm,
+    .posB = {0,0,0}, .rgbaB = 0xFF00FF99, .normB = norm,
   };
   
   triangleMatFP = malloc_uncached(sizeof(T3DMat4FP));

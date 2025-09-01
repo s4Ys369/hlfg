@@ -290,22 +290,19 @@ void ui_update(void){
                 switch_xm(xmID);
             }
         }
-        if(btn[0].c_down){
-            if(currLevel > 0){
-                prevLevel = currLevel;
-                currLevel = 0;
-                level_free(&levels[prevLevel]);
-                level_load(currLevel);
-            }
-        }
+
+        /* RSP Crash - highprio sync
         if(btn[0].c_up){
-            if(currLevel < 1){
-                prevLevel = currLevel;
+            prevLevel = currLevel;
+            if(prevLevel == 1){
+                currLevel = 0;
+            } else {
                 currLevel = 1;
-                level_free(&levels[prevLevel]);
-                level_load(currLevel);
             }
+            level_free(&levels[prevLevel]);
+            level_load(currLevel);
         }
+        */
         print_controls(nextFont);
     }
 }

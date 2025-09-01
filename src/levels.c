@@ -80,18 +80,22 @@ void level_load(int currLevel) {
 void level_free(Level* level) {
     if (level->floors) {
         free(level->floors);
+        level->floorCount = 0;
         level->floors = NULL;
     }
     if (level->slopes) {
         free(level->slopes);
+        level->slopeCount = 0;
         level->slopes = NULL;
     }
     if (level->walls) {
         free(level->walls);
+        level->wallCount = 0;
         level->walls = NULL;
     }
     if (level->surfaces) {
         free(level->surfaces);
+        level->totalSurfaceCount = 0;
         level->surfaces = NULL;
     }
     if (level->matFP) {
@@ -109,5 +113,4 @@ void level_free(Level* level) {
     actors_free();
     player_free(numPlayers);
     cam_free();
-    level_init(level);
 }

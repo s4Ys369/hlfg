@@ -133,7 +133,9 @@ int main()
       );
 
       t3d_mat4fp_from_srt_euler(player[p]->hitboxFP,
-        (float[3]){1.0f, 1.0f, 1.0f},
+        (float[3]){(0.0625f * player[p]->hitbox.radius),
+                    (0.0625f * player[p]->hitbox.radius), 
+                    (0.0625f * player[p]->hitbox.radius)},
         (float[3]){0.0f, 0.0f, 0.0f},
         player[p]->hitbox.center.v
       );

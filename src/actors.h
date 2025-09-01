@@ -11,7 +11,7 @@
 #include "utils/debug.h"
 #include "levels.h"
 #include "map.h"
-#include "octree_test.h"
+#include "actors/octree.h"
 #include "player.h"
 #include "sound.h"
 #include "utils/utils.h"

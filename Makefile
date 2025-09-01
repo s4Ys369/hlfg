@@ -10,25 +10,28 @@ PROJECT_NAME=ibe
 DEBUG=0
 
 ifeq ($(DEBUG),0)
-  N64_CFLAGS += -O2
+ N64_CFLAGS += -O2
 else
-  N64_CFLAGS += -g -ggdb
+ N64_CFLAGS += -g -O0 -ggdb -DDEBUG=$(DEBUG)
+ N64_LDFLAGS += -g
 endif
 
-N64_CFLAGS += -std=gnu2x \
-	-mno-check-zero-division \
-	-funsafe-math-optimizations \
-	-fsingle-precision-constant \
-	-fno-unroll-loops \
-	-fno-peel-loops \
-	-falign-functions=32 \
-	-fno-merge-constants \
-    -fno-strict-aliasing \
-	-ffast-math \
-    -mips3 \
+COLOR ?= 1
+
+ifeq ($(COLOR),1)
+RESET   := \033[0m
+RED     := \033[0;31m
+GREEN   := \033[0;32m
+YELLOW  := \033[0;33m
+BLUE    := \033[0;34m
+MAGENTA := \033[0;35m
+CYAN    := \033[0;36m
+BLINK   := \033[33;5m
+endif
 
 src =   src/main.c \
 		src/actors.c \
+		src/actors/octree.c \
 		src/camera.c \
 		src/collision.c \
 		src/input.c \
@@ -36,7 +39,6 @@ src =   src/main.c \
 		src/levels/lvl1.c \
 		src/levels/test_level.c \
 		src/map.c \
-		src/octree_test.c \
 		src/player.c \
 		src/sound.c \
 		src/ui.c \
@@ -60,35 +62,35 @@ all: $(PROJECT_NAME).z64
 
 filesystem/%.sprite: assets/%.png
 	@mkdir -p $(dir $@)
-	@echo "    [SPRITE] $@"
+	@echo "    $(B_GREEN)[SPRITE] $@$(RESET)"
 	$(N64_MKSPRITE) $(MKSPRITE_FLAGS) -o filesystem "$<"
 
 filesystem/BG0.rgba16.sprite: MKSPRITE_FLAGS=-f RGBA16 -c 1
 
 filesystem/models/%.t3dm: assets/models/%.glb
 	@mkdir -p $(dir $@)
-	@echo "    [T3D-MODEL] $@"
+	@echo "    $(RED)[T3D] $@$(RESET)"
 	$(T3D_GLTF_TO_3D) "$<" $@
 	$(N64_BINDIR)/mkasset -c 2 -w 256 -o filesystem $@
 
 filesystem/models/%.sprite: assets/models/%.png
 	@mkdir -p $(dir $@)
-	@echo "    [SPRITE] $@"
+	@echo "    $(GREEN)[SPRITE] $@$(RESET)"
 	$(N64_MKSPRITE) $(MKSPRITE_FLAGS) -o $(dir $@) "$<"
 
 filesystem/fonts/%.font64: assets/fonts/%.ttf
 	@mkdir -p $(dir $@)
-	@echo "    [FONT] $@"
+	@echo "    $(YELLOW)[FONT] $@$(RESET)"
 	$(N64_MKFONT) $(MKFONT_FLAGS) -s 9 -o $(dir $@) "$<"
 
 filesystem/sound/%.xm64: assets/sound/%.xm
 	@mkdir -p $(dir $@)
-	@echo "    [AUDIO] $@"
+	@echo "    $(BLUE)[XM] $@$(RESET)"
 	@$(N64_AUDIOCONV) $(AUDIOCONV_FLAGS) -o $(dir $@) "$<"
 
 filesystem/sound/%.wav64: assets/sound/%.wav
 	@mkdir -p $(dir $@)
-	@echo "    [AUDIO] $@"
+	@echo "    $(CYAN)[WAV] $@$(RESET)"
 	@$(N64_AUDIOCONV) $(AUDIOCONV_FLAGS) -o $(dir $@) "$<"
 
 $(BUILD_DIR)/$(PROJECT_NAME).dfs: $(assets_conv)

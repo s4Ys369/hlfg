@@ -1,21 +1,21 @@
-#ifndef OCTREE_TEST_H
-#define OCTREE_TEST_H
+#ifndef OCTREE_H
+#define OCTREE_H
 
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
 #include <libdragon.h>
 #include <t3d/t3d.h>
-#include "../include/globals.h"
-#include "../include/enums.h"
-#include "../include/types.h"
-#include "actors.h"
-#include "collision.h"
-#include "utils/debug.h"
-#include "map.h"
-#include "player.h"
-#include "levels/test_level.h"
-#include "utils/utils.h"
+#include "../../include/globals.h"
+#include "../../include/enums.h"
+#include "../../include/types.h"
+#include "../actors.h"
+#include "../collision.h"
+#include "../map.h"
+#include "../levels/test_level.h"
+#include "../player.h"
+#include "../utils/debug.h"
+#include "../utils/utils.h"
 
 extern T3DVec3 octreeCenter;
 extern float octreeHalfSize;
@@ -27,4 +27,4 @@ void check_actor_collisions_in_node(OctreeNode *node, Sphere *sphere, CollisionC
 void handle_actor_octree_collisions(OctreeNode *root, Actor **actors, int actorCount, int playerCount);
 void free_octree(OctreeNode *node, bool freeActors);
 
-#endif // OCTREE_TEST_H
+#endif // OCTREE_H
